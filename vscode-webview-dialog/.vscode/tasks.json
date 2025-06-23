@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "compile-test",
+      "type": "shell",
+      "presentation": {
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+      },
+      "command": "cd ${workspaceRoot}; npm run compile-test --loglevel silent",
+      "isBackground": true,
+      "problemMatcher": [
+        "$tsc-watch"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+    },
+  ],
+}

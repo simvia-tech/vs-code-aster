@@ -1,0 +1,24 @@
+{
+	"name": "vscode-webview-dialog",
+	"version": "0.1.0",
+	"description": "Supports dialog-style webviews for VS Code extensions.",
+	"author": "jasongin@microsoft.com",
+	"repository": {
+		"url": "https://github.com/jasongin/vscode-webview-dialog"
+	},
+	"license": "MIT",
+	"main": "out/index.js",
+	"scripts": {
+		"install": "yarn-required",
+		"compile": "tsc --build",
+		"compile-test": "tsc --build test",
+		"pack-test": "yarn --cwd test run pack",
+		"postinstall": "yarn --cwd test"
+	},
+	"devDependencies": {
+		"@types/node": "^12.11.7",
+		"@types/vscode": "^1.39.0",
+		"typescript": "^5.8.3",
+		"yarn-required": "^0.0.6"
+	}
+}

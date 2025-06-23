@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Création fichier export</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'none';
+    img-src ${webview.cspSource};
+    script-src 'self' ${webview.cspSource};
+    style-src 'self' ${webview.cspSource};
+  " />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" type="text/css" href="./dialog.css"></style>
+</head>
+
+<body>
+
+  <h2>Création fichier export</h2>
+
+  <div class="field">
+  <div class="label">Nom de l’environnement:</div>
+  <input id="envName" type="text" placeholder="Nom de l’environnement" style="display:none;" />
+  </div>
+
+  <div class="field">
+    <div class="label">Time Limit:</div>
+    <input type="text" id="time_limit" placeholder="300" />
+    <div style="flex: 1;"></div>
+  </div>
+
+  <div class="field">
+    <div class="label">Memory Limit:</div>
+    <input type="text" id="memory_limit" placeholder="1024" />
+    <div style="flex: 1;"></div>
+  </div>
+
+  <div class="field">
+    <div class="label">NCPUs:</div>
+    <input type="text" id="ncpus" placeholder="1" />
+    <div style="flex: 1;"></div>
+  </div>
+
+  <div class="field">
+    <div class="label">MPI NBCPU:</div>
+    <input type="text" id="mpi_nbcpu" placeholder="4" />
+    <div style="flex: 1;"></div>
+  </div>
+
+  <div class="field">
+    <div class="label">MPI NBNOEUD:</div>
+    <input type="text" id="mpi_nbnoeud" placeholder="1" />
+    <div style="flex: 1;"></div>
+  </div>
+
+  <br>
+
+  <br>
+  <h2>Pour chaque fichier, remplissez le type, le nom et l'unit.<h2>
+
+  <h3 style="display: flex; align-items: center; gap: 0.5em;">
+  Fichiers d’entrée
+  <button type="button" id="addInputFile">+</button>
+  <button type="button" id="removeInputFile">−</button>
+  </h3>
+
+  <div id="inputFilesContainer">
+
+  </div>
+
+
+  <br>
+  <br>
+  <h3 style="display: flex; align-items: center; gap: 0.5em;">
+  Fichiers de sortie
+  <button type="button" id="addOutputFile">+</button>
+  <button type="button" id="removeOutputFile">−</button>
+  </h3>
+
+  <div id="outputFilesContainer">
+
+  </div>
+
+  <br>
+  <br>
+  <div class="submit">
+    <button id="boutonCreation" disabled="true">Creer</button>
+    <button id="boutonAnnulation">Annuler</button>
+  </div>
+
+<script src="./dialog.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,50 @@
+{
+	"name": "vscode-webview-dialog-test",
+	"version": "0.1.0",
+	"publisher": "ms-vsonline",
+	"description": "Tests dialog-style webviews for VS Code extensions.",
+	"author": "jasongin@microsoft.com",
+	"repository": {
+		"url": "https://github.com/jasongin/vscode-webview-dialog"
+	},
+	"license": "MIT",
+	"engines": {
+		"vscode": "^1.39.0"
+	},
+	"main": "out/extension.js",
+	"scripts": {
+		"install": "yarn-required",
+		"compile": "tsc --build",
+		"postinstall": "yarn run compile",
+		"pack": "vsce package --yarn"
+	},
+	"activationEvents": [
+		"onCommand:vscode-webview-dialog-test.showDialog"
+	],
+	"contributes": {
+		"commands": [
+			{
+				"command": "vscode-webview-dialog-test.showDialog",
+				"title": "Show Dialog",
+				"category": "WebView Dialog Test"
+			}
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "vscode-webview-dialog-test.showDialog"
+				}
+			]
+		}
+	},
+	"dependencies": {
+		"vscode-webview-dialog": "link:.."
+	},
+	"devDependencies": {
+		"@types/node": "^12.11.7",
+		"@types/vscode": "^1.39.0",
+		"typescript": "^3.6.4",
+		"vsce": "^1.69.0",
+		"yarn-required": "^0.0.6"
+	}
+}
