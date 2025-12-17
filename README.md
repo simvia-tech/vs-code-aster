@@ -33,11 +33,10 @@ The **VS Code Aster** extension is now available on the [VS Code Marketplace](ht
 
 #### From a .vsix file
 
-- Download the .vsix file from the [latest release](https://github.com/simvia-tech/vs-code-aster/actions) :
+- Download the .vsix file from the [latest release](https://github.com/simvia-tech/vs-code-aster/releases) :
 
-  1. Click on the latest successful workflow.
-  2. In the "Artifacts" section, click on the download button of the `vsix-package` artifact.
-  3. Extract the `.vsix` from the archive.
+  1. Choose your preferred version (latest is recommended)
+  2. In the "Assets" section, click on the `vs-code-aster-[version].vsix` button.
 
 > WSL users will need to copy the .vsix file to the WSL file system before continuing with the installation.
 >
