@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Export File Creation</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'none';
+    img-src ${webview.cspSource};
+    script-src 'self' ${webview.cspSource};
+    style-src 'self' ${webview.cspSource};
+  " />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" type="text/css" href="./resources/export_form/export.css"></style>
+</head>
+
+<body>
+
+  <div class="logo-container">
+  <img src="./resources/images/simvia.png" alt="Logo 1" class="logo-img" />
+  <img src="./resources/images/aster.png" alt="Logo 2" class="logo-img" />
+  </div>
+
+  <h2>Export File Creation</h2>
+
+  <div class="field">
+    <div class="label">File name:</div>
+    <input id="envName" type="text" value="simvia.export" />
+  </div>
+
+  <div class="field">
+    <div class="label">Time Limit:</div>
+    <input type="text" id="time_limit" value="300" />
+    <div style="flex: 1;"></div>
+  </div>
+
+  <div class="field">
+    <div class="label">Memory Limit:</div>
+    <input type="text" id="memory_limit" value="1024" />
+    <div style="flex: 1;"></div>
+  </div>
+
+  <div class="field">
+    <div class="label">NCPUs:</div>
+    <input type="text" id="ncpus" value="1" />
+    <div style="flex: 1;"></div>
+  </div>
+
+  <div class="field">
+    <div class="label">MPI NBCPU:</div>
+    <input type="text" id="mpi_nbcpu" value="4" />
+    <div style="flex: 1;"></div>
+  </div>
+
+  <div class="field">
+    <div class="label">MPI NBNOEUD:</div>
+    <input type="text" id="mpi_nbnoeud" value="1" />
+    <div style="flex: 1;"></div>
+  </div>
+
+
+
+  <h2>For each file, fill in the format, name, and unite value.</h2>
+
+  <h3 style="display: flex; align-items: center; gap: 0.5em;">
+    Input Files
+    <button type="button" id="addInputFile">+</button>
+    <button type="button" id="removeInputFile">−</button>
+  </h3>
+
+  <div id="inputFilesContainer"></div>
+
+  <br><br>
+
+  <h3 style="display: flex; align-items: center; gap: 0.5em;">
+    Output Files
+    <button type="button" id="addOutputFile">+</button>
+    <button type="button" id="removeOutputFile">−</button>
+  </h3>
+
+  <div id="outputFilesContainer"></div>
+
+  <br><br>
+
+  <div class="submit">
+    <button id="boutonCreation" disabled="true">Create</button>
+    <button id="boutonAnnulation">Cancel</button>
+  </div>
+
+  <script src="./resources/export_form/export.js"></script>
+
+</body>
+
+</html>

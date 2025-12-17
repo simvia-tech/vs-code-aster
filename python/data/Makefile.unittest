@@ -1,0 +1,10 @@
+%.done: %.comm
+	comm2code $<
+	@touch $@
+
+clean:
+	@rm --force *.done
+
+all: clean $(patsubst %.comm,%.done,$(wildcard *.comm))
+	@rm --force *.done
+	@echo "OK"

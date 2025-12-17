@@ -1,0 +1,86 @@
+{
+  "scopeName": "source.comm",
+  "name": "Code_Aster.comm",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#functions" },
+    { "include": "#assignments" },
+    { "include": "#parameters" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric",
+          "match": "\\b\\d+(\\.\\d+)?(E[+-]?\\d+)?\\b"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "entity.name.function",
+          "match": "\\b([A-Z_]{3,})\\b(?=\\s*\\()"
+        }
+      ]
+    },
+    "assignments": {
+      "patterns": [
+        {
+          "name": "variable.other.readwrite",
+          "match": "^\\s*([A-Z_][A-Z0-9_]*)\\s*="
+        }
+      ]
+    },
+    "parameters": {
+      "patterns": [
+        {
+          "name": "variable.parameter",
+          "match": "(?<=\\()\\s*\\b[A-Z_][A-Z0-9_]*\\b(?=\\s*=)"
+        },
+        {
+          "name": "variable.parameter",
+          "match": ",\\s*\\b[A-Z_][A-Z0-9_]*\\b(?=\\s*=)"
+        }
+      ]
+    }
+  },
+  "fileTypes": ["comm"],
+  "uuid": "d1ddf65d-bf75-4d20-880f-c16d7ac7a999"
+}

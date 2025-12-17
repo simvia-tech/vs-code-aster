@@ -1,0 +1,151 @@
+{
+  "name": "vs-code-aster",
+  "displayName": "VS Code Aster",
+  "version": "1.0.0",
+  "description": "VS Code extension for code_aster",
+  "publisher": "simvia",
+  "license": "GPL-3.0",
+  "author": {
+    "name": "Simvia SAS",
+    "url": "https://simvia.tech"
+  },
+  "contributors": [
+    {
+      "name": "Hadrien Riols",
+      "email": "hadrien.riols@gmail.com"
+    },
+    {
+      "name": "Basile Marchand",
+      "email": "basile.marchand@simvia.tech"
+    },
+    {
+      "name": "Ulysse Bouchet",
+      "email": "ulysse.bouchet@simvia.tech",
+      "url": "https://ulyssebouchet.fr"
+    }
+  ],
+  "repository": "https://github.com/simvia-tech/vs-code-aster",
+  "engines": {
+    "vscode": "^1.101.0"
+  },
+  "icon": "resources/images/icone-code-aster.png",
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vs-code-aster.exportDoc",
+        "title": "Edit export file",
+        "icon": "$(book)"
+      },
+      {
+        "command": "vs-code-aster.run-aster",
+        "title": "Run with code_aster",
+        "icon": "$(run)"
+      },
+      {
+        "command": "vs-code-aster.meshViewer",
+        "title": "Open visualizer",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "vs-code-aster.restartLSPServer",
+        "title": "Restart the LSP server for code_aster",
+        "icon": "$(sync~spin)"
+      }
+    ],
+    "languages": [
+      {
+        "id": "comm",
+        "aliases": [
+          "Comm"
+        ],
+        "extensions": [
+          ".comm"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "comm",
+        "scopeName": "source.comm",
+        "path": "./syntaxes/comm.tmLanguage.json"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "vs-code-aster.exportDoc",
+          "when": "resourceFilename =~ /\\.export$/",
+          "group": "navigation"
+        },
+        {
+          "command": "vs-code-aster.run-aster",
+          "when": "resourceFilename =~ /\\.export$/",
+          "group": "navigation"
+        },
+        {
+          "command": "vs-code-aster.meshViewer",
+          "when": "resourceFilename =~ /\\.comm$/",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "VS Code Aster",
+      "type": "object",
+      "properties": {
+        "vs-code-aster.aliasForRun": {
+          "order": 0,
+          "type": "string",
+          "default": "cave run",
+          "markdownDescription": "Specifies the alias used to run code-aster. For example, with alias `cave run` and export file `test.export`, the command will be `cave run test.export`."
+        },
+        "vs-code-aster.pythonExecutablePath": {
+          "order": 1,
+          "type": "string",
+          "default": "python3",
+          "markdownDescription": "Specifies the python executable used to run the language server."
+        },
+        "vs-code-aster.enableTelemetry": {
+          "order": 100,
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Enable sending anonymous telemetry. Un-check to opt out of telemetry collection."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.4",
+    "@types/vscode": "^1.101.0",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.25.5",
+    "eslint": "^9.25.1",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.8.3",
+    "vscode-languageclient": "^9.0.0"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.17",
+    "tailwindcss": "^4.1.17",
+    "uuid": "^13.0.0"
+  }
+}

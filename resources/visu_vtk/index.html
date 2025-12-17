@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./tailwind.css" />
+    <link rel="stylesheet" href="./styles.css" />
+
+    <title>MeshViewer</title>
+  </head>
+
+  <body class="h-screen w-screen flex">
+    <!-- Controls sidebar -->
+    <div
+      id="controls"
+      class="relative h-full flex flex-col z-10 bg-white/30 p-2"
+    >
+      <!-- Group buttons -->
+      <div
+        id="groupButtons"
+        class="flex flex-col items-center space-y-1 grow overflow-y-auto"
+      ></div>
+
+      <!-- Action buttons -->
+      <div
+        class="absolute left-full top-1 bg-white/30 flex flex-col rounded-r-sm border-l divide-y divide-black/5 border-black/5"
+      >
+        <div class="group flex items-center">
+          <button
+            id="selectGroupsBtn"
+            class="size-6.5 p-1 cursor-pointer hover:bg-white/20"
+          >
+            <img src="../icons/filter.svg" />
+          </button>
+          <span
+            class="absolute left-full pl-1.5 hidden group-hover:inline text-black/50 whitespace-nowrap"
+          >
+            Select groups to show in sidebar
+          </span>
+        </div>
+        <div class="group flex items-center">
+          <button
+            id="clearBtn"
+            class="size-6.5 p-1 cursor-pointer hover:bg-white/20"
+          >
+            <img src="../icons/clear.svg" />
+          </button>
+          <span
+            class="absolute left-full pl-1.5 hidden group-hover:inline text-black/50 whitespace-nowrap"
+          >
+            Clear highlighted groups
+          </span>
+        </div>
+      </div>
+
+      <!-- Separator -->
+      <div class="w-3/4 h-px bg-black/10 my-2 mx-auto"></div>
+
+      <!-- Axis buttons -->
+      <div class="flex justify-center space-x-1.5">
+        <button
+          id="xBtn"
+          title="Rotate camera to x-axis"
+          class="flex items-center justify-center size-5.5 p-1 bg-white/30 text-[0.65rem] font-bold text-red-600 border-2 border-red-600 rounded-full cursor-pointer hover:bg-red-600 hover:text-white/70"
+        >
+          X
+        </button>
+        <button
+          id="yBtn"
+          title="Rotate camera to y-axis"
+          class="flex items-center justify-center size-5.5 p-1 bg-white/30 text-[0.65rem] font-bold text-green-600 border-2 border-green-600 rounded-full cursor-pointer hover:bg-green-600 hover:text-white/70"
+        >
+          Y
+        </button>
+        <button
+          id="zBtn"
+          title="Rotate camera to z-axis"
+          class="flex items-center justify-center size-5.5 p-1 bg-white/30 text-[0.65rem] font-bold text-blue-600 border-2 border-blue-600 rounded-full cursor-pointer hover:bg-blue-600 hover:text-white/70"
+        >
+          Z
+        </button>
+      </div>
+    </div>
+
+    <button
+      id="helpBtn"
+      class="absolute right-2 top-2 z-10 bg-white/30 p-1.5 rounded-full cursor-pointer hover:bg-white/40 group flex items-center"
+    >
+      <img class="size-3" src="../icons/question_mark.svg" />
+      <span
+        class="absolute right-full pr-1.5 hidden group-hover:inline text-black/50 whitespace-nowrap"
+      >
+        Help
+      </span>
+    </button>
+
+    <!-- Popup backdrop -->
+    <div
+      id="popup"
+      class="hidden! absolute w-screen h-screen z-10 bg-black/20 backdrop-blur-xs"
+    >
+      <!-- Help Popup -->
+      <div
+        id="helpPopup"
+        class="hidden! absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-2/3 max-h-2/3 text-black bg-white/70 rounded shadow-lg backdrop-blur-lg p-8 flex flex-col"
+      >
+        <span class="font-bold text-base"> Help </span>
+
+        <div class="flex flex-col space-y-4 mt-4 pr-2 overflow-y-auto grow">
+          <!-- Group highlighting instructions -->
+          <div class="flex flex-col space-y-1 mb-4">
+            <span class="font-bold">Group highlighting</span>
+            <ul class="text-xs space-y-1 list-disc list-inside">
+              <li>
+                Click on a group name in the sidebar to highlight or unhighlight
+                it
+              </li>
+
+              <li>
+                Click on the
+                <img src="../icons/clear.svg" class="inline align-top size-4" /> button in
+                the sidebar to reset highlight status for all groups
+              </li>
+
+              <li>
+                Click on the
+                <img src="../icons/filter.svg" class="inline align-top size-4" /> button
+                in the sidebar to choose which groups are easily accessible in
+                the sidebar
+              </li>
+              <li>
+                Objects becomes transparent when you highlight their groups,
+                helping visualize details more clearly
+              </li>
+            </ul>
+          </div>
+
+          <!-- Camera control instructions -->
+          <div class="flex flex-col space-y-1 mb-4">
+            <span class="font-bold">Camera control</span>
+            <ul class="text-xs space-y-1 list-disc list-inside">
+              <li>
+                Hold <kbd>Left click</kbd> and move your mouse to rotate the
+                camera
+              </li>
+
+              <li>
+                Hold <kbd>Ctrl</kbd> + <kbd>Left click</kbd> and move your mouse
+                to rotate the camera around an axis
+              </li>
+
+              <li>
+                Hold <kbd>Shift</kbd> + <kbd>Left click</kbd> and move your
+                mouse to pan the camera
+              </li>
+              <li>
+                Use the <kbd>Mouse wheel</kbd> to zoom in and out
+              </li>
+              <li>
+                Click on the <kbd class="text-red-600! font-bold">X</kbd>,
+                <kbd class="text-green-600! font-bold">Y</kbd> and
+                <kbd class="text-blue-500! font-bold">Z</kbd> buttons at the
+                bottom of the sidebar to quickly align the camera along an axis
+              </li>
+            </ul>
+          </div>
+
+          <!-- File management instructions -->
+          <div class="flex flex-col space-y-1 mb-4">
+            <span class="font-bold">File management</span>
+            <ul class="text-xs space-y-1 list-disc list-inside">
+              <li>
+                Mesh files (<code>.*med</code> files) are converted to
+                <code>.obj</code> files, which are stored in a hidden folder
+                called <code>.visu_data/</code> in your workspace
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="mt-4 flex self-end space-x-3">
+          <button
+            id="closeHelpBtn"
+            class="bg-blue-500 text-white font-bold px-3 py-1 rounded-sm cursor-pointer hover:bg-blue-600"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+
+      <!-- Popup to select group buttons to show -->
+      <div
+        id="groupButtonsPopup"
+        class="hidden! absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-2/3 max-h-2/3 text-black bg-white/70 rounded shadow-lg backdrop-blur-lg p-8 flex flex-col"
+      >
+        <span class="font-bold text-base">
+          Select the groups that should be shown in the sidebar
+        </span>
+
+        <div
+          id="groupList"
+          class="flex flex-wrap mt-4 space-x-6 overflow-y-auto grow"
+        ></div>
+
+        <div class="flex self-end space-x-3">
+          <button
+            id="cancelBtn"
+            class="bg-white/30 px-3 py-1 border border-slate-500/50 text-slate-700 rounded-sm cursor-pointer hover:brightness-95"
+          >
+            Cancel
+          </button>
+          <button
+            id="saveBtn"
+            class="bg-blue-500 text-white font-bold px-3 py-1 rounded-sm cursor-pointer hover:bg-blue-600"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D Scene -->
+    <div id="scene"></div>
+
+    <!-- Hack to make the images and icons URLs more easy to find by the JS scripts -->
+    <img id="object" class="hidden" src="../icons/object.svg" />
+    <img id="face" class="hidden" src="../icons/face.svg" />
+    <img id="node" class="hidden" src="../icons/node.svg" />
+  </body>
+
+  <script src="./js/settings/GlobalSettings.js"></script>
+  <script src="./js/data/create/CreateActors.js"></script>
+  <script src="./js/data/create/FaceActorCreator.js"></script>
+  <script src="./js/data/create/NodeActorCreator.js"></script>
+  <script src="./js/data/CreateGroups.js"></script>
+  <script src="./js/data/ObjLoader.js"></script>
+  <script src="./js/data/Group.js"></script>
+  <script src="./js/core/VtkApp.js"></script>
+  <script src="./js/interaction/CameraController.js"></script>
+  <script src="./js/interaction/CameraManager.js"></script>
+  <script src="./js/interaction/AxesCreator.js"></script>
+  <script src="./js/commands/VisibilityManager.js"></script>
+  <script src="./js/ui/UIManager.js"></script>
+  <script src="./js/Controller.js"></script>
+
+  <script src="./js/vtk.js"></script>
+  <script src="./index.js"></script>
+</html>

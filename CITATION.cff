@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+title: VS Code Aster
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - name: Simvia SAS
+    website: "https://simvia.tech/"
+    country: FR
+    city: Palaiseau
+    address: 7 Bd Gaspard Monge
+    post-code: "91120"
+repository-code: "https://github.com/simvia-tech/vs-code-aster"
+abstract: VS Code Extension for code_aster
+license: GPL-3.0

@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+kbd {
+  @apply text-blue-500 bg-white/30 px-1 py-px rounded-sm;
+}

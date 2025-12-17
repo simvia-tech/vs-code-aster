@@ -1,0 +1,71 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm/
+
+# Optional eslint cache
+.eslintcache
+
+# TypeScript cache
+*.tsbuildinfo
+# Test coverage
+coverage/
+.nyc_output/
+
+# Jest cache
+jest-cache/
+jest-output/
+
+# Output of esbuild or other build tools
+*.out.js
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+.env.*
+
+# Yarn lock if tu ne veux pas le versionner
+yarn.lock
+
+# Extension quickstart
+vsc-extension-quickstart.md
+
+**/__pycache__/
+# Fichiers temporaires ou backup
+*.tmp
+*.swp
+*.bak
+
+# Archives
+*.zip
+*.tar.gz
+
+
+*.js.map
+
+node_modules/
+dist/
+
+yarn.lock
+*.vsix
+
+# Exclude extension package
+vs-code-aster-*.vsix
+.vscode-test
+out/

@@ -1,0 +1,249 @@
+#!/usr/bin/env python3
+# coding=utf-8
+
+# Copyright 2016 - 2019 EDF R&D
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License Version 3 as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, you may download a copy of license
+# from https://www.gnu.org/licenses/gpl-3.0.
+
+"""
+    %(prog)s [options] [TEST [TEST...]]
+
+Massive conversion of all code_aster testcases.
+
+    '.export' => Case => execution with AsterStudy API.
+"""
+
+
+import argparse
+import multiprocessing as MPR
+import os
+import os.path as osp
+import re
+import time
+import traceback
+from glob import glob
+
+from asterstudy.api import Calculation, StateOptions
+from asterstudy.common import auto_datafile_naming
+from asterstudy.datamodel import Validity
+from asterstudy.datamodel.engine import Engine
+
+TESTDIR = osp.join(os.getenv('HOME'), 'dev', 'codeaster', 'src', 'astest')
+
+
+class CheckImport:
+    """Implementation of a checker of the import of code_aster testcases.
+    """
+    result_file = "results.txt"
+    error_file = "errors.txt"
+
+    def __init__(self, astest, version):
+        if not osp.isdir(astest):
+            raise OSError("no such directory: {0}".format(astest))
+        self._astest = astest
+        self._version = version
+        self._queue = [] # export files to be checked
+
+    def clean_cache(self):
+        """Remove results file."""
+        for fname in (self.result_file, self.error_file):
+            if osp.isfile(fname):
+                os.remove(fname)
+
+    def completed(self):
+        """Return the list of successfully completed testcases."""
+        if not osp.isfile(self.result_file):
+            return []
+        with open(self.result_file, "r") as fres:
+            lines = fres.readlines()
+            names = [i.split(';')[0] for i in lines]
+        return names
+
+    def add_tests(self, tests):
+        """Add tests to be checked.
+
+        Arguments:
+            tests (list[str]): List of testcase names.
+        """
+        assert type(tests) in (list, tuple)
+        export = [osp.join(self._astest, i + '.export') for i in tests]
+        export = [i for i in export if osp.isfile(i)]
+        self._queue.extend(export)
+
+    def add_all_tests(self):
+        """Add all tests from the source directory."""
+        files = glob(osp.join(self._astest, '*.export'))
+        tests = [osp.splitext(osp.basename(i))[0] for i in files]
+        self.add_tests(tests)
+
+    def _check_seq(self):
+        completed = self.completed()
+        results = []
+        with open(self.result_file, "a") as fres:
+            for idx, export in enumerate(self._queue):
+                if _basn(export) in completed:
+                    continue
+                results.append(check_import(self._version, idx, export))
+                fres.write(results[-1].repr() + '\n')
+        return results, []
+
+    def check(self, numthread, timeout, nbmax):
+        """Check the import of queued testcases."""
+        if numthread == 1 or len(self._queue) == 1:
+            return self._check_seq()
+        completed = self.completed()
+        errors = []
+        results = []
+        idx = 0
+        total = min(len(self._queue), nbmax)
+        with open(self.result_file, "a") as fres, \
+             open(self.error_file, "a") as ferr:
+            with MPR.Pool(processes=numthread) as pool:
+                while self._queue:
+                    i = 0
+                    block = set()
+                    multi = []
+                    while self._queue and i < numthread:
+                        export = self._queue.pop(0)
+                        name = _basn(export)
+                        if name in completed:
+                            continue
+                        i += 1
+                        idx += 1
+                        block.add(name)
+                        multi.append(
+                            pool.apply_async(check_import,
+                                             (self._version, idx, export)))
+                        if idx >= nbmax:
+                            break
+                    res_ok = []
+                    for res in multi:
+                        try:
+                            res_i = res.get(timeout=timeout)
+                            res_ok.append(res_i)
+                            fres.write(res_i.repr() + '\n')
+                        except MPR.TimeoutError:
+                            pass
+                    results.extend(res_ok)
+                    failed = block.difference([i.name for i in res_ok])
+                    for name in failed:
+                        print("\nFAIL: ", name)
+                        ferr.write(name + '\n')
+                    errors.extend(failed)
+                    print('\rDone {0}/{1} ({2:.1f}%)'
+                          .format(idx, total, idx / total * 100), end='')
+                    ferr.flush()
+                    fres.flush()
+                    if idx >= nbmax:
+                        break
+        print()
+        return results, errors
+
+
+def _basn(path):
+    return osp.splitext(osp.basename(path))[0]
+
+
+class Report:
+    """Report of the checking of a testcase."""
+    def __init__(self, idx, export):
+        self.idx = idx
+        self.name = _basn(export)
+        self.time = 0.
+        self.ok = False
+        self.state = 0
+        self.stages = [] # 1: graphical, 0: text
+        self.nbwarns = 0
+        self.nbstages = 0
+        self.nbcomm = 0
+        self.validity = ""
+
+    def repr(self):
+        """Simple representation"""
+        return ("{0.name}; {0.idx}; {0.validity}; {0.ok}; {0.state}; "
+                "{0.nbwarns}; {0.nbcomm}; {0.nbstages}; {0.stages}"
+                .format(self))
+
+
+def check_import(version, idx, export):
+    """Check the import of a '.export' file."""
+    report = Report(idx, export)
+    tini = time.time()
+    fcomm = re.compile("^F +comm +", re.M)
+    with open(export, 'r') as fobj:
+        report.nbcomm = len(fcomm.findall(fobj.read()))
+    # create files locally
+    calc = Calculation(osp.join(".check_import", report.name))
+    try:
+        case = calc._hist.import_case(export)
+        report.nbwarns = 0
+        for stg in case.stages:
+            report.nbwarns += len(list(stg.conversion_report.iter_warnings()))
+        calc.set("version", version)
+        # ADDMEM necessary using DirectRunner
+        calc.use_interactive()
+        calc.use(memory=calc.job_infos.get('memory') + 1024)
+        calc._case = case
+        auto_datafile_naming('Case', case, calc._hist.folder)
+        report.validity = Validity.value2str(case.check())
+        report.nbstages = case.nb_stages
+        report.stages = [int(stg.is_graphical_mode()) for stg in case.stages]
+        calc.run()
+        report.state = calc.state
+        report.ok = (report.nbstages >= report.nbcomm and
+                     bool(calc.state & StateOptions.Success))
+    except:
+        with open(osp.join(".check_import", report.name, "traceback"),
+                  "w") as fobj:
+            traceback.print_exc(file=fobj)
+    report.time = time.time() - tini
+    if report.ok:
+        calc.delete_files()
+    return report
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        usage=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        )
+    parser.add_argument('-g', '--debug', action='store_true',
+                        help="turn debug mode on")
+    parser.add_argument('-d', '--dir', action='store', default=TESTDIR,
+                        help="path to the directory containing the test files")
+    parser.add_argument('-C', '--clean', action='store_true',
+                        help="reset the results file")
+    parser.add_argument('-n', '--procs', action='store', default=2, type=int,
+                        help="number of parallel processes")
+    parser.add_argument('-t', '--timeout', action='store', default=80, type=int,
+                        help="timeout per testcase")
+    parser.add_argument('--max', action='store', default=100, type=int,
+                        help="maximum number of testcases executed "
+                             "because the memory seems to be increasing more "
+                             "and more...")
+    parser.add_argument('--version', action='store', default='stable',
+                        help="select the version to be used (default: stable)")
+    parser.add_argument('tests', metavar='TEST', nargs='*',
+                        help="names of the testcases. 'None' means all the "
+                             "available tests.")
+    args = parser.parse_args()
+    checker = CheckImport(args.dir, args.version)
+    if args.clean:
+        checker.clean_cache()
+    else:
+        if args.tests:
+            checker.add_tests(args.tests)
+        else:
+            checker.add_all_tests()
+        results, errors = checker.check(args.procs, args.timeout, args.max)

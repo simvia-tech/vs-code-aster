@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.15
+      - name: Install Python
+        run: sudo apt-get update && sudo apt-get install -y python3 python3-pip python3-nox python3-venv
+      - name: Install npm dependencies
+        run: npm install
+      - name: Install vsce
+        run: npm install -g @vscode/vsce
+      - name: Build and package
+        run: python3 -m nox -s package -v --no-error-on-missing-interpreters
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-package
+          path: "*.vsix"
+          retention-days: 30

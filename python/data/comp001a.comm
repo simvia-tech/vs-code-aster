@@ -1,0 +1,68 @@
+# coding=utf-8
+# --------------------------------------------------------------------
+# Copyright (C) 1991 - 2017 - EDF R&D - www.code-aster.org
+# This file is part of code_aster.
+#
+# code_aster is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# code_aster is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
+# --------------------------------------------------------------------
+
+# person_in_charge: david.haboussa at edf.fr
+
+
+
+DEBUT(CODE=_F(NIV_PUB_WEB='INTERNET',),IMPR_MACRO='OUI');
+
+# donnee materiau et fonction
+
+
+#parametres elastiques
+YOUNG = 200000.0;
+POISSON = 0.3;
+
+#parametres loi ISOT_LINE
+SY = 437.0;
+pente = 2024.74690664;
+
+#unite en Pa
+C_Pa = 1.e+6
+#C_Pa = 1.
+YOUNG_Pa = YOUNG * C_Pa
+pente_Pa = pente * C_Pa
+SY_Pa = SY * C_Pa;
+
+acier0 = DEFI_MATERIAU(ELAS=_F(E=YOUNG_Pa,
+                               NU=POISSON,
+                               ALPHA=11.8e-6),
+                    ECRO_LINE=_F(D_SIGM_EPSI=pente_Pa,
+                                 SY=SY_Pa,),);
+#unite en MPa
+acier1 = DEFI_MATERIAU(ELAS=_F(E=YOUNG,
+                               NU=POISSON,
+                               ALPHA=11.8e-6),
+                    ECRO_LINE=_F(D_SIGM_EPSI=pente,
+                                 SY=SY,),)
+
+compor='VMIS_ISOT_LINE'
+
+tabresu=TEST_COMPOR(OPTION='MECA',
+
+              COMPORTEMENT=_F(RELATION=compor,),
+              NEWTON=_F(REAC_ITER=1),
+              LIST_MATER=(acier0, acier1),
+              VARI_TEST=('V1','VMIS','TRACE'),
+              YOUNG=YOUNG,POISSON=POISSON,
+              )
+
+
+FIN();

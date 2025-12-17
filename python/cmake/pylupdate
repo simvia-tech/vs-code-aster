@@ -1,0 +1,202 @@
+#!/usr/bin/env python3
+
+"""
+Python addendum for Qt lupdate tool.
+
+This tool is used as addendum for Qt lupdate tool which is not capable
+to manage translations in Python code in some cases. This tool parses
+Python modules and produces single Python module with all translations
+detected converted into the foirm suitable for parsing by lupdate.
+
+The tool be used in the chain sequence as follows:
+    pylupdate -o output.py module.py module.py package ...
+    lupdate -extensions py output.py -ts translations.ts
+    lrelease translations.ts -qm translations.qm
+"""
+
+import argparse
+import os
+import os.path as osp
+import re
+import sys
+
+def verbose():
+    """Check if we work in verbose mode."""
+    return getattr(verbose, "VERBOSE", True)
+
+def to_str(text):
+    """Convert *text* to C valid string."""
+    text = text.replace('"', '\\\"')
+    text = text.replace('\\\'', '\'')
+    text = text.replace('\\\\\"', '\\\"')
+    return text
+
+def skip(pattern, text, start=0):
+    """Move position in text by skipping *pattern*."""
+    rex = re.compile(pattern)
+    while start < len(text) and rex.match(text[start]):
+        start = start+1
+    return start
+
+def find(pattern, text, start=0):
+    """Find *pattern* in text."""
+    rex = re.compile(pattern)
+    match = rex.search(text, start)
+    return (match.start(), match.end()) if match is not None \
+        else (len(text), len(text))
+
+def get_string(text, start=0):
+    """Get string from *text*."""
+    result = ''
+    end = start
+
+    quote = re.compile("(\"|')")
+    if 0 <= start < len(text) and quote.match(text[start]) is not None:
+        marker_beg = text[start] # starting quote symbol
+        left = start+1           # 'left' is at next symbol after quote
+        end = left               # 'end' is at next symbol after quote
+
+        found = False
+        while not found:
+            start, end = find(marker_beg, text, end)
+            if start >= len(text):
+                break
+            found = text[start-1] != '\\'
+        if found:
+            # 'start' is at ending quote symbol matching starting quote symbol;
+            # 'end' is at next symbol after 'start'
+            result = text[left:start]
+            end = skip(r"(\s|\\)", text, end) # end is nearest non-space symbol
+            append, end = get_string(text, end)
+            result = result + append
+    return result, end
+
+def find_tr(text):
+    """Find all translations in *text*."""
+    translations = []
+
+    start = 0
+
+    while start < len(text):
+
+        start, end = find(r"translate\s*\(", text, start)
+        # 'start' is at beginning of 'translate', 'end' is after '('
+        if start >= len(text):
+            break
+        end = skip(r"(\s|\\)", text, end) # end is nearest non-space symbol
+
+        context, end = get_string(text, end)
+        if not context:
+            start = end
+            continue
+
+        context = to_str(context)
+
+        end = skip(r"(\s|\\)", text, end) # end is nearest non-space symbol
+        if end >= len(text) or text[end] != ",":
+            continue
+        end = skip(",", text, end) # end is nearest not comma symbol
+        end = skip(r"(\s|\\)", text, end) # end is nearest non-space symbol
+
+        translation, start = get_string(text, end)
+        if not translation:
+            continue
+
+        translation = to_str(translation)
+
+        if context and translation:
+            translations.append((context, translation))
+
+    return translations
+
+def process_file(filename, output, processed):
+    """Process file."""
+    if filename in processed:
+        return
+
+    processed.append(filename)
+
+    translations = []
+    with open(filename, encoding='utf-8') as infile:
+        line = "".join(infile.readlines()).replace("\n", " ")
+        translations = find_tr(line)
+        nb_tr = len(translations)
+
+        if verbose():
+            sys.stdout.write("Processing {}: {} translations found\n".format(filename, nb_tr))
+        if translations:
+            if output:
+                with open(output, 'a', encoding='utf-8') as outfile:
+                    code = "# {}: {} translations\n"
+                    code = code.format(filename, nb_tr)
+                    outfile.write(code)
+                    for couple in translations:
+                        code = "translate(\""
+                        code += couple[0]
+                        code += "\", \""
+                        code += couple[1]
+                        code += "\")\n"
+                        outfile.write(code)
+            else:
+                for couple in translations:
+                    text = "translate(\""
+                    text += couple[0]
+                    text += "\", \""
+                    text += couple[1]
+                    text += "\")"
+                    text += "\n"
+                    sys.stdout.write(text)
+
+def process(extensions, output, *args):
+    """Process input data."""
+    arguments = []
+    if args:
+        arguments = [osp.normpath(osp.abspath(d)) for d in args]
+    else:
+        arguments = [osp.normpath(os.getcwd())]
+
+    extensions = ["." + i.strip(".") for i in extensions.split(",")]
+
+    processed = []
+    for argument in arguments:
+        if osp.isdir(argument):
+            for root, _, files in os.walk(argument):
+                for filename in files:
+                    ext = osp.splitext(filename)[-1]
+                    if ext in extensions:
+                        filepath = osp.join(root, filename)
+                        process_file(filepath, output, processed)
+        else:
+            process_file(argument, output, processed)
+
+    if verbose():
+        sys.stdout.write("Done: {} files processed\n".format(len(processed)))
+
+def main():
+    """Main function."""
+    description = "Python addendum for Qt lupdate tool."
+    formatter = lambda prog: argparse.ArgumentDefaultsHelpFormatter(prog, max_help_position=50,
+                                                                    width=120)
+    parser = argparse.ArgumentParser(formatter_class=formatter, description=description)
+    parser.add_argument("path", nargs="+", help="input file or directory")
+    parser.add_argument("-e", "--extensions", default="py",
+                        help="comma-separated list of extensions to process")
+    parser.add_argument("-o", "--output", help="ouput file")
+    parser.add_argument("-s", "--silent", action="store_true", default=False,
+                        help="run in silent mode")
+    args = parser.parse_args()
+
+    verbose.VERBOSE = not args.silent
+
+    if args.output is not None:
+        try:
+            with open(args.output, "w"):
+                pass
+        except IOError:
+            sys.stderr.write("Error: cannot open '{}'\n".format(args.output))
+            sys.exit(1)
+
+    process(args.extensions, args.output, *args.path)
+
+if __name__ == "__main__":
+    main()
