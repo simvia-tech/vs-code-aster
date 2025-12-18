@@ -1,4 +1,4 @@
-<p align="center"><img src="./resources/images/simvia.png" alt="Simvia Logo" width="50%" /></p>
+<p align="center"><img src="https://raw.githubusercontent.com/simvia-tech/vs-code-aster/main/resources/images/simvia.png" alt="Simvia Logo" width="50%" /></p>
 
 <p align="center">
   <a href="/"><img src="https://img.shields.io/badge/version-1.0.0-blue" alt="Version" /></a>
@@ -101,8 +101,6 @@ pip install numpy pygls==1.3.1 medcoupling
 If you'd like to run simulations, you need to have **cave** installed on your system. You can follow the instructions on [the cave GitHub repository](https://github.com/simvia-tech/cave).
 
 You're now ready to use **VS Code Aster** !
-
-## Usage / Features
 
 ## Features overview
 
