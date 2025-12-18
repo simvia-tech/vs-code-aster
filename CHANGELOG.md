@@ -5,6 +5,13 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-12-18
+
+Micro-patch to fix README issues.
+
+### Fixed
+- **Simvia logo** in the README now uses an absolute link rather than a relative link
+
 ## [1.0.0] - 2025-12-17
 
 Initial public release — first stable feature set.
