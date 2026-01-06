@@ -3,6 +3,7 @@ HoverManager: provides hover information for code_aster commands
 Relies on CommandCore to get the document registry and CATA metadata
 """
 import re
+from typing import Optional
 from command_core import CommandCore
 
 from lsprotocol.types import (
@@ -10,6 +11,8 @@ from lsprotocol.types import (
     MarkupContent,
     MarkupKind,
 )
+
+
 
 class HoverManager:
     """
@@ -19,7 +22,7 @@ class HoverManager:
     def __init__(self):
         self.core = CommandCore()
 
-    def display(self, doc_uri, position) -> Hover | None:
+    def display(self, doc_uri, position) -> Optional[Hover]:
         """
         Return a Hover object for the given document URI and position.
         """
