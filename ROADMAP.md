@@ -4,7 +4,7 @@
 
 The extension aims to reduce friction between modeling, validation, execution, and analysis by bringing **code_aster** native workflows into the editor.
 
-## Current Capabilities (v1.0.0)
+## Current Capabilities (v1.1.0)
 
 - `.export` file generator
 - 3D mesh viewer

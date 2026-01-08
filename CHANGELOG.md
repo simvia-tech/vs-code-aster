@@ -5,6 +5,23 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-01-08
+
+Added support for quadratic nodes in the visualizer
+
+### Added
+- Quadratic nodes are now correctly displayed in the visualization
+
+### Fixed
+- [Wrong numbering for the mesh viewer #1](https://github.com/simvia-tech/vs-code-aster/issues/1)
+
+## [1.0.2] - 2026-01-07
+
+Micro-patch to fix Python < 3.10 issues.
+
+### Fixed
+- Removed modern typing and use legacy one to be compatible with older Python version. Python 3.8 or later is still required.
+
 ## [1.0.1] - 2025-12-18
 
 Micro-patch to fix README issues.
