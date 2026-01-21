@@ -5,6 +5,16 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-01-21
+
+Added support for 2D meshes in the visualizer
+
+### Added
+- 2D meshes are now supported by the visualizer.
+
+### Fixed
+- [Mesh viewer fail on astest SSLP106a #4](https://github.com/simvia-tech/vs-code-aster/issues/4)
+
 ## [1.1.0] - 2026-01-08
 
 Added support for quadratic nodes in the visualizer
