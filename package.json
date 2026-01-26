@@ -32,7 +32,9 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:python"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -61,11 +63,15 @@
       {
         "id": "comm",
         "aliases": [
-          "Comm"
+          "Aster Commands"
         ],
         "extensions": [
           ".comm"
         ],
+        "icon": {
+          "light": "./resources/images/icone-code-aster.png",
+          "dark": "./resources/images/icone-code-aster.png"
+        },
         "configuration": "./language-configuration.json"
       }
     ],

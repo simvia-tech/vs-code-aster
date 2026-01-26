@@ -82,7 +82,10 @@ export class LspServer {
         };
 
         const clientOptions: LanguageClientOptions = {
-            documentSelector: [{ scheme: 'file', language: 'comm' }],
+            documentSelector: [
+                { scheme: 'file', language: 'comm' },
+                { scheme: 'file', language: 'python', pattern: '**/*.comm' }
+            ],
             synchronize: {
                 fileEvents: vscode.workspace.createFileSystemWatcher('**/*.comm'),
             },
