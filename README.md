@@ -1,7 +1,7 @@
 <p align="center"><img src="https://raw.githubusercontent.com/simvia-tech/vs-code-aster/main/resources/images/simvia.png" alt="Simvia Logo" width="50%" /></p>
 
 <p align="center">
-  <a href="/"><img src="https://img.shields.io/badge/version-1.2.0-blue" alt="Version" /></a>
+  <a href="/"><img src="https://img.shields.io/badge/version-1.3.0--beta.0-blue" alt="Version" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL%203.0-green" alt="License" /></a>
 </p>
 
@@ -34,7 +34,6 @@ The **VS Code Aster** extension is now available on the [VS Code Marketplace](ht
 #### From a .vsix file
 
 - Download the .vsix file from the [latest release](https://github.com/simvia-tech/vs-code-aster/releases) :
-
   1. Choose your preferred version (latest is recommended)
   2. In the "Assets" section, click on the `vs-code-aster-[version].vsix` button.
 
@@ -175,6 +174,11 @@ If you want to use a custom alias, you can :
 
 - A status bar is displayed at the bottom of the window, showing the number of steps completed in the current command file, e.g., `code_aster: 3/5 steps`.
 - Clicking on the status bar opens a detailed view of completed commands for each family.
+
+**Python + Comm syntax**
+
+- It is possible to enable both Python & Comm language features. In order to do so, click on the "Aster Commands" button at the bottom-right of the window, and select Python.
+- To enable it on all `.comm` files, click on the same button but select `Configure File Association for '.comm'...` then select Python.
 
 ### 4. The visualizer — Interactive 3D result viewer
 
