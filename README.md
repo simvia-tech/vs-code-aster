@@ -1,7 +1,7 @@
 <p align="center"><img src="https://raw.githubusercontent.com/simvia-tech/vs-code-aster/main/resources/images/simvia.png" alt="Simvia Logo" width="50%" /></p>
 
 <p align="center">
-  <a href="/"><img src="https://img.shields.io/badge/version-1.2.0-blue" alt="Version" /></a>
+  <a href="/"><img src="https://img.shields.io/badge/version-1.4.0-blue" alt="Version" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL%203.0-green" alt="License" /></a>
 </p>
 
