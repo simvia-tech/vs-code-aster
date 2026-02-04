@@ -12,6 +12,9 @@ Added support for more comm file extensions
 ### Added
 - .com, .com[0-9] file extensions are now supported.
 
+### Fixed
+- [It can only read .comm files #7](https://github.com/simvia-tech/vs-code-aster/issues/7)
+
 ## [1.3.0-beta] - 2026-01-26
 
 Added support for dual Python & Comm syntax.
