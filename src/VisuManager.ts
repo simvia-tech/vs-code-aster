@@ -7,6 +7,42 @@ import { WebviewVisu } from "./WebviewVisu";
 import { TextDecoder } from "util";
 
 /**
+ * List of supported Code Aster command file extensions.
+ */
+export const SUPPORTED_COMM_EXTENSIONS = [
+  ".comm",
+  ".com",
+  ".com0",
+  ".com1",
+  ".com2",
+  ".com3",
+  ".com4",
+  ".com5",
+  ".com6",
+  ".com7",
+  ".com8",
+  ".com9",
+];
+
+/**
+ * Checks if a file path has a valid comm file extension.
+ * Supports all configured comm file extensions.
+ * @param filePath Path to the file to check
+ * @returns True if the file has a valid comm extension, false otherwise
+ */
+function isCommFile(filePath: string): boolean {
+  const config = vscode.workspace.getConfiguration("vs-code-aster");
+  const configuredExtensions = config.get<string[]>(
+    "commFileExtensions",
+    SUPPORTED_COMM_EXTENSIONS,
+  );
+  const ext = path.extname(filePath).toLowerCase();
+  return configuredExtensions.some(
+    (extConfig) => extConfig.toLowerCase() === ext,
+  );
+}
+
+/**
  * Represents an open Webview associated with a .comm file.
  */
 interface WebviewEntry {
@@ -40,10 +76,10 @@ export class VisuManager {
   }
 
   /**
-   * Creates or shows a mesh viewer webview for the active .comm file.
+   * Creates or shows a mesh viewer webview for the active comm file.
    */
   public async createOrShowMeshViewer() {
-    // We retrieve the concerned .comm file
+    // We retrieve the concerned comm file
     const editor = vscode.window.activeTextEditor;
 
     if (!editor) {
@@ -51,9 +87,10 @@ export class VisuManager {
       return;
     }
     const filePath = editor.document.uri.fsPath;
-    const commFileName = path.basename(filePath);
-    if (!commFileName.toLowerCase().endsWith(".comm")) {
-      vscode.window.showWarningMessage("The active file is not a .comm file.");
+    if (!isCommFile(filePath)) {
+      vscode.window.showWarningMessage(
+        "The active file is not a Code Aster command file.",
+      );
       return;
     }
 
@@ -88,7 +125,7 @@ export class VisuManager {
       testDir,
       "resources/visu_vtk/index.html",
       fileContexts,
-      objUris.map((uri) => path.basename(uri.fsPath))
+      objUris.map((uri) => path.basename(uri.fsPath)),
     );
 
     this.views.set(key, { commUri, objUris, visu });
@@ -111,7 +148,7 @@ export class VisuManager {
       const editor = event.textEditor;
       const filePath = editor.document.uri.fsPath;
 
-      if (!filePath.toLowerCase().endsWith(".comm")) {
+      if (!isCommFile(filePath)) {
         return;
       }
 
@@ -134,7 +171,7 @@ export class VisuManager {
  * @param objUris Array of vscode.Uri for .obj files
  */
 export async function readObjFilesContent(
-  objUris: vscode.Uri[]
+  objUris: vscode.Uri[],
 ): Promise<string[]> {
   const decoder = new TextDecoder("utf-8");
   const contexts: string[] = [];
@@ -164,7 +201,7 @@ export function findMedFiles(commFilePath: string): string[] {
 
     if (exportFiles.length === 0) {
       vscode.window.showErrorMessage(
-        `No .export file found in directory: ${dir}`
+        `No .export file found in directory: ${dir}`,
       );
       return [];
     }
@@ -196,8 +233,8 @@ export function findMedFiles(commFilePath: string): string[] {
           } else {
             vscode.window.showErrorMessage(
               `The file "${medFileName}" mentioned in "${exportFile}" does not exist in the current directory (${path.basename(
-                dir
-              )}/).`
+                dir,
+              )}/).`,
             );
           }
         }
@@ -207,15 +244,15 @@ export function findMedFiles(commFilePath: string): string[] {
     if (foundMedFiles.length === 0) {
       vscode.window.showErrorMessage(
         `No .export file in "${path.basename(
-          dir
-        )}/" references any entry .med file associated with ${commFileName}.`
+          dir,
+        )}/" references any entry .med file associated with ${commFileName}.`,
       );
     }
 
     return foundMedFiles;
   } catch (err) {
     vscode.window.showErrorMessage(
-      `Error while searching for .med file: ${(err as Error).message}`
+      `Error while searching for .med file: ${(err as Error).message}`,
     );
     return [];
   }
@@ -245,8 +282,8 @@ export async function getObjFiles(medFiles: string[]): Promise<vscode.Uri[]> {
         if (objStat.mtime < mmedStat.mtime) {
           vscode.window.showInformationMessage(
             `.obj file is outdated and being regenerated: ${path.basename(
-              objFilePath
-            )}`
+              objFilePath,
+            )}`,
           );
           console.log(`[getObjFiles] .obj file is outdated: ${objFilePath}`);
           await generateObjFromMed(mmedFilePath, objFilePath);
@@ -256,7 +293,7 @@ export async function getObjFiles(medFiles: string[]): Promise<vscode.Uri[]> {
       } else {
         console.log(`[getObjFiles] .obj file not found for ${mmedBase}.`);
         vscode.window.showInformationMessage(
-          `Creating .obj file for: ${path.basename(mmedFilePath)}`
+          `Creating .obj file for: ${path.basename(mmedFilePath)}`,
         );
         await generateObjFromMed(mmedFilePath, objFilePath);
         if (fs.existsSync(objFilePath)) {
@@ -269,11 +306,11 @@ export async function getObjFiles(medFiles: string[]): Promise<vscode.Uri[]> {
       if (msg.includes("No module named 'medcoupling'")) {
         vscode.window.showErrorMessage(
           "Python module 'medcoupling' is not installed. " +
-            "Please install it by running `pip install medcoupling` in your Python environment, then retry."
+            "Please install it by running `pip install medcoupling` in your Python environment, then retry.",
         );
       } else {
         vscode.window.showErrorMessage(
-          `Error while searching for .obj file: ${(err as Error).message}`
+          `Error while searching for .obj file: ${(err as Error).message}`,
         );
       }
     }
@@ -288,20 +325,20 @@ export async function getObjFiles(medFiles: string[]): Promise<vscode.Uri[]> {
  */
 async function generateObjFromMed(
   medFilePath: string,
-  objFilePath: string
+  objFilePath: string,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     // Locate med2obj.py script - assumed to be in python/asterstudy/post or similar
     const scriptPath = path.join(__dirname, "..", "python", "med2obj.py");
 
     console.log(
-      `[generateObjFromMed] Executing: python ${scriptPath} ${medFilePath} ${objFilePath}`
+      `[generateObjFromMed] Executing: python ${scriptPath} ${medFilePath} ${objFilePath}`,
     );
 
     const config = vscode.workspace.getConfiguration("vs-code-aster");
     const pythonExecutablePath = config.get<string>(
       "pythonExecutablePath",
-      "python3"
+      "python3",
     );
 
     const process = spawn(
@@ -309,7 +346,7 @@ async function generateObjFromMed(
       [scriptPath, "-i", medFilePath, "-o", objFilePath],
       {
         cwd: path.dirname(medFilePath),
-      }
+      },
     );
 
     let stderr = "";
@@ -327,7 +364,7 @@ async function generateObjFromMed(
     process.on("close", (code) => {
       if (code === 0) {
         console.log(
-          `[generateObjFromMed] Successfully generated: ${objFilePath}`
+          `[generateObjFromMed] Successfully generated: ${objFilePath}`,
         );
         resolve();
       } else {
