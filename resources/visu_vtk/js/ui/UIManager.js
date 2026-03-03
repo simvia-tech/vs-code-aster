@@ -112,7 +112,7 @@ class UIManager {
       const groups = faces.concat(nodes);
       groups.forEach((groupName) => {
         const btn = document.createElement("button");
-        btn.id = `btn_${groupName}`;
+        btn.id = `btn_${object}::${groupName}`;
         btn.classList.add(
           "relative",
           "flex",
@@ -137,7 +137,7 @@ class UIManager {
         btn.innerHTML = icon + text;
 
         btn.addEventListener("click", () => {
-          VisibilityManager.Instance.setVisibility(groupName);
+          VisibilityManager.Instance.setVisibility(`${object}::${groupName}`);
         });
 
         groupButtonsDiv.appendChild(btn);
@@ -184,6 +184,7 @@ class UIManager {
       // Create object div
       const objectDiv = document.createElement("div");
       objectDiv.classList.add("flex", "flex-col", "space-y-1", "mb-4");
+      objectDiv.dataset.object = object;
 
       // Create object label
       const objectLabel = `<span class="font-semibold text-sm">${objectName}</span>`;
@@ -224,9 +225,10 @@ class UIManager {
     for (let i = 0; i < groupList.children.length; ++i) {
       const objectDiv = groupList.children.item(i);
 
-      // Retrieve current object name
+      // Retrieve current object name and key
       const objectNameSpan = objectDiv.querySelector("span.font-semibold");
       const objectName = objectNameSpan.textContent.trim();
+      const objectKey = objectDiv.dataset.object;
       let allGroupsHidden = true;
 
       // Parse all labels for the current object
@@ -239,7 +241,7 @@ class UIManager {
         const groupName = span.textContent.trim();
 
         // Hide or show group in the sidebar
-        const btn = document.getElementById(`btn_${groupName}`);
+        const btn = document.getElementById(`btn_${objectKey}::${groupName}`);
         if (input.checked) {
           btn.classList.remove("hidden!");
           allGroupsHidden = false;
@@ -276,6 +278,7 @@ class UIManager {
       const objectDiv = groupList.children.item(i);
       const labels = objectDiv.querySelectorAll("label");
 
+      const objectKey = objectDiv.dataset.object;
       labels.forEach((label) => {
         const input = label.querySelector("input");
         const span = label.querySelector("span");
@@ -284,7 +287,7 @@ class UIManager {
         const groupName = span.textContent.trim();
 
         // Set the checkbox state based on the button's visibility, since it did not change
-        const btn = document.getElementById(`btn_${groupName}`);
+        const btn = document.getElementById(`btn_${objectKey}::${groupName}`);
         input.checked = !btn.classList.contains("hidden!");
       });
     }

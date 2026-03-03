@@ -127,7 +127,7 @@ class VisibilityManager {
       if (!group.actor) {
         continue;
       }
-      if (groupName.includes("all_")) {
+      if (group.fileGroup === null) {
         continue;
       }
       group.setVisibility(false);

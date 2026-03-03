@@ -59,7 +59,7 @@ class CreateGroups {
                 const actor = FaceActorCreato.create(faceGroup, groupId);
 
                 const subGroup = new Group(actor, faceGroup, true, fileGroup, size);
-                this.groups[faceGroup] = subGroup;
+                this.groups[`${fileGroup}::${faceGroup}`] = subGroup;
             }
 
             for (const nodeGroup of groupHierarchy[fileGroup].nodes) {
@@ -68,7 +68,7 @@ class CreateGroups {
                 const actor = NodeActorCreato.create(groupId);
 
                 const subGroup = new Group(actor, nodeGroup, false, fileGroup, size);
-                this.groups[nodeGroup] = subGroup;
+                this.groups[`${fileGroup}::${nodeGroup}`] = subGroup;
             }
         }
 
