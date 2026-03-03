@@ -187,9 +187,11 @@ export async function readObjFilesContent(
 }
 
 /**
- * Finds the .*med files corresponding to a given .comm file by reading .export files in the same folder.
+ * Finds med files corresponding to a given .comm file by reading .export files in the same folder.
+ * Looks for F lines whose type field ends with "med" (e.g. mmed, rmed) and ioFlag is "D".
+ * The med file may have any extension (e.g. .med, .21, .17).
  * @param commFilePath Path to the .comm file
- * @returns Paths to the .*med files if found, [] otherwise
+ * @returns Paths to the med files if found, [] otherwise
  */
 export function findMedFiles(commFilePath: string): string[] {
   try {
@@ -218,34 +220,36 @@ export function findMedFiles(commFilePath: string): string[] {
 
       const lines = content.split(/\r?\n/);
       for (const line of lines) {
-        if (!/\bD\b/.test(line)) {
+        const cleanLine = line.split("#")[0].trim();
+        const tokens = cleanLine.split(/\s+/);
+
+        if (tokens.length !== 5 || tokens[0] !== "F") {
           continue;
         }
 
-        const match = line.match(/([\w\-./\\]+\.[a-z]?med)\b/i);
-        if (match) {
-          const medFileName = path.basename(match[1]);
-          const medPath = path.join(dir, medFileName);
+        const [, type, name, ioFlag] = tokens;
 
-          if (fs.existsSync(medPath)) {
-            console.log(`[findMedFiles] found med file: ${medFileName}`);
-            foundMedFiles.push(medPath);
-          } else {
-            vscode.window.showErrorMessage(
-              `The file "${medFileName}" mentioned in "${exportFile}" does not exist in the current directory (${path.basename(
-                dir,
-              )}/).`,
-            );
-          }
+        if (!type.endsWith("med") || ioFlag !== "D") {
+          continue;
+        }
+
+        const medFileName = path.basename(name);
+        const medPath = path.join(dir, medFileName);
+
+        if (fs.existsSync(medPath)) {
+          console.log(`[findMedFiles] found med file: ${medFileName}`);
+          foundMedFiles.push(medPath);
+        } else {
+          vscode.window.showErrorMessage(
+            `The file "${medFileName}" mentioned in "${exportFile}" does not exist in the current directory (${path.basename(dir)}/).`,
+          );
         }
       }
     }
 
     if (foundMedFiles.length === 0) {
       vscode.window.showErrorMessage(
-        `No .export file in "${path.basename(
-          dir,
-        )}/" references any entry .med file associated with ${commFileName}.`,
+        `No .export file in "${path.basename(dir)}/" references any input med file associated with ${commFileName}.`,
       );
     }
 
@@ -350,18 +354,36 @@ async function generateObjFromMed(
     );
 
     let stderr = "";
+    let settled = false;
 
     process.stderr.on("data", (data) => {
       stderr += data.toString();
       console.log(`[generateObjFromMed] stderr: ${data}`);
     });
 
-    process.on("error", (err) => {
+    process.on("error", (err: NodeJS.ErrnoException) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
       console.error(`[generateObjFromMed] Process error: ${err.message}`);
-      reject(new Error(`Failed to generate .obj file: ${err.message}`));
+      if (err.code === "ENOENT") {
+        reject(
+          new Error(
+            `Python executable not found: "${pythonExecutablePath}". ` +
+              `Please update the "vs-code-aster.pythonExecutablePath" setting.`,
+          ),
+        );
+      } else {
+        reject(new Error(`Failed to generate .obj file: ${err.message}`));
+      }
     });
 
     process.on("close", (code) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
       if (code === 0) {
         console.log(
           `[generateObjFromMed] Successfully generated: ${objFilePath}`,

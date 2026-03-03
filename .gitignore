@@ -69,3 +69,5 @@ yarn.lock
 vs-code-aster-*.vsix
 .vscode-test
 out/
+
+.claude/
