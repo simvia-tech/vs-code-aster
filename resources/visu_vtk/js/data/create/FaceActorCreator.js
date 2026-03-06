@@ -18,7 +18,7 @@ class FaceActorCreator {
    * @returns {vtkActor}
    */
   create(groupName, groupId) {
-    const polyData = this.prepare(groupId);
+    const { polyData, cellCount } = this.prepare(groupId);
 
     const actor = vtk.Rendering.Core.vtkActor.newInstance();
     const mapper = vtk.Rendering.Core.vtkMapper.newInstance();
@@ -26,10 +26,10 @@ class FaceActorCreator {
     mapper.setInputData(polyData);
     actor.setMapper(mapper);
 
-    const { colorIndex, isObjectActor } = this.setProperty(actor, groupName);
+    const { colorIndex, isObjectActor } = this.setProperty(actor, groupName, cellCount);
     VtkApp.Instance.getRenderer().addActor(actor);
 
-    return { actor, colorIndex, isObjectActor };
+    return { actor, colorIndex, isObjectActor, cellCount };
   }
 
   
@@ -55,7 +55,8 @@ class FaceActorCreator {
       .map((g, idx) => (g === groupId ? idx : -1))
       .filter(idx => idx !== -1);
 
-    if (cellIndices.length > 0) {
+    const cellCount = cellIndices.length;
+    if (cellCount > 0) {
       const cellArray = vtk.Common.Core.vtkCellArray.newInstance({
         values: Uint32Array.from(cellIndices.flatMap(i => {
           const c = this.cells[i];
@@ -65,7 +66,7 @@ class FaceActorCreator {
       pd.setPolys(cellArray);
     }
 
-    return pd;
+    return { polyData: pd, cellCount };
   }
 
   /**
@@ -73,7 +74,7 @@ class FaceActorCreator {
    * @param {vtkActor} actor
    * @param {string} groupName
    */
-  setProperty(actor, groupName) {
+  setProperty(actor, groupName, cellCount) {
     const prop = actor.getProperty();
 
     let colorIndex, isObjectActor;
@@ -89,7 +90,9 @@ class FaceActorCreator {
       actor.setVisibility(false);
     }
 
-    prop.setEdgeVisibility(true);
+    const [r, g, b] = prop.getColor();
+    prop.setEdgeVisibility(true); // edge color is managed dynamically by CameraManager
+    prop.setEdgeColor(r, g, b);  // start invisible (matches surface); CameraManager blends toward black
     prop.setLineWidth(0.3);
     prop.setInterpolationToPhong();
     prop.setSpecular(0.3);

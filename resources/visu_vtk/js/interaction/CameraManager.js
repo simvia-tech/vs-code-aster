@@ -16,18 +16,26 @@ class CameraManager {
      */
     init(groups) {
         this.nodesGroups = {};
+        this.faceGroups = {};
 
         const renderer = VtkApp.Instance.getRenderer();
         this.camera = renderer.getActiveCamera();
-        this.lastDistance = this.camera.getDistance();
+        this.initialDistance = this.camera.getDistance();
+        this.lastDistance = this.initialDistance;
 
-        // Store only node groups
         for (const [groupName, group] of Object.entries(groups)) {
             if (!group.isFaceGroup) {
                 this.nodesGroups[groupName] = group;
                 group.setSize(this.lastDistance);
+            } else if (group.cellCount !== null) {
+                this.faceGroups[groupName] = group;
+                group.updateEdgeVisibility(this.lastDistance, this.initialDistance);
             }
         }
+
+        this._zoomIndicator = document.getElementById("zoomIndicator");
+        this._resetZoomBtn = document.getElementById("resetZoomBtn");
+        this._updateZoomIndicator(this.initialDistance);
 
         this.axisMarker = this.createAxisMarker();
         this.activateSizeUpdate();
@@ -39,13 +47,66 @@ class CameraManager {
     activateSizeUpdate() {
         this.camera.onModified(() => {
             const currentDistance = this.camera.getDistance();
+            this._updateZoomIndicator(currentDistance);
             if (Math.abs(currentDistance - this.lastDistance) > 1e-2) {
                 for (const nodeGroup of Object.values(this.nodesGroups)) {
                     nodeGroup.setSize(currentDistance);
                 }
+                for (const faceGroup of Object.values(this.faceGroups)) {
+                    faceGroup.updateEdgeVisibility(currentDistance, this.initialDistance);
+                }
                 this.lastDistance = currentDistance;
             }
         });
+    }
+
+    _updateZoomIndicator(currentDistance) {
+        if (!this._zoomIndicator) return;
+        const ratio = this.initialDistance / currentDistance;
+        let text;
+        if (ratio >= 10) text = `${Math.round(ratio)}×`;
+        else if (ratio >= 1)  text = `${ratio.toFixed(1)}×`;
+        else                  text = `${ratio.toFixed(2)}×`;
+        this._zoomIndicator.textContent = text;
+        const atDefault = Math.abs(ratio - 1) < 0.01;
+        this._resetZoomBtn?.classList.toggle("hidden!", atDefault);
+    }
+
+    resetZoom() {
+        VtkApp.Instance.getRenderer().resetCamera();
+        VtkApp.Instance.updateCameraOffset(); // resets window center offset and renders
+    }
+
+    /**
+     * Moves the camera to a specific zoom ratio relative to the initial position.
+     * @param {number} ratio - e.g. 2 means 2× zoomed in from initial
+     */
+    setZoom(ratio) {
+        const focalPoint = this.camera.getFocalPoint();
+        const position   = this.camera.getPosition();
+        const dx = position[0] - focalPoint[0];
+        const dy = position[1] - focalPoint[1];
+        const dz = position[2] - focalPoint[2];
+        const currentDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        const scale = (this.initialDistance / ratio) / currentDist;
+        this.camera.setPosition(
+            focalPoint[0] + dx * scale,
+            focalPoint[1] + dy * scale,
+            focalPoint[2] + dz * scale
+        );
+        VtkApp.Instance.getRenderer().resetCameraClippingRange();
+        VtkApp.Instance.updateCameraOffset();
+    }
+
+    /**
+     * Re-applies edge visibility for all face groups using the current camera distance.
+     * Call this when the edge mode setting changes.
+     */
+    refreshEdgeVisibility() {
+        for (const faceGroup of Object.values(this.faceGroups)) {
+            faceGroup.updateEdgeVisibility(this.lastDistance, this.initialDistance);
+        }
+        VtkApp.Instance.getRenderWindow().render();
     }
 
     /**

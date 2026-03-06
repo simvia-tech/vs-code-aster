@@ -36,6 +36,8 @@ class GlobalSettings {
     selectionPointColor = [1, 0, 0]; // #ff0000
 
     hiddenObjectOpacity = 0;
+    edgeMode = 'threshold'; // 'hide' | 'show' | 'gradual' | 'threshold'
+    edgeThresholdMultiplier = 1;
 
     get isDark() {
         return document.body.classList.contains('vscode-dark') ||

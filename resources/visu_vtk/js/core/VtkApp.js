@@ -61,12 +61,18 @@ class VtkApp {
 
     /**
      * Offsets the camera so the scene appears centered in the area to the right of the sidebar.
+     * Also repositions the zoom widget to the center of that same area.
      */
     updateCameraOffset() {
         const sidebarWidth = document.getElementById("controls").offsetWidth;
         const offset = sidebarWidth / window.innerWidth;
         this.renderer.getActiveCamera().setWindowCenter(-offset, 0);
         this.renderWindow.render();
+
+        const zoomWidget = document.getElementById("zoomWidget");
+        if (zoomWidget) {
+            zoomWidget.style.left = `${sidebarWidth + (window.innerWidth - sidebarWidth) / 2}px`;
+        }
     }
 
     /** @returns {vtkRenderer} The VTK renderer */

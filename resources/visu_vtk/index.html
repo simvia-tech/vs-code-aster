@@ -133,6 +133,32 @@
       </button>
     </div>
 
+    <!-- Zoom indicator -->
+    <div
+      id="zoomWidget"
+      class="absolute bottom-2 z-10 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+      style="left: 50%; background: color-mix(in srgb, var(--ui-bg) 85%, transparent); border: 1px solid var(--ui-border)"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ui-text-secondary)"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
+      <div
+        id="zoomTrigger"
+        class="cursor-pointer select-none px-1 py-0.5 rounded"
+        style="color: var(--ui-text-secondary)"
+        onmouseover="this.style.background='color-mix(in srgb, var(--ui-fg) 7%, transparent)'"
+        onmouseout="this.style.background=''"
+      >
+        <span id="zoomIndicator" class="text-xs font-mono">1.0×</span>
+      </div>
+      <button
+        id="resetZoomBtn"
+        title="Reset zoom"
+        class="hidden! size-3.5 cursor-pointer flex items-center justify-center opacity-50 hover:opacity-100"
+        style="color: var(--ui-fg)"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>
+    </div>
+
     <!-- Popup backdrop -->
     <div
       id="popup"
@@ -240,6 +266,38 @@
         <span class="font-bold text-base"> Settings </span>
 
         <div class="flex flex-col space-y-4 mt-4 pr-2 overflow-y-auto grow">
+          <!-- Edge display mode -->
+          <div class="flex flex-col space-y-1.5">
+            <label for="edgeModeSelect" class="text-sm font-semibold">Edge display</label>
+            <div
+              id="edgeModeSelect"
+              class="w-full text-xs px-2 py-1.5 rounded-sm cursor-pointer flex items-center justify-between gap-2 select-none"
+              style="background: var(--ui-element-bg); color: var(--ui-fg); border: 1px solid var(--ui-border)"
+              onmouseover="this.style.background='var(--ui-element-bg-hover)'"
+              onmouseout="this.style.background='var(--ui-element-bg)'"
+            >
+              <span id="edgeModeSelectLabel" class="truncate">Show edges when zooming (threshold)</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-60"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <span id="edgeModeDesc" class="text-xs" style="color: var(--ui-text-secondary)"></span>
+            <div id="edgeThresholdSection" class="hidden! flex flex-col space-y-1.5 pt-0.5">
+              <div class="flex items-center justify-between">
+                <label for="edgeThresholdSlider" class="text-xs font-medium">Threshold sensitivity</label>
+                <span id="edgeThresholdValue" class="text-xs" style="color: var(--ui-text-secondary)">1×</span>
+              </div>
+              <input
+                id="edgeThresholdSlider"
+                type="range"
+                min="25"
+                max="500"
+                step="5"
+                value="100"
+                class="w-full cursor-pointer accent-current focus:outline-none"
+              />
+              <span class="text-xs" style="color: var(--ui-text-secondary)">Higher values show edges from farther away.</span>
+            </div>
+          </div>
+
           <!-- Hidden object opacity -->
           <div class="flex flex-col space-y-1.5">
             <div class="flex items-center justify-between">
@@ -347,6 +405,7 @@
   <script src="./js/interaction/CameraManager.js"></script>
   <script src="./js/interaction/AxesCreator.js"></script>
   <script src="./js/commands/VisibilityManager.js"></script>
+  <script src="./js/ui/CustomDropdown.js"></script>
   <script src="./js/ui/UIManager.js"></script>
   <script src="./js/Controller.js"></script>
 

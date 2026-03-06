@@ -91,6 +91,7 @@ export class WebviewVisu implements vscode.Disposable {
             const config = vscode.workspace.getConfiguration("vs-code-aster");
             const settings = {
               hiddenObjectOpacity: config.get<number>("viewer.hiddenObjectOpacity", 0),
+              edgeMode: config.get<string>("viewer.edgeMode", "gradual"),
             };
             this.panel.webview.postMessage({
               type: "init",
@@ -100,11 +101,20 @@ export class WebviewVisu implements vscode.Disposable {
           break;
         case "saveSettings":
           // Persist viewer settings back to VS Code configuration
-          vscode.workspace.getConfiguration("vs-code-aster").update(
-            "viewer.hiddenObjectOpacity",
-            e.settings.hiddenObjectOpacity,
-            vscode.ConfigurationTarget.Global
-          );
+          if (e.settings.hiddenObjectOpacity !== undefined) {
+            vscode.workspace.getConfiguration("vs-code-aster").update(
+              "viewer.hiddenObjectOpacity",
+              e.settings.hiddenObjectOpacity,
+              vscode.ConfigurationTarget.Global
+            );
+          }
+          if (e.settings.edgeMode !== undefined) {
+            vscode.workspace.getConfiguration("vs-code-aster").update(
+              "viewer.edgeMode",
+              e.settings.edgeMode,
+              vscode.ConfigurationTarget.Global
+            );
+          }
           break;
         case "debugPanel":
           // Log debug messages from the webview

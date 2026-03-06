@@ -50,9 +50,9 @@ class CreateGroups {
             const objColor = _oc[GlobalSettings.Instance.objIndex % _oc.length];
             groupHierarchy[fileGroup].color = objColor;
 
-            const { actor, colorIndex: fileColorIndex, isObjectActor: fileIsObj } = FaceActorCreato.create(fileGroup, groupId);
+            const { actor, colorIndex: fileColorIndex, isObjectActor: fileIsObj, cellCount: fileCellCount } = FaceActorCreato.create(fileGroup, groupId);
 
-            const groupInstance = new Group(actor, fileGroup, true, null, null, fileColorIndex, fileIsObj);
+            const groupInstance = new Group(actor, fileGroup, true, null, null, fileColorIndex, fileIsObj, fileCellCount);
 
             this.groups[fileGroup] = groupInstance;
 
@@ -61,9 +61,9 @@ class CreateGroups {
             for (const faceGroup of groupHierarchy[fileGroup].faces) {
                 const groupId = faceGroups.indexOf(`${fileGroup}::${faceGroup}`);
 
-                const { actor: faceActor, colorIndex: faceColorIndex, isObjectActor: faceIsObj } = FaceActorCreato.create(faceGroup, groupId);
+                const { actor: faceActor, colorIndex: faceColorIndex, isObjectActor: faceIsObj, cellCount: faceCellCount } = FaceActorCreato.create(faceGroup, groupId);
 
-                const subGroup = new Group(faceActor, faceGroup, true, fileGroup, size, faceColorIndex, faceIsObj);
+                const subGroup = new Group(faceActor, faceGroup, true, fileGroup, size, faceColorIndex, faceIsObj, faceCellCount);
                 this.groups[`${fileGroup}::${faceGroup}`] = subGroup;
             }
 

@@ -46,6 +46,12 @@ class UIManager {
       this.resetGroupButtonsPopup();
     });
 
+    // Reset zoom button
+    const resetZoomBtn = document.getElementById("resetZoomBtn");
+    resetZoomBtn.addEventListener("click", () => {
+      CameraManager.Instance.resetZoom();
+    });
+
     // Camera axis buttons, to allow quick camera control
     const xBtn = document.getElementById("xBtn");
     const yBtn = document.getElementById("yBtn");
@@ -89,6 +95,73 @@ class UIManager {
         settings: { hiddenObjectOpacity: GlobalSettings.Instance.hiddenObjectOpacity },
       });
     });
+
+    // Edge threshold slider
+    const edgeThresholdSlider = document.getElementById("edgeThresholdSlider");
+    const edgeThresholdValue = document.getElementById("edgeThresholdValue");
+    edgeThresholdSlider.addEventListener("input", () => {
+      const multiplier = parseInt(edgeThresholdSlider.value, 10) / 100;
+      edgeThresholdValue.textContent = `${parseFloat(multiplier.toFixed(2))}×`;
+      GlobalSettings.Instance.edgeThresholdMultiplier = multiplier;
+      if (CameraManager.Instance.faceGroups) { CameraManager.Instance.refreshEdgeVisibility(); }
+      Controller.Instance.getVSCodeAPI().postMessage({
+        type: "saveSettings",
+        settings: { edgeThresholdMultiplier: multiplier },
+      });
+    });
+
+    // Edge mode dropdown
+    this._edgeModeDescriptions = {
+      gradual:   "Edges fade in as you zoom in, scaled by mesh density. When zoomed out, large meshes may appear very flat as outer edges are mostly hidden. Performance is impacted.",
+      threshold: "Edges appear abruptly at a zoom level based on mesh density. When zoomed out, large meshes may appear slightly flat as outer edges are hidden. Performance is not impacted.",
+      show:      "Edges are always visible. Large meshes will appear almost entirely black when zoomed out. Performance is impacted.",
+      hide:      "Edges are always hidden. All shapes will look slightly flat regardless of zoom level or mesh size.",
+    };
+    const edgeModeOptions = [
+      { value: 'threshold', label: 'Show edges when zooming (threshold)' },
+      { value: 'gradual',   label: 'Show edges when zooming (gradual)' },
+      { value: 'show',      label: 'Always show edges' },
+      { value: 'hide',      label: 'Always hide edges' },
+    ];
+    this._applyEdgeMode = (value, save = true) => {
+      GlobalSettings.Instance.edgeMode = value;
+      const label = document.getElementById("edgeModeSelectLabel");
+      const desc  = document.getElementById("edgeModeDesc");
+      const thresholdSection = document.getElementById("edgeThresholdSection");
+      if (label) label.textContent = edgeModeOptions.find(o => o.value === value)?.label ?? value;
+      if (desc)  desc.textContent  = this._edgeModeDescriptions[value] ?? '';
+      if (thresholdSection) thresholdSection.classList.toggle("hidden!", value !== 'threshold');
+      if (CameraManager.Instance.faceGroups) { CameraManager.Instance.refreshEdgeVisibility(); }
+      if (save) {
+        Controller.Instance.getVSCodeAPI().postMessage({
+          type: "saveSettings",
+          settings: { edgeMode: value },
+        });
+      }
+    };
+    new CustomDropdown(
+      document.getElementById("edgeModeSelect"),
+      edgeModeOptions,
+      (value) => this._applyEdgeMode(value),
+      () => GlobalSettings.Instance.edgeMode
+    );
+    this._applyEdgeMode(GlobalSettings.Instance.edgeMode, false);
+
+    // Zoom dropdown
+    new CustomDropdown(
+      document.getElementById("zoomTrigger"),
+      [
+        { value: '0.5', label: '0.5×' },
+        { value: '1',   label: '1×'   },
+        { value: '1.5', label: '1.5×' },
+        { value: '2',   label: '2×'   },
+        { value: '5',   label: '5×'   },
+        { value: '10',  label: '10×'  },
+      ],
+      (value) => CameraManager.Instance.setZoom(parseFloat(value)),
+      null,
+      { align: 'right' }
+    );
 
     // Help popup
     const helpBtn = document.getElementById("helpBtn");
@@ -156,6 +229,13 @@ class UIManager {
       document.getElementById(`eyeBtn_${object}`).addEventListener("click", () => {
         const nowVisible = VisibilityManager.Instance.toggleObjectVisibility(object);
         document.getElementById(`eyeIcon_${object}`).src = nowVisible ? eyeIconUrl : eyeOffIconUrl;
+        if (!nowVisible) {
+          groupContainer.classList.add("hidden!");
+          groupCountEl.classList.remove("hidden!");
+        } else {
+          groupContainer.classList.remove("hidden!");
+          groupCountEl.classList.add("hidden!");
+        }
       });
 
       // Create collapsible container for group buttons
@@ -170,8 +250,9 @@ class UIManager {
       groupCountEl.style.color = "var(--ui-text-muted)";
       groupCountEl.textContent = `${groupCount} groups`;
 
-      // Name span toggles group container visibility (disabled when all groups are hidden)
+      // Name span toggles group container visibility (disabled when all groups are hidden or mesh is hidden)
       document.getElementById(`objName_${object}`).addEventListener("click", () => {
+        if (VisibilityManager.Instance.hiddenObjects[object]) { return; }
         const grpHidden = document.getElementById(`grpHidden_${object}`);
         const allHidden = grpHidden && !grpHidden.classList.contains("hidden!") &&
           [...groupContainer.querySelectorAll(`[id^="btn_${object}::"]`)].every(b => b.classList.contains("hidden!"));
@@ -436,11 +517,11 @@ class UIManager {
    * Reset all settings to their default values, apply them, and save them.
    */
   resetSettings() {
-    this.applySettings({ hiddenObjectOpacity: 0 });
+    this.applySettings({ hiddenObjectOpacity: 0, edgeMode: 'threshold', edgeThresholdMultiplier: 1 });
     VisibilityManager.Instance.applyHiddenObjectOpacity();
     Controller.Instance.getVSCodeAPI().postMessage({
       type: "saveSettings",
-      settings: { hiddenObjectOpacity: 0 },
+      settings: { hiddenObjectOpacity: 0, edgeMode: 'threshold', edgeThresholdMultiplier: 1 },
     });
   }
 
@@ -458,6 +539,19 @@ class UIManager {
       slider.value = pct;
       label.textContent = `${pct}%`;
       GlobalSettings.Instance.hiddenObjectOpacity = settings.hiddenObjectOpacity;
+    }
+
+    if (settings.edgeMode !== undefined) {
+      this._applyEdgeMode?.(settings.edgeMode, false);
+    }
+
+    if (settings.edgeThresholdMultiplier !== undefined) {
+      const pct = Math.round(settings.edgeThresholdMultiplier * 100);
+      const slider = document.getElementById("edgeThresholdSlider");
+      const label  = document.getElementById("edgeThresholdValue");
+      slider.value = pct;
+      label.textContent = `${parseFloat((pct / 100).toFixed(2))}×`;
+      GlobalSettings.Instance.edgeThresholdMultiplier = pct / 100;
     }
   }
 

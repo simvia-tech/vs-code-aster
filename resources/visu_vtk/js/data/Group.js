@@ -10,7 +10,7 @@ class Group {
      * @param {string|null} fileGroup - Parent fileGroup name (null if this is a fileGroup)
      * @param {number|null} parentSize - Size of the parent fileGroup (null if this is a fileGroup)
      */
-    constructor(actor, name, isFaceGroup, fileGroup = null, parentSize = null, colorIndex = null, isObjectActor = false) {
+    constructor(actor, name, isFaceGroup, fileGroup = null, parentSize = null, colorIndex = null, isObjectActor = false, cellCount = null) {
         this.actor = actor;
         this.name = name;
         this.isFaceGroup = isFaceGroup;
@@ -18,6 +18,7 @@ class Group {
         this.size = parentSize;
         this.colorIndex = colorIndex;
         this.isObjectActor = isObjectActor;
+        this.cellCount = cellCount;
     }
 
     applyThemeColor() {
@@ -27,6 +28,47 @@ class Group {
             : GlobalSettings.Instance.meshGroupColors;
         const color = colors[this.colorIndex % colors.length];
         this.actor.getProperty().setColor(color);
+        this._applyEdgeColor();
+    }
+
+    /**
+     * Updates edge rendering based on the current edge mode and zoom level.
+     * @param {number} currentDistance
+     * @param {number} initialDistance
+     */
+    updateEdgeVisibility(currentDistance, initialDistance) {
+        if (this.cellCount === null) return;
+        const prop = this.actor.getProperty();
+        const mode = GlobalSettings.Instance.edgeMode;
+
+        if (mode === 'hide') {
+            prop.setEdgeVisibility(false);
+            return;
+        }
+        if (mode === 'show') {
+            prop.setEdgeVisibility(true);
+            prop.setEdgeColor(0, 0, 0);
+            return;
+        }
+
+        const threshold = initialDistance * Math.sqrt(15000 / this.cellCount) * GlobalSettings.Instance.edgeThresholdMultiplier;
+
+        if (mode === 'threshold') {
+            prop.setEdgeVisibility(currentDistance < threshold);
+            prop.setEdgeColor(0, 0, 0);
+            return;
+        }
+
+        // 'gradual': blend edge color from surface color (invisible) to black (fully visible)
+        prop.setEdgeVisibility(true);
+        this._edgeT = Math.min(1, Math.max(0, threshold / currentDistance));
+        this._applyEdgeColor();
+    }
+
+    _applyEdgeColor() {
+        const t = this._edgeT ?? 0;
+        const [r, g, b] = this.actor.getProperty().getColor();
+        this.actor.getProperty().setEdgeColor(r * (1 - t), g * (1 - t), b * (1 - t));
     }
 
     /**

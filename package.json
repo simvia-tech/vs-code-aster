@@ -156,6 +156,19 @@
           "maximum": 0.5,
           "markdownDescription": "Opacity of objects hidden via the eye button in the mesh viewer (0 = fully invisible, 0.5 = 50% visible as a ghost)."
         },
+        "vs-code-aster.viewer.edgeMode": {
+          "order": 11,
+          "type": "string",
+          "default": "threshold",
+          "enum": ["gradual", "threshold", "show", "hide"],
+          "enumDescriptions": [
+            "Edges fade in as you zoom in, scaled by mesh density. When zoomed out, large meshes may appear very flat as outer edges are mostly hidden. Performance is impacted.",
+            "Edges appear abruptly at a zoom level based on mesh density. When zoomed out, large meshes may appear slightly flat as outer edges are hidden. Performance is not impacted.",
+            "Edges are always visible. Large meshes will appear almost entirely black when zoomed out. Performance is impacted.",
+            "Edges are always hidden. All shapes will look slightly flat regardless of zoom level or mesh size."
+          ],
+          "markdownDescription": "Controls how mesh edges are displayed in the viewer."
+        },
         "vs-code-aster.enableTelemetry": {
           "order": 100,
           "type": "boolean",
