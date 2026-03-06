@@ -118,6 +118,8 @@ export class VisuManager {
 
     const commName = path.basename(commUri.fsPath, path.extname(commUri.fsPath));
 
+    const commName = path.basename(commUri.fsPath, path.extname(commUri.fsPath));
+
     const visu = new WebviewVisu(
       'meshViewer',
       testDir,
