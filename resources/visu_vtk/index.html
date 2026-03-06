@@ -25,13 +25,13 @@
 
       <!-- Action buttons -->
       <div
-        class="absolute left-full top-1 flex flex-col rounded-r-sm border-l"
+        class="absolute left-full top-1 flex flex-col items-center rounded-r-sm border-l"
         style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent); border-color: var(--ui-border)"
       >
         <div class="group flex items-center">
           <button
             id="selectGroupsBtn"
-            class="size-6.5 p-1 cursor-pointer"
+            class="size-5.5 p-1 cursor-pointer"
             style="--hover-bg: var(--ui-element-bg)"
             onmouseover="this.style.background='var(--ui-element-bg)'"
             onmouseout="this.style.background=''"
@@ -99,21 +99,39 @@
       </div>
     </div>
 
-    <button
-      id="helpBtn"
-      class="absolute right-2 top-2 z-10 p-1.5 rounded-full cursor-pointer group flex items-center"
-      style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent)"
-      onmouseover="this.style.background='color-mix(in srgb, var(--ui-bg) 100%, transparent)'"
-      onmouseout="this.style.background='color-mix(in srgb, var(--ui-bg) 85%, transparent)'"
-    >
-      <img class="size-3" src="../icons/question_mark.svg" style="filter: var(--icon-filter)" />
-      <span
-        class="absolute right-full pr-1.5 hidden group-hover:inline whitespace-nowrap"
-        style="color: var(--ui-text-secondary)"
+    <!-- Top-right button stack -->
+    <div class="absolute right-2 top-2 z-10 flex flex-col items-center space-y-1">
+      <button
+        id="settingsBtn"
+        class="p-1.5 rounded-full cursor-pointer group flex items-center"
+        style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent)"
+        onmouseover="this.style.background='color-mix(in srgb, var(--ui-bg) 100%, transparent)'"
+        onmouseout="this.style.background='color-mix(in srgb, var(--ui-bg) 85%, transparent)'"
       >
-        Help
-      </span>
-    </button>
+        <img class="size-3" src="../icons/settings.svg" style="filter: var(--icon-filter)" />
+        <span
+          class="absolute right-full pr-1.5 hidden group-hover:inline whitespace-nowrap"
+          style="color: var(--ui-text-secondary)"
+        >
+          Settings
+        </span>
+      </button>
+      <button
+        id="helpBtn"
+        class="p-1.5 rounded-full cursor-pointer group flex items-center"
+        style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent)"
+        onmouseover="this.style.background='color-mix(in srgb, var(--ui-bg) 100%, transparent)'"
+        onmouseout="this.style.background='color-mix(in srgb, var(--ui-bg) 85%, transparent)'"
+      >
+        <img class="size-3" src="../icons/question_mark.svg" style="filter: var(--icon-filter)" />
+        <span
+          class="absolute right-full pr-1.5 hidden group-hover:inline whitespace-nowrap"
+          style="color: var(--ui-text-secondary)"
+        >
+          Help
+        </span>
+      </button>
+    </div>
 
     <!-- Popup backdrop -->
     <div
@@ -213,39 +231,94 @@
         </div>
       </div>
 
+      <!-- Settings Popup -->
+      <div
+        id="settingsPopup"
+        class="hidden! absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-2/3 max-h-2/3 rounded shadow-lg backdrop-blur-lg p-8 flex flex-col"
+        style="background: var(--ui-popup-bg); color: var(--ui-fg); border: 1px solid var(--ui-border)"
+      >
+        <span class="font-bold text-base"> Settings </span>
+
+        <div class="flex flex-col space-y-4 mt-4 pr-2 overflow-y-auto grow">
+          <!-- Hidden object opacity -->
+          <div class="flex flex-col space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label for="hiddenOpacitySlider" class="text-sm font-semibold">Hidden objects opacity</label>
+              <span id="hiddenOpacityValue" class="text-xs" style="color: var(--ui-text-secondary)">0%</span>
+            </div>
+            <input
+              id="hiddenOpacitySlider"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value="0"
+              class="w-full cursor-pointer accent-current focus:outline-none"
+            />
+            <span class="text-xs" style="color: var(--ui-text-secondary)">
+              When hiding an object with the eye button, it can remain slightly visible as a ghost.
+            </span>
+          </div>
+        </div>
+
+        <div class="mt-4 flex justify-between items-center">
+          <button
+            id="resetSettingsBtn"
+            class="px-3 py-1 rounded-sm cursor-pointer text-sm"
+            style="background: var(--ui-element-bg); color: var(--ui-fg); border: 1px solid var(--ui-border)"
+            onmouseover="this.style.background='color-mix(in srgb, var(--ui-fg) 15%, transparent)'"
+            onmouseout="this.style.background='var(--ui-element-bg)'"
+          >
+            Reset defaults
+          </button>
+          <button
+            id="closeSettingsBtn"
+            class="font-bold px-3 py-1 rounded-sm cursor-pointer"
+            style="background: var(--ui-btn-bg); color: var(--ui-btn-fg)"
+            onmouseover="this.style.background='var(--ui-btn-hover-bg)'"
+            onmouseout="this.style.background='var(--ui-btn-bg)'"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+
       <!-- Popup to select group buttons to show -->
       <div
         id="groupButtonsPopup"
         class="hidden! absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-2/3 max-h-2/3 rounded shadow-lg backdrop-blur-lg p-8 flex flex-col"
         style="background: var(--ui-popup-bg); color: var(--ui-fg); border: 1px solid var(--ui-border)"
       >
-        <span class="font-bold text-base">
-          Select the groups that should be shown in the sidebar
-        </span>
+        <div class="flex flex-col mb-4">
+          <span class="font-bold text-base">Sidebar groups</span>
+          <span class="text-xs mt-1" style="color: var(--ui-text-secondary)">
+            Choose which groups are shown in the sidebar. Hidden groups remain visible in the 3D view.
+          </span>
+        </div>
 
         <div
           id="groupList"
-          class="flex flex-wrap mt-4 space-x-6 overflow-y-auto grow"
+          class="columns-2 gap-6 overflow-y-auto grow"
         ></div>
 
-        <div class="flex self-end space-x-3">
+        <div class="mt-4 flex justify-between items-center">
           <button
-            id="cancelBtn"
-            class="px-3 py-1 rounded-sm cursor-pointer"
+            id="resetGroupsBtn"
+            class="px-3 py-1 rounded-sm cursor-pointer text-sm"
             style="background: var(--ui-element-bg); color: var(--ui-fg); border: 1px solid var(--ui-border)"
             onmouseover="this.style.background='color-mix(in srgb, var(--ui-fg) 15%, transparent)'"
-            onmouseout="this.style.background='transparent'"
+            onmouseout="this.style.background='var(--ui-element-bg)'"
           >
-            Cancel
+            Reset
           </button>
           <button
-            id="saveBtn"
+            id="closeGroupsBtn"
             class="font-bold px-3 py-1 rounded-sm cursor-pointer"
             style="background: var(--ui-btn-bg); color: var(--ui-btn-fg)"
             onmouseover="this.style.background='var(--ui-btn-hover-bg)'"
             onmouseout="this.style.background='var(--ui-btn-bg)'"
           >
-            Save
+            Close
           </button>
         </div>
       </div>

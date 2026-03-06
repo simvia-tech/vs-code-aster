@@ -36,12 +36,49 @@ kbd {
   background: color-mix(in srgb, var(--ui-bg) 70%, transparent);
 }
 
+input[type="checkbox"].custom-cb:focus {
+  outline: none;
+}
+
+input[type="checkbox"].custom-cb {
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  border: 1.5px solid var(--ui-text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+input[type="checkbox"].custom-cb:checked {
+  background: var(--ui-btn-bg);
+  border-color: var(--ui-btn-bg);
+}
+
+input[type="checkbox"].custom-cb:checked::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 4px;
+  height: 7px;
+  border-right: 1.5px solid var(--ui-btn-fg);
+  border-bottom: 1.5px solid var(--ui-btn-fg);
+  transform: translateY(-1px) rotate(45deg);
+}
+
 #groupButtons,
-#helpPopup * {
+#helpPopup *,
+#groupList,
+#settingsPopup .overflow-y-auto {
   scrollbar-width: none;
 }
 
 #groupButtons::-webkit-scrollbar,
-#helpPopup ::-webkit-scrollbar {
+#helpPopup ::-webkit-scrollbar,
+#groupList::-webkit-scrollbar,
+#settingsPopup .overflow-y-auto::-webkit-scrollbar {
   display: none;
 }

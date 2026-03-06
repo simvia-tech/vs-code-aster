@@ -148,6 +148,14 @@
           "default": "python3",
           "markdownDescription": "Specifies the python executable used to run the language server."
         },
+        "vs-code-aster.viewer.hiddenObjectOpacity": {
+          "order": 10,
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 0.5,
+          "markdownDescription": "Opacity of objects hidden via the eye button in the mesh viewer (0 = fully invisible, 0.5 = 50% visible as a ghost)."
+        },
         "vs-code-aster.enableTelemetry": {
           "order": 100,
           "type": "boolean",

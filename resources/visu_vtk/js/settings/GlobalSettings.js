@@ -35,6 +35,8 @@ class GlobalSettings {
     selectHelperColor = [1, 1, 1]; // #ffffff
     selectionPointColor = [1, 0, 0]; // #ff0000
 
+    hiddenObjectOpacity = 0;
+
     get isDark() {
         return document.body.classList.contains('vscode-dark') ||
                document.body.classList.contains('vscode-high-contrast');

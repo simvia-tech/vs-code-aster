@@ -11,6 +11,7 @@ window.addEventListener("message", async (e) => {
     // Initialize the visualization with loaded OBJ files
     case "init":
       Controller.Instance.loadFiles(body.fileContexts, body.objFilenames);
+      UIManager.Instance.applySettings(body.settings);
       break;
 
     // Toggle visibility for a specific group and update the UI label

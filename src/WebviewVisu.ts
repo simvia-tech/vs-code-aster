@@ -88,11 +88,23 @@ export class WebviewVisu implements vscode.Disposable {
           console.log("[WebviewVisu] Webview ready signal received");
           if (objFilenames) {
             console.log("[WebviewVisu] Sending init with files:", objFilenames);
+            const config = vscode.workspace.getConfiguration("vs-code-aster");
+            const settings = {
+              hiddenObjectOpacity: config.get<number>("viewer.hiddenObjectOpacity", 0),
+            };
             this.panel.webview.postMessage({
               type: "init",
-              body: { fileContexts, objFilenames },
+              body: { fileContexts, objFilenames, settings },
             });
           }
+          break;
+        case "saveSettings":
+          // Persist viewer settings back to VS Code configuration
+          vscode.workspace.getConfiguration("vs-code-aster").update(
+            "viewer.hiddenObjectOpacity",
+            e.settings.hiddenObjectOpacity,
+            vscode.ConfigurationTarget.Global
+          );
           break;
         case "debugPanel":
           // Log debug messages from the webview

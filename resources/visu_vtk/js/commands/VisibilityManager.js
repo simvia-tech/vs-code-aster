@@ -127,11 +127,20 @@ class VisibilityManager {
     // Show/hide the file group actor (the full mesh)
     const fileGroup = this.groups[object];
     if (fileGroup) {
-      fileGroup.actor.setVisibility(nowVisible);
       if (nowVisible) {
-        // Restore the correct opacity based on whether any groups are highlighted
+        // Showing: restore visibility and the correct opacity
+        fileGroup.actor.setVisibility(true);
         const opacity = this.visibleGroupsByObject[object] > 0 ? 0.2 : 1.0;
         fileGroup.setOpacity(opacity);
+      } else {
+        // Hiding: use ghost opacity (may be 0 for fully invisible)
+        const hiddenOpacity = GlobalSettings.Instance.hiddenObjectOpacity;
+        if (hiddenOpacity === 0) {
+          fileGroup.actor.setVisibility(false);
+        } else {
+          fileGroup.actor.setVisibility(true);
+          fileGroup.setOpacity(hiddenOpacity);
+        }
       }
     }
 
@@ -160,6 +169,26 @@ class VisibilityManager {
     const meshOpacity = transparent ? 0.2 : 1;
     const group = this.groups[object];
     group.setOpacity(meshOpacity);
+  }
+
+  /**
+   * Re-applies the current hiddenObjectOpacity to all hidden objects.
+   * Called when the opacity slider value changes.
+   */
+  applyHiddenObjectOpacity() {
+    const hiddenOpacity = GlobalSettings.Instance.hiddenObjectOpacity;
+    for (const object in this.hiddenObjects) {
+      if (!this.hiddenObjects[object]) continue;
+      const fileGroup = this.groups[object];
+      if (!fileGroup) continue;
+      if (hiddenOpacity === 0) {
+        fileGroup.actor.setVisibility(false);
+      } else {
+        fileGroup.actor.setVisibility(true);
+        fileGroup.setOpacity(hiddenOpacity);
+      }
+    }
+    VtkApp.Instance.getRenderWindow().render();
   }
 
   /**
