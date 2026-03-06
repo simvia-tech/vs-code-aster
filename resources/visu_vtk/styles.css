@@ -1,5 +1,47 @@
 @import "tailwindcss";
 
+:root {
+  --ui-bg: var(--vscode-sideBar-background, var(--vscode-editor-background, #e8eaf0));
+  --ui-fg: var(--vscode-sideBar-foreground, var(--vscode-editor-foreground, #1f1f1f));
+  --ui-btn-bg: var(--vscode-button-background, #0078d4);
+  --ui-btn-fg: var(--vscode-button-foreground, #ffffff);
+  --ui-btn-hover-bg: var(--vscode-button-hoverBackground, #005fa3);
+  --ui-popup-bg: var(--vscode-editorWidget-background, var(--vscode-editor-background, #f3f3f3));
+  --ui-border: var(--vscode-widget-border, var(--vscode-editorWidget-border, rgba(0,0,0,0.1)));
+  --icon-filter: none;
+
+  /* Text contrast levels */
+  --ui-text-primary: color-mix(in srgb, var(--ui-fg) 90%, transparent);
+  --ui-text-secondary: color-mix(in srgb, var(--ui-fg) 70%, transparent);
+  --ui-text-muted: color-mix(in srgb, var(--ui-fg) 55%, transparent);
+
+  /* Element backgrounds */
+  --ui-element-bg: color-mix(in srgb, var(--ui-fg) 10%, transparent);
+  --ui-element-bg-hover: color-mix(in srgb, var(--ui-fg) 18%, transparent);
+
+  /* Text on highlighted group buttons — light mode: dark 0.72× colors → white text */
+  --ui-highlight-text: rgba(255, 255, 255, 0.9);
+}
+
+body.vscode-dark,
+body.vscode-high-contrast {
+  --icon-filter: invert(1);
+  /* Dark mode: bright vivid colors → dark text for contrast */
+  --ui-highlight-text: rgba(0, 0, 0, 0.8);
+}
+
 kbd {
-  @apply text-blue-500 bg-white/30 px-1 py-px rounded-sm;
+  @apply px-1 py-px rounded-sm;
+  color: var(--vscode-textLink-foreground, #0078d4);
+  background: color-mix(in srgb, var(--ui-bg) 70%, transparent);
+}
+
+#groupButtons,
+#helpPopup * {
+  scrollbar-width: none;
+}
+
+#groupButtons::-webkit-scrollbar,
+#helpPopup ::-webkit-scrollbar {
+  display: none;
 }

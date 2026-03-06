@@ -65,14 +65,14 @@ class ObjLoader {
                         case 'g': // New face group
                             groupId++;
                             const faceGroupName = ss[1] || `group${groupId}`;
-                            faceGroups.push(faceGroupName);
+                            faceGroups.push(`${skinName}::${faceGroupName}`);
                             groupHierarchy[skinName].faces.push(faceGroupName);
                             break;
 
                         case 'ng': // New node group
                             nodeGroupId++;
                             const nodeGroupName = ss[1] || `nodeGroup${nodeGroupId}`;
-                            nodeGroups.push(nodeGroupName);
+                            nodeGroups.push(`${skinName}::${nodeGroupName}`);
                             groupHierarchy[skinName].nodes.push(nodeGroupName);
                             break;
 

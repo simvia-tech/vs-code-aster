@@ -20,14 +20,19 @@ class VisibilityManager {
   init(groups, objects) {
     this.groups = groups;
     this.visibleGroupsByObject = {};
+    this.hiddenObjects = {};
+    this.highlightedGroups = new Set();
 
     for (const object in objects) {
       this.visibleGroupsByObject[object] = 0;
+      this.hiddenObjects[object] = false;
     }
   }
 
   /**
    * Sets visibility for a given group and updates associated object transparency.
+   * The highlighted state is tracked independently from actor visibility so that
+   * hiding/showing an entire object does not corrupt the highlight state.
    * @param {string} groupName Name of the group to modify.
    * @param {boolean} visible Optional visibility state; toggles if omitted.
    * @returns {Object} Current visibility info: {visible, color, isFaceGroup}
@@ -62,35 +67,40 @@ class VisibilityManager {
     const color = group.getColor();
     const isFaceGroup = group.isFaceGroup;
 
-    // Store the previous visibility state before changing it
-    const wasVisible = actor.getVisibility();
+    // Determine new highlighted state from the tracking set, not from actor visibility.
+    // This ensures correctness even when the whole object is hidden.
+    const wasHighlighted = this.highlightedGroups.has(groupName);
+    const isHighlighted =
+      typeof visible === "boolean" ? visible : !wasHighlighted;
 
-    if (typeof visible === "boolean") {
-      // If 'visible' is set, set the new visibility accordingly
-      actor.setVisibility(visible);
+    // Update the highlighted tracking set
+    if (isHighlighted) {
+      this.highlightedGroups.add(groupName);
     } else {
-      // Else, toggle visibility
-      actor.setVisibility(!actor.getVisibility());
+      this.highlightedGroups.delete(groupName);
     }
 
-    // Make the whole object transparent (except from the selected groups) if at least one group is selected
-    // Or make it opaque if no groups are selected
-    const isVisible = actor.getVisibility();
+    // Apply to actor only if the parent object is not globally hidden
+    if (!this.hiddenObjects[object]) {
+      group.setVisibility(isHighlighted);
+    }
 
-    // Only update the counter if visibility actually changed
-    if (wasVisible !== isVisible) {
+    // Update transparency counter when highlight state actually changes
+    if (wasHighlighted !== isHighlighted) {
       const visibleGroupsCount = this.visibleGroupsByObject[object];
-      if (
-        (visibleGroupsCount === 0 && isVisible) ||
-        (visibleGroupsCount === 1 && !isVisible)
-      ) {
-        this.setTransparence(isVisible, object);
+      if (!this.hiddenObjects[object]) {
+        if (
+          (visibleGroupsCount === 0 && isHighlighted) ||
+          (visibleGroupsCount === 1 && !isHighlighted)
+        ) {
+          this.setTransparence(isHighlighted, object);
+        }
       }
-      this.visibleGroupsByObject[object] += isVisible ? 1 : -1;
+      this.visibleGroupsByObject[object] += isHighlighted ? 1 : -1;
     }
 
     // Change group button highlight status
-    if (isVisible) {
+    if (isHighlighted) {
       UIManager.Instance.highlightButton(groupName, color);
     } else {
       UIManager.Instance.highlightButton(groupName);
@@ -99,7 +109,43 @@ class VisibilityManager {
     // Re-render the VTK window
     VtkApp.Instance.getRenderWindow().render();
 
-    return { visible: isVisible, color, isFaceGroup }; // Unused, is this really necessary ?
+    return { visible: isHighlighted, color, isFaceGroup };
+  }
+
+  /**
+   * Toggles the visibility of an entire object (mesh).
+   * When hidden, all actors for the object are invisible.
+   * When shown, the file group and any highlighted sub-groups are restored.
+   * @param {string} object Name of the file group (e.g. "all_mesh.obj").
+   * @returns {boolean} True if the object is now visible, false if now hidden.
+   */
+  toggleObjectVisibility(object) {
+    // Toggle hidden state
+    const nowVisible = this.hiddenObjects[object]; // was hidden → now visible
+    this.hiddenObjects[object] = !nowVisible;
+
+    // Show/hide the file group actor (the full mesh)
+    const fileGroup = this.groups[object];
+    if (fileGroup) {
+      fileGroup.actor.setVisibility(nowVisible);
+      if (nowVisible) {
+        // Restore the correct opacity based on whether any groups are highlighted
+        const opacity = this.visibleGroupsByObject[object] > 0 ? 0.2 : 1.0;
+        fileGroup.setOpacity(opacity);
+      }
+    }
+
+    // Show/hide sub-group actors based on their highlighted state
+    for (const [groupName, group] of Object.entries(this.groups)) {
+      if (group.fileGroup === object) {
+        group.actor.setVisibility(
+          nowVisible && this.highlightedGroups.has(groupName)
+        );
+      }
+    }
+
+    VtkApp.Instance.getRenderWindow().render();
+    return nowVisible;
   }
 
   /**
@@ -108,7 +154,7 @@ class VisibilityManager {
    * @param {string} object Name of the object.
    */
   setTransparence(transparent, object) {
-    if (!this.groups) {
+    if (!this.groups || this.hiddenObjects[object]) {
       return;
     }
     const meshOpacity = transparent ? 0.2 : 1;
@@ -136,7 +182,10 @@ class VisibilityManager {
       UIManager.Instance.highlightButton(groupName);
     }
 
-    // Make all objects opaque
+    // Reset highlighted tracking
+    this.highlightedGroups.clear();
+
+    // Make all visible objects opaque
     for (const object in this.visibleGroupsByObject) {
       this.setTransparence(false, object);
       this.visibleGroupsByObject[object] = 0;

@@ -120,12 +120,16 @@ export class VisuManager {
 
     const testDir = path.resolve(__dirname, "..");
 
+    const commName = path.basename(commUri.fsPath, path.extname(commUri.fsPath));
+
     const visu = new WebviewVisu(
       "meshViewer",
       testDir,
       "resources/visu_vtk/index.html",
       fileContexts,
       objUris.map((uri) => path.basename(uri.fsPath)),
+      undefined,
+      commName,
     );
 
     this.views.set(key, { commUri, objUris, visu });
@@ -144,6 +148,21 @@ export class VisuManager {
   }
 
   public listenCommFiles() {
+    vscode.window.onDidChangeActiveTextEditor((editor) => {
+      if (!editor) {
+        return;
+      }
+      const filePath = editor.document.uri.fsPath;
+      if (!isCommFile(filePath)) {
+        return;
+      }
+      const entry = this.getViewer(editor.document.uri);
+      if (!entry || entry.visu.panel.active) {
+        return;
+      }
+      entry.visu.panel.reveal(undefined, true);
+    });
+
     vscode.window.onDidChangeTextEditorSelection((event) => {
       const editor = event.textEditor;
       const filePath = editor.document.uri.fsPath;

@@ -25,10 +25,10 @@ class NodeActorCreator {
     const actor = vtk.Rendering.Core.vtkActor.newInstance();
     actor.setMapper(mapper);
 
-    this.setProperty(actor);
+    const colorIndex = this.setProperty(actor);
     VtkApp.Instance.getRenderer().addActor(actor);
-    
-    return actor;
+
+    return { actor, colorIndex };
   }
 
   /**
@@ -80,10 +80,12 @@ prepare(groupId) {
    */
   setProperty(actor) {
     const prop = actor.getProperty();
+    const colorIndex = GlobalSettings.Instance.grpIndex;
     prop.setRepresentation(0);
     prop.setOpacity(1);
     actor.setVisibility(false);
     prop.setColor(GlobalSettings.Instance.getColorForGroup());
+    return colorIndex;
   }
   
 }

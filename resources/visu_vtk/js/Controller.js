@@ -58,6 +58,13 @@ class Controller {
     CameraManager.Instance.init(this._groups);
   }
 
+  refreshThemeColors() {
+    if (!this._groups) return;
+    for (const group of Object.values(this._groups)) {
+      group.applyThemeColor();
+    }
+  }
+
   getGroupNames() {
     if (!this._groups) {
       return [];

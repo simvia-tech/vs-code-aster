@@ -26,10 +26,10 @@ class FaceActorCreator {
     mapper.setInputData(polyData);
     actor.setMapper(mapper);
 
-    this.setProperty(actor, groupName);
+    const { colorIndex, isObjectActor } = this.setProperty(actor, groupName);
     VtkApp.Instance.getRenderer().addActor(actor);
 
-    return actor;
+    return { actor, colorIndex, isObjectActor };
   }
 
   
@@ -76,11 +76,16 @@ class FaceActorCreator {
   setProperty(actor, groupName) {
     const prop = actor.getProperty();
 
+    let colorIndex, isObjectActor;
     if (groupName.includes("all_")) {
-      prop.setColor(GlobalSettings.Instance.surfaceOutsideColor);
+      isObjectActor = true;
+      colorIndex = GlobalSettings.Instance.objIndex;
+      prop.setColor(GlobalSettings.Instance.getColorForObject());
     } else {
+      isObjectActor = false;
+      colorIndex = GlobalSettings.Instance.grpIndex;
       prop.setColor(GlobalSettings.Instance.getColorForGroup());
-      prop.setOpacity(0.8);
+      prop.setOpacity(1.0);
       actor.setVisibility(false);
     }
 
@@ -89,6 +94,8 @@ class FaceActorCreator {
     prop.setInterpolationToPhong();
     prop.setSpecular(0.3);
     prop.setSpecularPower(15);
+
+    return { colorIndex, isObjectActor };
   }
   
 }

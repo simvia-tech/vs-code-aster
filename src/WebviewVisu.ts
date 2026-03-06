@@ -38,7 +38,8 @@ export class WebviewVisu implements vscode.Disposable {
     htmlFileName: string,
     fileContexts: string[],
     objFilenames: string[],
-    viewColumn?: vscode.ViewColumn
+    viewColumn?: vscode.ViewColumn,
+    title?: string
   ) {
     viewColumn = viewColumn || vscode.ViewColumn.Beside;
 
@@ -52,9 +53,11 @@ export class WebviewVisu implements vscode.Disposable {
     // Get HTML file path
     const htmlFilePath = path.join(resourceRootDir, htmlFileName);
 
-    // Extract title from HTML file
-    let htmlFileContent = fs.readFileSync(htmlFilePath, { encoding: "utf8" });
-    const title = this.extractHtmlTitle(htmlFileContent, "Visualizer");
+    // Use provided title or fall back to the HTML <title> tag
+    if (!title) {
+      const htmlFileContent = fs.readFileSync(htmlFilePath, { encoding: "utf8" });
+      title = this.extractHtmlTitle(htmlFileContent, "Visualizer");
+    }
 
     // Create webview panel with icon
     this.panel = vscode.window.createWebviewPanel(
@@ -63,9 +66,10 @@ export class WebviewVisu implements vscode.Disposable {
       viewColumn,
       options
     );
-    this.panel.iconPath = vscode.Uri.file(
-      path.join(resourceRootDir, "resources", "icons", "3d.svg")
-    );
+    this.panel.iconPath = {
+      light: vscode.Uri.file(path.join(resourceRootDir, "resources", "icons", "3d.svg")),
+      dark: vscode.Uri.file(path.join(resourceRootDir, "resources", "icons", "3d_light.svg")),
+    };
     console.log("[WebviewVisu] Webview panel created");
 
     // Set HTML content for the webview

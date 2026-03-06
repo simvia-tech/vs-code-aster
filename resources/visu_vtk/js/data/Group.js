@@ -10,12 +10,23 @@ class Group {
      * @param {string|null} fileGroup - Parent fileGroup name (null if this is a fileGroup)
      * @param {number|null} parentSize - Size of the parent fileGroup (null if this is a fileGroup)
      */
-    constructor(actor, name, isFaceGroup, fileGroup = null, parentSize = null) {
-        this.actor = actor;             
-        this.name = name;                  
-        this.isFaceGroup = isFaceGroup;     
+    constructor(actor, name, isFaceGroup, fileGroup = null, parentSize = null, colorIndex = null, isObjectActor = false) {
+        this.actor = actor;
+        this.name = name;
+        this.isFaceGroup = isFaceGroup;
         this.fileGroup = fileGroup;
         this.size = parentSize;
+        this.colorIndex = colorIndex;
+        this.isObjectActor = isObjectActor;
+    }
+
+    applyThemeColor() {
+        if (this.colorIndex === null) return;
+        const colors = this.isObjectActor
+            ? GlobalSettings.Instance.objectColors
+            : GlobalSettings.Instance.meshGroupColors;
+        const color = colors[this.colorIndex % colors.length];
+        this.actor.getProperty().setColor(color);
     }
 
     /**

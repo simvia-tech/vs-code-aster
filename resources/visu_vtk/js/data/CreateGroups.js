@@ -45,29 +45,34 @@ class CreateGroups {
         for (const fileGroup in groupHierarchy) {
             const groupId = faceGroups.indexOf(fileGroup);
 
-            const actor = FaceActorCreato.create(fileGroup, groupId);
+            // Record the color before create() increments the object index
+            const _oc = GlobalSettings.Instance.objectColors;
+            const objColor = _oc[GlobalSettings.Instance.objIndex % _oc.length];
+            groupHierarchy[fileGroup].color = objColor;
 
-            const groupInstance  = new Group(actor, fileGroup, true);
+            const { actor, colorIndex: fileColorIndex, isObjectActor: fileIsObj } = FaceActorCreato.create(fileGroup, groupId);
+
+            const groupInstance = new Group(actor, fileGroup, true, null, null, fileColorIndex, fileIsObj);
 
             this.groups[fileGroup] = groupInstance;
 
             const size = this.computeSize(actor);
 
             for (const faceGroup of groupHierarchy[fileGroup].faces) {
-                const groupId = faceGroups.indexOf(faceGroup);
+                const groupId = faceGroups.indexOf(`${fileGroup}::${faceGroup}`);
 
-                const actor = FaceActorCreato.create(faceGroup, groupId);
+                const { actor: faceActor, colorIndex: faceColorIndex, isObjectActor: faceIsObj } = FaceActorCreato.create(faceGroup, groupId);
 
-                const subGroup = new Group(actor, faceGroup, true, fileGroup, size);
+                const subGroup = new Group(faceActor, faceGroup, true, fileGroup, size, faceColorIndex, faceIsObj);
                 this.groups[`${fileGroup}::${faceGroup}`] = subGroup;
             }
 
             for (const nodeGroup of groupHierarchy[fileGroup].nodes) {
-                const groupId = nodeGroups.indexOf(nodeGroup);
+                const groupId = nodeGroups.indexOf(`${fileGroup}::${nodeGroup}`);
 
-                const actor = NodeActorCreato.create(groupId);
+                const { actor: nodeActor, colorIndex: nodeColorIndex } = NodeActorCreato.create(groupId);
 
-                const subGroup = new Group(actor, nodeGroup, false, fileGroup, size);
+                const subGroup = new Group(nodeActor, nodeGroup, false, fileGroup, size, nodeColorIndex, false);
                 this.groups[`${fileGroup}::${nodeGroup}`] = subGroup;
             }
         }
