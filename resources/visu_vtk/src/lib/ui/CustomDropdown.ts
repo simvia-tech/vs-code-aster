@@ -1,22 +1,28 @@
-/**
- * A reusable custom dropdown that matches the VS Code Aster UI style.
- * The panel is appended to document.body to avoid overflow clipping.
- */
-class CustomDropdown {
-  /**
-   * @param {HTMLElement} trigger - Element that opens/closes the panel on click
-   * @param {{ value: string, label: string }[]} options
-   * @param {(value: string) => void} onSelect - Called when the user picks an option
-   * @param {() => string|null} getValue - Returns the currently selected value (shown with a checkmark)
-   * @param {{ align?: 'left'|'right' }} [opts]
-   */
-  constructor(trigger, options, onSelect, getValue, opts = {}) {
+export interface DropdownOption {
+  value: string;
+  label: string;
+}
+
+export class CustomDropdown {
+  private _trigger: HTMLElement;
+  private _options: DropdownOption[];
+  private _onSelect: (value: string) => void;
+  private _getValue: (() => string | null) | null;
+  private _align: 'left' | 'right';
+  private _panel: HTMLElement | null = null;
+
+  constructor(
+    trigger: HTMLElement,
+    options: DropdownOption[],
+    onSelect: (value: string) => void,
+    getValue: (() => string | null) | null = null,
+    opts: { align?: 'left' | 'right' } = {},
+  ) {
     this._trigger = trigger;
     this._options = options;
     this._onSelect = onSelect;
     this._getValue = getValue;
     this._align = opts.align ?? 'left';
-    this._panel = null;
 
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -25,8 +31,9 @@ class CustomDropdown {
     document.addEventListener('click', () => this._close());
   }
 
-  _open() {
+  private _open(): void {
     const currentValue = this._getValue?.();
+    const showCheckmarks = this._getValue != null;
 
     const panel = document.createElement('div');
     panel.style.cssText = `
@@ -35,17 +42,14 @@ class CustomDropdown {
       background: var(--ui-popup-bg);
       border: 1px solid var(--ui-border);
       border-radius: 4px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
       padding: 3px 0;
       overflow: hidden;
     `;
     panel.addEventListener('click', (e) => e.stopPropagation());
 
-    const showCheckmarks = this._getValue != null;
-
-    this._options.forEach(({ value, label }) => {
+    for (const { value, label } of this._options) {
       const isSelected = value === currentValue;
-
       const item = document.createElement('div');
       item.style.cssText = `
         display: flex;
@@ -60,40 +64,26 @@ class CustomDropdown {
         ${isSelected ? 'font-weight: 600;' : ''}
       `;
 
-      const labelEl = document.createElement('span');
-      labelEl.textContent = label;
-
       if (showCheckmarks) {
         const check = document.createElement('span');
         check.textContent = '✓';
-        check.style.cssText = `
-          font-size: 0.6rem;
-          flex-shrink: 0;
-          width: 10px;
-          opacity: ${isSelected ? 1 : 0};
-        `;
+        check.style.cssText = `font-size: 0.6rem; flex-shrink: 0; width: 10px; opacity: ${isSelected ? 1 : 0};`;
         item.appendChild(check);
       }
 
+      const labelEl = document.createElement('span');
+      labelEl.textContent = label;
       item.appendChild(labelEl);
 
-      item.addEventListener('mouseenter', () => {
-        item.style.background = 'var(--ui-element-bg-hover)';
-      });
-      item.addEventListener('mouseleave', () => {
-        item.style.background = '';
-      });
-      item.addEventListener('click', () => {
-        this._onSelect(value);
-        this._close();
-      });
+      item.addEventListener('mouseenter', () => { item.style.background = 'var(--ui-element-bg-hover)'; });
+      item.addEventListener('mouseleave', () => { item.style.background = ''; });
+      item.addEventListener('click', () => { this._onSelect(value); this._close(); });
 
       panel.appendChild(item);
-    });
+    }
 
     document.body.appendChild(panel);
 
-    // Position after append so dimensions are known
     const rect = this._trigger.getBoundingClientRect();
     const panelW = Math.max(panel.offsetWidth, rect.width);
     const panelH = panel.offsetHeight;
@@ -111,7 +101,7 @@ class CustomDropdown {
     this._panel = panel;
   }
 
-  _close() {
+  private _close(): void {
     this._panel?.remove();
     this._panel = null;
   }
