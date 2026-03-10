@@ -5,6 +5,22 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-03-10
+
+Rewrote the mesh viewer UI with Svelte, and added new viewer features.
+
+### Added
+- Migrated the mesh viewer frontend from vanilla JS/HTML to Svelte with TypeScript
+- Show/hide toggle button per object in the sidebar
+- Per-object color display in the sidebar
+- Zoom widget in the mesh viewer
+- Settings popup with configurable hidden object opacity, edge rendering mode, and edge threshold multiplier
+- Groups popup to select which groups are shown in the sidebar
+- Help popup
+- Focusing a `.comm` file now focuses its corresponding mesh viewer webview
+- Object file names are shown in the webview tab titles
+- Mesh viewer UI now follows the VS Code user theme
+
 ## [1.4.3] - 2026-03-03
 
 Updated dependencies.

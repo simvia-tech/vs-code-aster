@@ -1,6 +1,9 @@
 # Node modules
 node_modules/
 
+# Webview build output
+resources/visu_vtk/dist/
+
 # Build output
 dist/
 

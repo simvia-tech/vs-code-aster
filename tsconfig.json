@@ -10,7 +10,10 @@
 		"sourceMap": true,
 		"strict": true,
 		"skipLibCheck": true
-	}
+	},
+	"exclude": [
+		"resources/visu_vtk"
+	]
 }
 
 

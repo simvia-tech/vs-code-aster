@@ -20,3 +20,11 @@ requirements.txt
 python/data
 python/lsp/.venv
 python/.venv
+resources/visu_vtk/src/**
+resources/visu_vtk/vite.config.ts
+resources/visu_vtk/svelte.config.js
+resources/visu_vtk/tsconfig.json
+resources/visu_vtk/js/**
+resources/visu_vtk/tailwind.css
+resources/visu_vtk/styles.css
+resources/visu_vtk/index.js

@@ -1,7 +1,7 @@
 <p align="center"><img src="https://raw.githubusercontent.com/simvia-tech/vs-code-aster/main/resources/images/simvia.png" alt="Simvia Logo" width="50%" /></p>
 
 <p align="center">
-  <a href="/"><img src="https://img.shields.io/badge/version-1.4.3-blue" alt="Version" /></a>
+  <a href="/"><img src="https://img.shields.io/badge/version-1.5.0-blue" alt="Version" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL%203.0-green" alt="License" /></a>
 </p>
 
@@ -253,16 +253,40 @@ git clone https://github.com/simvia-tech/vs-code-aster.git
 npm install
 ```
 
-3. Compile extension :
+### 3. Architecture overview
+
+The extension consists of two independently compiled parts :
+
+- **Extension host** (`src/`) — TypeScript compiled with esbuild, runs in Node.js inside VS Code
+- **Webview** (`resources/visu_vtk/`) — Svelte 5 + Vite app that powers the 3D visualizer; built separately into `resources/visu_vtk/dist/`
+
+### 4. Running the extension locally
+
+Press `F5` (or go to `Run > Start Debugging`) to launch a new VS Code window running the extension.
+
+This starts three background watch tasks automatically (defined in `.vscode/tasks.json`) :
+
+| Task | What it does |
+|---|---|
+| `npm: watch:esbuild` | Recompiles the extension host on every save |
+| `npm: watch:tsc` | Type-checks the extension host continuously |
+| `npm: watch:webview` | Rebuilds the Svelte webview on every save |
+
+After making changes to the **extension host** (`src/`), reload the debug window with `Ctrl + R`.
+
+After making changes to the **webview** (`resources/visu_vtk/src/`), wait for the `watch:webview` task to finish rebuilding, then run `Developer: Reload Webviews` from the Command Palette.
+
+### 5. Building manually
+
+To build everything from scratch without starting the debug session :
 
 ```bash
+# Build the webview
+npm run build:webview
+
+# Compile and type-check the extension host
 npm run compile
 ```
-
-### 3. Running the extension locally
-
-You can press `F5` or go to `Run > Start Debugging` to launch a new VS Code window running this extension.
-After making changes, you can reload the new window using `Ctrl` + `R`.
 
 ## Telemetry
 
