@@ -9,6 +9,13 @@ export default defineConfig({
   build: {
     outDir: resolve(__dirname, 'dist'),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/index.js',
+        chunkFileNames: 'assets/[name].js',
+        assetFileNames: 'assets/index.[ext]',
+      },
+    },
   },
   plugins: [svelte(), tailwindcss()],
 });

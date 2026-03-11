@@ -6,9 +6,9 @@
 </script>
 
 <div
+  id="helpPopup"
   class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-2/3 max-h-2/3 rounded shadow-lg backdrop-blur-lg p-8 flex flex-col"
   style="background: var(--ui-popup-bg); color: var(--ui-fg); border: 1px solid var(--ui-border)"
-  onclick={(e) => e.stopPropagation()}
   role="document"
 >
   <span class="font-bold text-base">Help</span>
@@ -60,10 +60,8 @@
 
   <div class="mt-4 flex self-end space-x-3">
     <button
-      class="font-bold px-3 py-1 rounded-sm cursor-pointer"
-      style="background: var(--ui-btn-bg); color: var(--ui-btn-fg)"
-      onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--ui-btn-hover-bg)'; }}
-      onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--ui-btn-bg)'; }}
+      class="font-bold px-3 py-1 rounded-sm cursor-pointer text-xs bg-ui-btn hover:bg-ui-btn-hover"
+      style="color: var(--ui-btn-fg)"
       onclick={onclose}
     >
       Close

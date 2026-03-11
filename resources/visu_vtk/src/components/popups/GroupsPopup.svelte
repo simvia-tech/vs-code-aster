@@ -68,9 +68,9 @@
 </script>
 
 <div
+  id="groupsPopup"
   class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-2/3 max-h-2/3 rounded shadow-lg backdrop-blur-lg p-8 flex flex-col"
   style="background: var(--ui-popup-bg); color: var(--ui-fg); border: 1px solid var(--ui-border)"
-  onclick={(e) => e.stopPropagation()}
   role="document"
 >
   <div class="flex flex-col mb-4">
@@ -90,10 +90,8 @@
             <span class="font-semibold text-sm">{obj.name}</span>
           </div>
           <button
-            class="text-xs leading-none cursor-pointer px-1.5 py-0.5 rounded-sm"
+            class="text-xs leading-none cursor-pointer px-1.5 py-0.5 rounded-sm hover:bg-ui-elem"
             style="color: var(--ui-text-secondary)"
-            onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--ui-element-bg)'; }}
-            onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = ''; }}
             onclick={() => toggleAll(obj.key, obj.allGroups)}
           >
             {allOff ? 'Show all' : 'Hide all'}
@@ -122,19 +120,15 @@
 
   <div class="mt-4 flex justify-between items-center">
     <button
-      class="px-3 py-1 rounded-sm cursor-pointer text-sm"
-      style="background: var(--ui-element-bg); color: var(--ui-fg); border: 1px solid var(--ui-border)"
-      onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'color-mix(in srgb, var(--ui-fg) 15%, transparent)'; }}
-      onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--ui-element-bg)'; }}
+      class="px-3 py-1 rounded-sm cursor-pointer text-xs bg-ui-elem hover:bg-ui-elem-hover"
+      style="color: var(--ui-fg); border: 1px solid var(--ui-border)"
       onclick={resetAll}
     >
       Reset
     </button>
     <button
-      class="font-bold px-3 py-1 rounded-sm cursor-pointer"
-      style="background: var(--ui-btn-bg); color: var(--ui-btn-fg)"
-      onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--ui-btn-hover-bg)'; }}
-      onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--ui-btn-bg)'; }}
+      class="font-bold px-3 py-1 rounded-sm cursor-pointer text-xs bg-ui-btn hover:bg-ui-btn-hover"
+      style="color: var(--ui-btn-fg)"
       onclick={onclose}
     >
       Close

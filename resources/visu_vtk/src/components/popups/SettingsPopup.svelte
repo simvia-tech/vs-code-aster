@@ -34,13 +34,13 @@
 
   $effect(() => {
     if (!edgeModeSelectEl) return;
-    const dd = new CustomDropdown(
+    const dropdown = new CustomDropdown(
       edgeModeSelectEl,
       edgeModeOptions,
       (value) => applyEdgeMode(value as EdgeMode),
       () => GlobalSettings.Instance.edgeMode,
     );
-    return () => {};
+    return () => dropdown.close();
   });
 
   function applyEdgeMode(mode: EdgeMode) {
@@ -100,22 +100,20 @@
 </script>
 
 <div
+  id="settingsPopup"
   class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-2/3 max-h-2/3 rounded shadow-lg backdrop-blur-lg p-8 flex flex-col"
   style="background: var(--ui-popup-bg); color: var(--ui-fg); border: 1px solid var(--ui-border)"
-  onclick={(e) => e.stopPropagation()}
   role="document"
 >
   <span class="font-bold text-base">Settings</span>
 
   <div class="flex flex-col space-y-4 mt-4 pr-2 overflow-y-auto grow">
     <div class="flex flex-col space-y-1.5">
-      <label class="text-sm font-semibold">Edge display</label>
+      <span class="text-sm font-semibold">Edge display</span>
       <div
         bind:this={edgeModeSelectEl}
-        class="w-full text-xs px-2 py-1.5 rounded-sm cursor-pointer flex items-center justify-between gap-2 select-none"
-        style="background: var(--ui-element-bg); color: var(--ui-fg); border: 1px solid var(--ui-border)"
-        onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--ui-element-bg-hover)'; }}
-        onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--ui-element-bg)'; }}
+        class="w-full text-xs px-2 py-1.5 rounded-sm cursor-pointer flex items-center justify-between gap-2 select-none bg-ui-elem hover:bg-ui-elem-hover"
+        style="color: var(--ui-fg); border: 1px solid var(--ui-border)"
         role="button"
         tabindex="0"
       >
@@ -126,10 +124,11 @@
       {#if showThresholdSection}
         <div class="flex flex-col space-y-1.5 pt-0.5">
           <div class="flex items-center justify-between">
-            <label class="text-xs font-medium">Threshold sensitivity</label>
+            <label for="edgeThresholdRange" class="text-xs font-medium">Threshold sensitivity</label>
             <span class="text-xs" style="color: var(--ui-text-secondary)">{edgeThresholdDisplay}×</span>
           </div>
           <input
+            id="edgeThresholdRange"
             type="range"
             min="25"
             max="500"
@@ -145,10 +144,11 @@
 
     <div class="flex flex-col space-y-1.5">
       <div class="flex items-center justify-between">
-        <label class="text-sm font-semibold">Hidden objects opacity</label>
+        <label for="hiddenOpacityRange" class="text-sm font-semibold">Hidden objects opacity</label>
         <span class="text-xs" style="color: var(--ui-text-secondary)">{hiddenOpacityPct}%</span>
       </div>
       <input
+        id="hiddenOpacityRange"
         type="range"
         min="0"
         max="100"
@@ -165,19 +165,15 @@
 
   <div class="mt-4 flex justify-between items-center">
     <button
-      class="px-3 py-1 rounded-sm cursor-pointer text-sm"
-      style="background: var(--ui-element-bg); color: var(--ui-fg); border: 1px solid var(--ui-border)"
-      onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'color-mix(in srgb, var(--ui-fg) 15%, transparent)'; }}
-      onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--ui-element-bg)'; }}
+      class="px-3 py-1 rounded-sm cursor-pointer text-xs bg-ui-elem hover:bg-ui-elem-hover"
+      style="color: var(--ui-fg); border: 1px solid var(--ui-border)"
       onclick={resetSettings}
     >
       Reset defaults
     </button>
     <button
-      class="font-bold px-3 py-1 rounded-sm cursor-pointer"
-      style="background: var(--ui-btn-bg); color: var(--ui-btn-fg)"
-      onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--ui-btn-hover-bg)'; }}
-      onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--ui-btn-bg)'; }}
+      class="font-bold px-3 py-1 rounded-sm cursor-pointer text-xs bg-ui-btn hover:bg-ui-btn-hover"
+      style="color: var(--ui-btn-fg)"
       onclick={onclose}
     >
       Close

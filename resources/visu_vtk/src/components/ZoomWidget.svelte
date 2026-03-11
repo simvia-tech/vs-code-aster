@@ -16,7 +16,7 @@
 
   $effect(() => {
     if (!zoomTriggerEl) return;
-    new CustomDropdown(
+    const dropdown = new CustomDropdown(
       zoomTriggerEl,
       [
         { value: '0.5', label: '0.5×' },
@@ -30,36 +30,34 @@
       null,
       { align: 'right' },
     );
-    return () => {};
+    return () => dropdown.close();
   });
 </script>
 
 <div
   id="zoomWidget"
-  class="absolute bottom-2 z-10 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+  class="absolute bottom-2 z-10 -translate-x-1/2 flex items-stretch rounded-full overflow-hidden"
   style="left: 50%; background: color-mix(in srgb, var(--ui-bg) 85%, transparent); border: 1px solid var(--ui-border)"
 >
-  <ZoomIcon class="size-3 text-[var(--ui-text-secondary)]" />
   <div
     id="zoomTrigger"
     bind:this={zoomTriggerEl}
-    class="cursor-pointer select-none px-1 py-0.5 rounded"
+    class="cursor-pointer select-none flex items-center gap-1.5 pl-2.5 py-1.5 transition-colors hover:bg-ui-elem-hover {$isAtDefaultZoom ? 'pr-2.5' : 'pr-0.75'}"
     style="color: var(--ui-text-secondary)"
-    onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'color-mix(in srgb, var(--ui-fg) 7%, transparent)'; }}
-    onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = ''; }}
     role="button"
     tabindex="0"
   >
-    <span id="zoomIndicator" class="text-xs font-mono">{zoomText}</span>
+    <ZoomIcon class="size-3.5" />
+    <span id="zoomIndicator" class="text-xs font-mono leading-none">{zoomText}</span>
   </div>
   {#if !$isAtDefaultZoom}
     <button
       title="Reset zoom"
-      class="size-3.5 cursor-pointer flex items-center justify-center opacity-50 hover:opacity-100"
-      style="color: var(--ui-fg)"
+      class="pl-0.75 pr-2 cursor-pointer flex items-center justify-center transition-colors hover:bg-ui-elem-hover"
+      style="color: var(--ui-text-secondary)"
       onclick={() => CameraManager.Instance.resetZoom()}
     >
-      <ResetIcon class="size-3.5" />
+      <ResetIcon class="size-3.5 p-px stroke-[2.5]" />
     </button>
   {/if}
 </div>

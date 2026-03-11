@@ -15,6 +15,7 @@
   --ui-text-muted: color-mix(in srgb, var(--ui-fg) 55%, transparent);
   --ui-element-bg: color-mix(in srgb, var(--ui-fg) 10%, transparent);
   --ui-element-bg-hover: color-mix(in srgb, var(--ui-fg) 18%, transparent);
+  --ui-bg-translucent: color-mix(in srgb, var(--ui-bg) 85%, transparent);
   --ui-highlight-text: rgba(255, 255, 255, 0.9);
 }
 
@@ -22,6 +23,26 @@ body.vscode-dark,
 body.vscode-high-contrast {
   --icon-filter: invert(1);
   --ui-highlight-text: rgba(0, 0, 0, 0.8);
+}
+
+@utility bg-ui-elem {
+  background: var(--ui-element-bg);
+}
+
+@utility bg-ui-elem-hover {
+  background: var(--ui-element-bg-hover);
+}
+
+@utility bg-ui-muted {
+  background: var(--ui-bg-translucent);
+}
+
+@utility bg-ui-btn {
+  background: var(--ui-btn-bg);
+}
+
+@utility bg-ui-btn-hover {
+  background: var(--ui-btn-hover-bg);
 }
 
 kbd {
@@ -63,16 +84,16 @@ input[type="checkbox"].custom-cb:checked::after {
   transform: translateY(-1px) rotate(45deg);
 }
 
-#groupButtons,
-#helpPopup *,
-#groupList,
-#settingsPopup .overflow-y-auto {
+#sidebarGroups,
+#helpPopup .overflow-y-auto,
+#settingsPopup .overflow-y-auto,
+#groupsPopup .overflow-y-auto {
   scrollbar-width: none;
 }
 
-#groupButtons::-webkit-scrollbar,
-#helpPopup ::-webkit-scrollbar,
-#groupList::-webkit-scrollbar,
-#settingsPopup .overflow-y-auto::-webkit-scrollbar {
+#sidebarGroups::-webkit-scrollbar,
+#helpPopup .overflow-y-auto::-webkit-scrollbar,
+#settingsPopup .overflow-y-auto::-webkit-scrollbar,
+#groupsPopup .overflow-y-auto::-webkit-scrollbar {
   display: none;
 }

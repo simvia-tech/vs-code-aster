@@ -26,9 +26,9 @@ export class CustomDropdown {
 
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
-      this._panel ? this._close() : this._open();
+      this._panel ? this.close() : this._open();
     });
-    document.addEventListener('click', () => this._close());
+    document.addEventListener('click', () => this.close());
   }
 
   private _open(): void {
@@ -77,7 +77,7 @@ export class CustomDropdown {
 
       item.addEventListener('mouseenter', () => { item.style.background = 'var(--ui-element-bg-hover)'; });
       item.addEventListener('mouseleave', () => { item.style.background = ''; });
-      item.addEventListener('click', () => { this._onSelect(value); this._close(); });
+      item.addEventListener('click', () => { this._onSelect(value); this.close(); });
 
       panel.appendChild(item);
     }
@@ -101,7 +101,7 @@ export class CustomDropdown {
     this._panel = panel;
   }
 
-  private _close(): void {
+  close(): void {
     this._panel?.remove();
     this._panel = null;
   }

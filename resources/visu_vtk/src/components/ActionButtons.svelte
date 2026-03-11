@@ -17,12 +17,10 @@
 >
   <div class="group flex items-center">
     <button
-      class="size-6 p-1 flex items-center justify-center cursor-pointer"
-      onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--ui-element-bg)'; }}
-      onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = ''; }}
+      class="size-6 p-1 flex items-center justify-center cursor-pointer hover:bg-ui-elem"
       onclick={onOpenGroups}
     >
-      <FilterIcon class="size-3" />
+      <FilterIcon class="size-3.5" />
     </button>
     <span
       class="absolute left-full pl-1.5 hidden group-hover:inline whitespace-nowrap"
@@ -34,9 +32,7 @@
   <div class="w-3/4 h-px mx-auto" style="background: var(--ui-border)"></div>
   <div class="group flex items-center">
     <button
-      class="size-6 p-1 flex items-center justify-center cursor-pointer"
-      onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--ui-element-bg)'; }}
-      onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = ''; }}
+      class="size-6 p-1 flex items-center justify-center cursor-pointer hover:bg-ui-elem"
       onclick={clear}
     >
       <ClearIcon class="size-3.5" />
