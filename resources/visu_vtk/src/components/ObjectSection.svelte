@@ -56,6 +56,7 @@
     class="flex-1 truncate text-center px-2 select-none"
     style="cursor: {isHidden || allGroupsHiddenFromSidebar ? 'default' : 'pointer'}"
     onclick={toggleCollapsed}
+    onkeydown={(e) => e.key === 'Enter' && toggleCollapsed()}
     role="button"
     tabindex="0"
   >

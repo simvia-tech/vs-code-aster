@@ -58,10 +58,12 @@ export class VtkApp {
   }
 
   updateCameraOffset(): void {
+    if (!this.renderer) return;
     const controls = document.getElementById('controls');
     const sidebarActions = document.getElementById('sidebarActions');
-    if (!controls) return;
-    const sidebarWidth = controls.offsetWidth - (sidebarActions?.offsetWidth ?? 0);
+    const sidebarWidth = controls
+      ? controls.offsetWidth - (sidebarActions?.offsetWidth ?? 0)
+      : 0;
     const offset = sidebarWidth / window.innerWidth;
     this.renderer.getActiveCamera().setWindowCenter(-offset, 0);
     this.renderWindow.render();

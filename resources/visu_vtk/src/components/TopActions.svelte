@@ -13,10 +13,7 @@
 
 <div class="absolute right-2 top-2 z-10 flex flex-col items-center space-y-1">
   <button
-    class="p-1.5 rounded-full cursor-pointer group flex items-center"
-    style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent)"
-    onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'color-mix(in srgb, var(--ui-bg) 100%, transparent)'; }}
-    onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = 'color-mix(in srgb, var(--ui-bg) 85%, transparent)'; }}
+    class="p-1 rounded-full cursor-pointer group flex items-center bg-ui-muted hover:bg-ui-elem-hover"
     onclick={onOpenSettings}
   >
     <SettingsIcon class="size-4" />
@@ -28,10 +25,7 @@
     </span>
   </button>
   <button
-    class="p-1.5 rounded-full cursor-pointer group flex items-center"
-    style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent)"
-    onmouseover={(e) => { (e.currentTarget as HTMLElement).style.background = 'color-mix(in srgb, var(--ui-bg) 100%, transparent)'; }}
-    onmouseout={(e) => { (e.currentTarget as HTMLElement).style.background = 'color-mix(in srgb, var(--ui-bg) 85%, transparent)'; }}
+    class="p-1 rounded-full cursor-pointer group flex items-center bg-ui-muted hover:bg-ui-elem-hover"
     onclick={onOpenHelp}
   >
     <QuestionIcon class="size-4" />

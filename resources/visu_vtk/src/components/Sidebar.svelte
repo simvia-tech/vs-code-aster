@@ -1,10 +1,16 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { groupHierarchy } from '../lib/state';
+  import { VtkApp } from '../lib/core/VtkApp';
   import ObjectSection from './ObjectSection.svelte';
   import ActionButtons from './ActionButtons.svelte';
   import AxisButtons from './AxisButtons.svelte';
 
   let { onOpenGroups }: { onOpenGroups: () => void } = $props();
+
+  onMount(() => {
+    VtkApp.Instance.updateCameraOffset();
+  });
 </script>
 
 <div
@@ -13,6 +19,7 @@
   style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent)"
 >
   <div
+    id="sidebarGroups"
     class="flex flex-col items-center space-y-1 grow overflow-y-auto"
   >
     {#each Object.entries($groupHierarchy) as [key, data]}
