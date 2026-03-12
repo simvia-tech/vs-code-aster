@@ -71,6 +71,6 @@ export class Controller {
 
   getGroupNames(): string[] {
     if (!this._groups) { return []; }
-    return Object.keys(this._groups).filter((key) => !key.includes('all_'));
+    return Object.keys(this._groups).filter((key) => key.includes('::'));
   }
 }

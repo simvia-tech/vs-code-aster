@@ -7,6 +7,7 @@
   import HelpPopup from './popups/HelpPopup.svelte';
   import SettingsPopup from './popups/SettingsPopup.svelte';
   import GroupsPopup from './popups/GroupsPopup.svelte';
+  import LoadingScreen from './LoadingScreen.svelte';
 
   type PopupType = 'help' | 'settings' | 'groups' | null;
   let openPopup: PopupType = $state(null);
@@ -16,14 +17,18 @@
 
 {#if hasData}
   <Sidebar onOpenGroups={() => { openPopup = 'groups'; }} />
+{:else}
+  <LoadingScreen />
 {/if}
 
-<TopActions
-  onOpenSettings={() => { openPopup = 'settings'; }}
-  onOpenHelp={() => { openPopup = 'help'; }}
-/>
+{#if hasData}
+  <TopActions
+    onOpenSettings={() => { openPopup = 'settings'; }}
+    onOpenHelp={() => { openPopup = 'help'; }}
+  />
 
-<ZoomWidget />
+  <ZoomWidget />
+{/if}
 
 {#if openPopup}
   <Popup onclose={() => { openPopup = null; }}>

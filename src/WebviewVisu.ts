@@ -155,10 +155,12 @@ export class WebviewVisu implements vscode.Disposable {
     }
 
     // Parse the text to find group names
+    // Group keys are like "all_mesh.obj::SURFACE_1"; match against the short name only
     const readGroups =
       this.groups?.filter((groupName) => {
+        const shortName = groupName.includes('::') ? groupName.split('::').pop()! : groupName;
         const regex = new RegExp(
-          `\\b${groupName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`
+          `\\b${shortName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`
         );
         return regex.test(text);
       }) || [];
