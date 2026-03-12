@@ -79,7 +79,7 @@
       onmouseleave={(e) => (e.currentTarget as HTMLElement).style.background = ''}
       onclick={hideAllOthers}
     >
-      Hide all others
+      Hide all other objects
     </button>
   </div>
 {/if}
