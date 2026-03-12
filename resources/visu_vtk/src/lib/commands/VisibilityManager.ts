@@ -134,6 +134,19 @@ export class VisibilityManager {
     group.setOpacity(meshOpacity);
   }
 
+  hideAllOthers(object: string): void {
+    for (const key in this.hiddenObjects) {
+      if (key === object) continue;
+      const isAlreadyHidden = this.hiddenObjects[key];
+      if (!isAlreadyHidden) {
+        this.toggleObjectVisibility(key);
+      }
+    }
+    if (this.hiddenObjects[object]) {
+      this.toggleObjectVisibility(object);
+    }
+  }
+
   applyHiddenObjectOpacity(): void {
     const hiddenOpacity = GlobalSettings.Instance.hiddenObjectOpacity;
     for (const object in this.hiddenObjects) {
