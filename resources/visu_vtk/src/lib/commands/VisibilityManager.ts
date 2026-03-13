@@ -104,7 +104,7 @@ export class VisibilityManager {
     if (fileGroup) {
       if (nowVisible) {
         fileGroup.actor.setVisibility(true);
-        const opacity = this.visibleGroupsByObject[object] > 0 ? 0.2 : 1.0;
+        const opacity = this.visibleGroupsByObject[object] > 0 ? GlobalSettings.Instance.groupTransparency : 1.0;
         fileGroup.setOpacity(opacity);
       } else {
         const hiddenOpacity = GlobalSettings.Instance.hiddenObjectOpacity;
@@ -129,9 +129,19 @@ export class VisibilityManager {
 
   setTransparence(transparent: boolean, object: string): void {
     if (!this.groups || this.hiddenObjects[object]) { return; }
-    const meshOpacity = transparent ? 0.2 : 1;
+    const meshOpacity = transparent ? GlobalSettings.Instance.groupTransparency : 1;
     const group = this.groups[object];
     group.setOpacity(meshOpacity);
+  }
+
+  applyGroupTransparency(): void {
+    for (const object in this.visibleGroupsByObject) {
+      if (this.hiddenObjects[object]) continue;
+      if (this.visibleGroupsByObject[object] > 0) {
+        this.groups[object]?.setOpacity(GlobalSettings.Instance.groupTransparency);
+      }
+    }
+    VtkApp.Instance.getRenderWindow().render();
   }
 
   hideAllOthers(object: string): void {

@@ -91,7 +91,9 @@ export class WebviewVisu implements vscode.Disposable {
             const config = vscode.workspace.getConfiguration("vs-code-aster");
             const settings = {
               hiddenObjectOpacity: config.get<number>("viewer.hiddenObjectOpacity", 0),
-              edgeMode: config.get<string>("viewer.edgeMode", "gradual"),
+              edgeMode: config.get<string>("viewer.edgeMode", "threshold"),
+              groupTransparency: config.get<number>("viewer.groupTransparency", 0.2),
+              showOrientationWidget: config.get<boolean>("viewer.showOrientationWidget", true),
             };
             this.panel.webview.postMessage({
               type: "init",
@@ -101,19 +103,14 @@ export class WebviewVisu implements vscode.Disposable {
           break;
         case "saveSettings":
           // Persist viewer settings back to VS Code configuration
-          if (e.settings.hiddenObjectOpacity !== undefined) {
-            vscode.workspace.getConfiguration("vs-code-aster").update(
-              "viewer.hiddenObjectOpacity",
-              e.settings.hiddenObjectOpacity,
-              vscode.ConfigurationTarget.Global
-            );
-          }
-          if (e.settings.edgeMode !== undefined) {
-            vscode.workspace.getConfiguration("vs-code-aster").update(
-              "viewer.edgeMode",
-              e.settings.edgeMode,
-              vscode.ConfigurationTarget.Global
-            );
+          const cfg = vscode.workspace.getConfiguration("vs-code-aster");
+          const settingKeys = [
+            'hiddenObjectOpacity', 'edgeMode', 'groupTransparency', 'showOrientationWidget',
+          ];
+          for (const key of settingKeys) {
+            if (e.settings[key] !== undefined) {
+              cfg.update(`viewer.${key}`, e.settings[key], vscode.ConfigurationTarget.Global);
+            }
           }
           break;
         case "debugPanel":

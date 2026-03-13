@@ -86,8 +86,9 @@ export class FaceActorCreator {
     prop.setEdgeColor(r, g, b);
     prop.setLineWidth(0.3);
     prop.setInterpolationToPhong();
-    prop.setSpecular(0.3);
-    prop.setSpecularPower(15);
+    prop.setAmbient(GlobalSettings.Instance.ambientIntensity);
+    prop.setSpecular(GlobalSettings.Instance.specular);
+    prop.setSpecularPower(GlobalSettings.Instance.specularPower);
 
     return { colorIndex, isObjectActor };
   }

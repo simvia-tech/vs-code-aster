@@ -103,6 +103,11 @@ export class CameraManager {
     VtkApp.Instance.getRenderWindow().render();
   }
 
+  setOrientationWidgetVisible(visible: boolean): void {
+    this.orientationWidget.setEnabled(visible);
+    VtkApp.Instance.getRenderWindow().render();
+  }
+
   setCameraAxis(axis: string): void {
     if (!this.camera) { return; }
 
