@@ -1,10 +1,18 @@
-from managers import StatusBarManager, HoverManager, UpdateManager, SignatureManager, CompletionManager
+from managers import (
+    CompletionManager,
+    HoverManager,
+    SignatureManager,
+    StatusBarManager,
+    UpdateManager,
+)
+
 
 class ManagerContainer:
     """
     Central container for all feature classes.
     Initialize all managers
     """
+
     def __init__(self):
         self.status_bar = StatusBarManager()
         self.hover = HoverManager()

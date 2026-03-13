@@ -1,20 +1,13 @@
 {
-	"compilerOptions": {
-		"rootDir": "src",
-		"types": ["@types/node"],
-		"module": "Node16",
-		"target": "ES2022",
-		"lib": [
-			"ES2022"
-		],
-		"sourceMap": true,
-		"strict": true,
-		"skipLibCheck": true
-	},
-	"exclude": [
-		"resources/visu_vtk"
-	]
+  "compilerOptions": {
+    "rootDir": "src",
+    "types": ["@types/node"],
+    "module": "Node16",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "sourceMap": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"]
 }
-
-
-

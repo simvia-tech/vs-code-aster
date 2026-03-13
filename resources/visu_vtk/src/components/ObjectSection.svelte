@@ -19,7 +19,9 @@
   } = $props();
 
   let objectName = $derived(objectKey.replace('all_', '').replace('.obj', ''));
-  let colorCss = $derived(`rgb(${Math.round(color[0] * 255)},${Math.round(color[1] * 255)},${Math.round(color[2] * 255)})`);
+  let colorCss = $derived(
+    `rgb(${Math.round(color[0] * 255)},${Math.round(color[1] * 255)},${Math.round(color[2] * 255)})`
+  );
   let isHidden = $derived($hiddenObjects.has(objectKey));
   let collapsed = $state(false);
 
@@ -67,7 +69,10 @@
   <div
     class="fixed inset-0 z-40"
     onclick={closeContextMenu}
-    oncontextmenu={(e) => { e.preventDefault(); closeContextMenu(); }}
+    oncontextmenu={(e) => {
+      e.preventDefault();
+      closeContextMenu();
+    }}
     role="presentation"
   ></div>
   <div
@@ -75,8 +80,9 @@
   >
     <button
       style="display: flex; align-items: center; width: 100%; padding: 5px 10px; font-size: 0.75rem; cursor: pointer; color: var(--ui-fg); white-space: nowrap; background: none; border: none; text-align: left;"
-      onmouseenter={(e) => (e.currentTarget as HTMLElement).style.background = 'var(--ui-element-bg-hover)'}
-      onmouseleave={(e) => (e.currentTarget as HTMLElement).style.background = ''}
+      onmouseenter={(e) =>
+        ((e.currentTarget as HTMLElement).style.background = 'var(--ui-element-bg-hover)')}
+      onmouseleave={(e) => ((e.currentTarget as HTMLElement).style.background = '')}
       onclick={hideAllOthers}
     >
       Hide all other objects
@@ -85,6 +91,7 @@
 {/if}
 
 <span
+  role="group"
   class="h-4.5 w-full self-stretch flex items-center gap-1 pl-1.25 pr-0.5 mb-2 not-nth-of-type-[1]:mt-1 text-xs font-bold"
   style="color: var(--ui-text-primary)"
   oncontextmenu={onContextMenu}
@@ -114,27 +121,31 @@
 </span>
 
 {#if isHidden}
-  <div class="w-full text-center text-[0.7rem] font-normal mb-2" style="color: var(--ui-text-muted)">
+  <div
+    class="w-full text-center text-[0.7rem] font-normal mb-2"
+    style="color: var(--ui-text-muted)"
+  >
     {groupCount} groups
   </div>
+{:else if !collapsed}
+  <div class="w-full flex flex-col items-center space-y-1">
+    {#each faces as groupName}
+      <GroupButton {objectKey} {groupName} isFace={true} />
+    {/each}
+    {#each nodes as groupName}
+      <GroupButton {objectKey} {groupName} isFace={false} />
+    {/each}
+    {#if hiddenGroupCount > 0}
+      <div class="w-full text-center text-[0.7rem] pb-1" style="color: var(--ui-text-muted)">
+        {hiddenGroupCount} hidden
+      </div>
+    {/if}
+  </div>
 {:else}
-  {#if !collapsed}
-    <div class="w-full flex flex-col items-center space-y-1">
-      {#each faces as groupName}
-        <GroupButton {objectKey} {groupName} isFace={true} />
-      {/each}
-      {#each nodes as groupName}
-        <GroupButton {objectKey} {groupName} isFace={false} />
-      {/each}
-      {#if hiddenGroupCount > 0}
-        <div class="w-full text-center text-[0.7rem] pb-1" style="color: var(--ui-text-muted)">
-          {hiddenGroupCount} hidden
-        </div>
-      {/if}
-    </div>
-  {:else}
-    <div class="w-full text-center text-[0.7rem] font-normal mb-2" style="color: var(--ui-text-muted)">
-      {groupCount} groups
-    </div>
-  {/if}
+  <div
+    class="w-full text-center text-[0.7rem] font-normal mb-2"
+    style="color: var(--ui-text-muted)"
+  >
+    {groupCount} groups
+  </div>
 {/if}

@@ -33,7 +33,10 @@ export class VisibilityManager {
     highlightedGroups.set(new Map());
   }
 
-  setVisibility(groupName: string, visible?: boolean): { visible: boolean; color: number[]; isFaceGroup: boolean } | undefined {
+  setVisibility(
+    groupName: string,
+    visible?: boolean
+  ): { visible: boolean; color: number[]; isFaceGroup: boolean } | undefined {
     const post = (text: string) => {
       Controller.Instance.getVSCodeAPI().postMessage({ type: 'debugPanel', text });
     };
@@ -62,10 +65,16 @@ export class VisibilityManager {
 
     if (isHighlighted) {
       this.highlightedGroupsSet.add(groupName);
-      highlightedGroups.update((map) => { map.set(groupName, color); return map; });
+      highlightedGroups.update((map) => {
+        map.set(groupName, color);
+        return map;
+      });
     } else {
       this.highlightedGroupsSet.delete(groupName);
-      highlightedGroups.update((map) => { map.delete(groupName); return map; });
+      highlightedGroups.update((map) => {
+        map.delete(groupName);
+        return map;
+      });
     }
 
     if (!this.hiddenObjects[object]) {
@@ -104,7 +113,8 @@ export class VisibilityManager {
     if (fileGroup) {
       if (nowVisible) {
         fileGroup.actor.setVisibility(true);
-        const opacity = this.visibleGroupsByObject[object] > 0 ? GlobalSettings.Instance.groupTransparency : 1.0;
+        const opacity =
+          this.visibleGroupsByObject[object] > 0 ? GlobalSettings.Instance.groupTransparency : 1.0;
         fileGroup.setOpacity(opacity);
       } else {
         const hiddenOpacity = GlobalSettings.Instance.hiddenObjectOpacity;
@@ -128,7 +138,9 @@ export class VisibilityManager {
   }
 
   setTransparence(transparent: boolean, object: string): void {
-    if (!this.groups || this.hiddenObjects[object]) { return; }
+    if (!this.groups || this.hiddenObjects[object]) {
+      return;
+    }
     const meshOpacity = transparent ? GlobalSettings.Instance.groupTransparency : 1;
     const group = this.groups[object];
     group.setOpacity(meshOpacity);
@@ -174,9 +186,13 @@ export class VisibilityManager {
   }
 
   clear(): void {
-    for (const [groupName, group] of Object.entries(this.groups)) {
-      if (!group.actor) { continue; }
-      if (group.fileGroup === null) { continue; }
+    for (const [, group] of Object.entries(this.groups)) {
+      if (!group.actor) {
+        continue;
+      }
+      if (group.fileGroup === null) {
+        continue;
+      }
       group.setVisibility(false);
     }
 

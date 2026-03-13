@@ -29,11 +29,15 @@ window.addEventListener('message', async (e) => {
       Controller.Instance.loadFiles(body.fileContexts, body.objFilenames);
       if (body.settings) {
         const s = body.settings;
-        if (s.hiddenObjectOpacity !== undefined) GlobalSettings.Instance.hiddenObjectOpacity = s.hiddenObjectOpacity;
+        if (s.hiddenObjectOpacity !== undefined)
+          GlobalSettings.Instance.hiddenObjectOpacity = s.hiddenObjectOpacity;
         if (s.edgeMode !== undefined) GlobalSettings.Instance.edgeMode = s.edgeMode as EdgeMode;
-        if (s.edgeThresholdMultiplier !== undefined) GlobalSettings.Instance.edgeThresholdMultiplier = s.edgeThresholdMultiplier;
-        if (s.groupTransparency !== undefined) GlobalSettings.Instance.groupTransparency = s.groupTransparency;
-        if (s.showOrientationWidget !== undefined) GlobalSettings.Instance.showOrientationWidget = s.showOrientationWidget;
+        if (s.edgeThresholdMultiplier !== undefined)
+          GlobalSettings.Instance.edgeThresholdMultiplier = s.edgeThresholdMultiplier;
+        if (s.groupTransparency !== undefined)
+          GlobalSettings.Instance.groupTransparency = s.groupTransparency;
+        if (s.showOrientationWidget !== undefined)
+          GlobalSettings.Instance.showOrientationWidget = s.showOrientationWidget;
         settings.update((cur) => ({
           hiddenObjectOpacity: s.hiddenObjectOpacity ?? cur.hiddenObjectOpacity,
           edgeMode: (s.edgeMode ?? cur.edgeMode) as EdgeMode,

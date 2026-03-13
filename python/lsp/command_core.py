@@ -1,7 +1,12 @@
+import sys
+
 try:
     from asterstudy.datamodel.catalogs import CATA
 except ImportError as exc:
-    raise Exception(f"Could not import CATA from asterstudy.datamodel.catalogs. Ensure the path is correct. {sys.path} ; {exc}")
+    raise Exception(
+        f"Could not import CATA from asterstudy.datamodel.catalogs. Ensure the path is correct. {sys.path} ; {exc}"
+    )
+
 
 class CommandCore:
     """
@@ -10,6 +15,7 @@ class CommandCore:
     - Document registries (CommandRegistry per doc)
     - Langage server utilities
     """
+
     _instance = None
 
     def __new__(cls):
@@ -18,7 +24,7 @@ class CommandCore:
             cls._instance.CATA = CATA
             cls._instance.document_registries = {}
         return cls._instance
-    
+
     # ====== Langage server ======
 
     def store_ls(self, ls):
@@ -26,32 +32,32 @@ class CommandCore:
         self.ls = ls
 
     def log(self, debug):
-        self.ls.send_notification('logParser', {'text': debug})
+        self.ls.send_notification("logParser", {"text": debug})
 
     def get_ls(self):
         return self.ls
-    
+
     def get_doc_from_uri(self, doc_uri):
         return self.ls.workspace.get_document(doc_uri)
-    
+
     # ====== CATA ======
 
     def get_CATA(self):
         """Get the CATA object"""
         return self.CATA
-    
+
     def get_CATA_commands(self):
         return self.CATA.get_commands()
 
     def get_docstring(self, command_name):
-        return self.CATA.get_command_definition(command_name, context = None)
-    
+        return self.CATA.get_command_definition(command_name, context=None)
+
     def get_command_def(self, command_name):
         cmd_obj = self.CATA.get_command_obj(command_name)
         if cmd_obj:
             cmd_def = self.CATA.parse_command(cmd_obj)
             return cmd_def
-    
+
     # ====== Document registries ======
 
     def get_registry(self, doc_uri):
@@ -66,5 +72,3 @@ class CommandCore:
         """Remove a registry for a closed/removed document"""
         if doc_uri in self.document_registries:
             del self.document_registries[doc_uri]
-
-

@@ -1,6 +1,6 @@
-import * as vscode from "vscode";
-import * as path from "path";
-import * as fs from "fs";
+import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
 
 /**
  * Provides basic dialog semantics over a VS Code webview panel for mesh visualization.
@@ -55,27 +55,22 @@ export class WebviewVisu implements vscode.Disposable {
 
     // Use provided title or fall back to the HTML <title> tag
     if (!title) {
-      const htmlFileContent = fs.readFileSync(htmlFilePath, { encoding: "utf8" });
-      title = this.extractHtmlTitle(htmlFileContent, "Visualizer");
+      const htmlFileContent = fs.readFileSync(htmlFilePath, { encoding: 'utf8' });
+      title = this.extractHtmlTitle(htmlFileContent, 'Visualizer');
     }
 
     // Create webview panel with icon
-    this.panel = vscode.window.createWebviewPanel(
-      viewType,
-      title,
-      viewColumn,
-      options
-    );
+    this.panel = vscode.window.createWebviewPanel(viewType, title, viewColumn, options);
     this.panel.iconPath = {
-      light: vscode.Uri.file(path.join(resourceRootDir, "resources", "icons", "3d.svg")),
-      dark: vscode.Uri.file(path.join(resourceRootDir, "resources", "icons", "3d_light.svg")),
+      light: vscode.Uri.file(path.join(resourceRootDir, 'resources', 'icons', '3d.svg')),
+      dark: vscode.Uri.file(path.join(resourceRootDir, 'resources', 'icons', '3d_light.svg')),
     };
-    console.log("[WebviewVisu] Webview panel created");
+    console.log('[WebviewVisu] Webview panel created');
 
     // Set HTML content for the webview
     const html = this.preprocessWebviewHtml(this.panel, htmlFilePath);
     this.panel.webview.html = html;
-    console.log("[WebviewVisu] HTML content set in webview");
+    console.log('[WebviewVisu] HTML content set in webview');
 
     // Initialize selectedGroups
     this.selectedGroups = [];
@@ -83,29 +78,32 @@ export class WebviewVisu implements vscode.Disposable {
     // Listen for messages from the webview
     this.panel.webview.onDidReceiveMessage((e) => {
       switch (e.type) {
-        case "ready":
+        case 'ready':
           // Webview is ready, send initialization message
-          console.log("[WebviewVisu] Webview ready signal received");
+          console.log('[WebviewVisu] Webview ready signal received');
           if (objFilenames) {
-            console.log("[WebviewVisu] Sending init with files:", objFilenames);
-            const config = vscode.workspace.getConfiguration("vs-code-aster");
+            console.log('[WebviewVisu] Sending init with files:', objFilenames);
+            const config = vscode.workspace.getConfiguration('vs-code-aster');
             const settings = {
-              hiddenObjectOpacity: config.get<number>("viewer.hiddenObjectOpacity", 0),
-              edgeMode: config.get<string>("viewer.edgeMode", "threshold"),
-              groupTransparency: config.get<number>("viewer.groupTransparency", 0.2),
-              showOrientationWidget: config.get<boolean>("viewer.showOrientationWidget", true),
+              hiddenObjectOpacity: config.get<number>('viewer.hiddenObjectOpacity', 0),
+              edgeMode: config.get<string>('viewer.edgeMode', 'threshold'),
+              groupTransparency: config.get<number>('viewer.groupTransparency', 0.2),
+              showOrientationWidget: config.get<boolean>('viewer.showOrientationWidget', true),
             };
             this.panel.webview.postMessage({
-              type: "init",
+              type: 'init',
               body: { fileContexts, objFilenames, settings },
             });
           }
           break;
-        case "saveSettings":
+        case 'saveSettings':
           // Persist viewer settings back to VS Code configuration
-          const cfg = vscode.workspace.getConfiguration("vs-code-aster");
+          const cfg = vscode.workspace.getConfiguration('vs-code-aster');
           const settingKeys = [
-            'hiddenObjectOpacity', 'edgeMode', 'groupTransparency', 'showOrientationWidget',
+            'hiddenObjectOpacity',
+            'edgeMode',
+            'groupTransparency',
+            'showOrientationWidget',
           ];
           for (const key of settingKeys) {
             if (e.settings[key] !== undefined) {
@@ -113,32 +111,32 @@ export class WebviewVisu implements vscode.Disposable {
             }
           }
           break;
-        case "debugPanel":
+        case 'debugPanel':
           // Log debug messages from the webview
-          console.log("[WebviewVisu] Message received from webview:", e.text);
+          console.log('[WebviewVisu] Message received from webview:', e.text);
           break;
-        case "groups":
+        case 'groups':
           // Receive the list of groups from the webview and store it
           let groupList = e.groupList;
-          console.log("Group list : ", groupList);
+          console.log('Group list : ', groupList);
           this.groups = groupList;
           this.panel.webview.postMessage({
-            type: "addGroupButtons",
+            type: 'addGroupButtons',
             body: { groupList },
           });
           break;
         default:
-          console.warn("[WebviewVisu] Unknown message type:", e.type);
+          console.warn('[WebviewVisu] Unknown message type:', e.type);
       }
     });
 
     // Dispose the webview panel when it is closed
     this.panel.onDidDispose(() => {
-      console.log("[WebviewVisu] Webview panel disposed");
+      console.log('[WebviewVisu] Webview panel disposed');
       this.dispose();
     }, null);
 
-    console.log("[WebviewVisu] Constructor finished");
+    console.log('[WebviewVisu] Constructor finished');
   }
 
   /**
@@ -156,18 +154,16 @@ export class WebviewVisu implements vscode.Disposable {
     const readGroups =
       this.groups?.filter((groupName) => {
         const shortName = groupName.includes('::') ? groupName.split('::').pop()! : groupName;
-        const regex = new RegExp(
-          `\\b${shortName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`
-        );
+        const regex = new RegExp(`\\b${shortName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
         return regex.test(text);
       }) || [];
 
     // Hide groups that are no longer in the text
     this.selectedGroups = this.selectedGroups.filter((oldGroup) => {
       if (!readGroups.includes(oldGroup)) {
-        console.log("Hide group:", oldGroup);
+        console.log('Hide group:', oldGroup);
         this.panel.webview.postMessage({
-          type: "displayGroup",
+          type: 'displayGroup',
           body: { group: oldGroup, visible: false },
         });
         return false;
@@ -178,9 +174,9 @@ export class WebviewVisu implements vscode.Disposable {
     // Show groups that are new to the text
     readGroups.forEach((group) => {
       if (!this.selectedGroups.includes(group)) {
-        console.log("Display group:", group);
+        console.log('Display group:', group);
         this.panel.webview.postMessage({
-          type: "displayGroup",
+          type: 'displayGroup',
           body: { group, visible: true },
         });
         this.selectedGroups.push(group);
@@ -204,25 +200,17 @@ export class WebviewVisu implements vscode.Disposable {
    * @param htmlFilePath The path to the HTML file.
    * @returns The preprocessed HTML content as a string.
    */
-  private preprocessWebviewHtml(
-    panel: vscode.WebviewPanel,
-    htmlFilePath: string
-  ): string {
-    let html = fs.readFileSync(htmlFilePath, { encoding: "utf8" });
+  private preprocessWebviewHtml(panel: vscode.WebviewPanel, htmlFilePath: string): string {
+    let html = fs.readFileSync(htmlFilePath, { encoding: 'utf8' });
 
     const htmlDir = path.dirname(htmlFilePath);
 
     // Replace relative paths (href/src/img) with valid URIs for the webview
-    html = html.replace(
-      /(<link.+?href="|<script.+?src="|<img.+?src=")(.+?)"/g,
-      (match, p1, p2) => {
-        const resourceFullPath = path.join(htmlDir, p2);
-        const uri = panel.webview.asWebviewUri(
-          vscode.Uri.file(resourceFullPath)
-        );
-        return `${p1}${uri.toString()}"`;
-      }
-    );
+    html = html.replace(/(<link.+?href="|<script.+?src="|<img.+?src=")(.+?)"/g, (match, p1, p2) => {
+      const resourceFullPath = path.join(htmlDir, p2);
+      const uri = panel.webview.asWebviewUri(vscode.Uri.file(resourceFullPath));
+      return `${p1}${uri.toString()}"`;
+    });
 
     html = html.replace(/\${webview.cspSource}/g, panel.webview.cspSource);
 

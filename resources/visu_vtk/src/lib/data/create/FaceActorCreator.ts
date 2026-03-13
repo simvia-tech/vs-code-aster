@@ -9,14 +9,17 @@ export class FaceActorCreator {
   constructor(
     vertices: { x: number; y: number; z: number }[],
     cells: number[][],
-    cellIndexToGroup: number[],
+    cellIndexToGroup: number[]
   ) {
     this.vertices = vertices;
     this.cells = cells;
     this.cellIndexToGroup = cellIndexToGroup;
   }
 
-  create(groupName: string, groupId: number): { actor: any; colorIndex: number; isObjectActor: boolean; cellCount: number } {
+  create(
+    groupName: string,
+    groupId: number
+  ): { actor: any; colorIndex: number; isObjectActor: boolean; cellCount: number } {
     const { polyData, cellCount } = this.prepare(groupId);
 
     const actor = vtk.Rendering.Core.vtkActor.newInstance();
@@ -55,7 +58,7 @@ export class FaceActorCreator {
           cellIndices.flatMap((i) => {
             const c = this.cells[i];
             return [c.length, ...c];
-          }),
+          })
         ),
       });
       pd.setPolys(cellArray);
@@ -64,7 +67,11 @@ export class FaceActorCreator {
     return { polyData: pd, cellCount };
   }
 
-  private setProperty(actor: any, groupName: string, _cellCount: number): { colorIndex: number; isObjectActor: boolean } {
+  private setProperty(
+    actor: any,
+    groupName: string,
+    _cellCount: number
+  ): { colorIndex: number; isObjectActor: boolean } {
     const prop = actor.getProperty();
 
     let colorIndex: number;

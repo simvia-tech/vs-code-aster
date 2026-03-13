@@ -174,6 +174,20 @@
           ],
           "markdownDescription": "Controls how mesh edges are displayed in the viewer."
         },
+        "vs-code-aster.viewer.groupTransparency": {
+          "order": 15,
+          "type": "number",
+          "default": 0.2,
+          "minimum": 0,
+          "maximum": 0.5,
+          "markdownDescription": "Opacity of the parent mesh when a sub-group is highlighted (0 = invisible, 0.5 = semi-visible)."
+        },
+        "vs-code-aster.viewer.showOrientationWidget": {
+          "order": 16,
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Show the orientation axes widget in the bottom-right corner of the viewer."
+        },
         "vs-code-aster.enableTelemetry": {
           "order": 100,
           "type": "boolean",
@@ -193,7 +207,8 @@
     "build:webview": "vite build --config resources/visu_vtk/vite.config.ts",
     "package": "npm run check-types && npm run lint && node esbuild.js --production",
     "check-types": "tsc --noEmit",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
@@ -205,7 +220,10 @@
     "@vscode/test-electron": "^2.5.2",
     "esbuild": "^0.25.5",
     "eslint": "^9.25.1",
+    "husky": "^9.1.7",
     "npm-run-all": "^4.1.5",
+    "prettier": "^3.8.1",
+    "prettier-plugin-svelte": "^3.5.1",
     "svelte": "^5.53.9",
     "svelte-check": "^4.4.5",
     "typescript": "^5.8.3",

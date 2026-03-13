@@ -14,9 +14,9 @@ Rewrote the mesh viewer UI with Svelte, and added new viewer features.
 - Show/hide toggle button per object in the sidebar
 - Per-object color display in the sidebar
 - Zoom widget in the mesh viewer
-- Settings popup with configurable hidden object opacity, edge rendering mode, and edge threshold multiplier
 - Groups popup to select which groups are shown in the sidebar
-- Help popup
+- Revamped help popup with tabs and more tips
+- Added a settings popup with configurable hidden object opacity, edge rendering mode and plenty other settings
 - Focusing a `.comm` file now focuses its corresponding mesh viewer webview
 - Object file names are shown in the webview tab titles
 - Mesh viewer UI now follows the VS Code user theme
