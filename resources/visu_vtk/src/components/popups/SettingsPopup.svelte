@@ -204,16 +204,13 @@
   class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-[min(36rem,80vw)] h-[min(22rem,70vh)] rounded shadow-lg flex text-ui-fg border border-ui-border"
   role="document"
 >
-  <div
-    class="absolute inset-0 rounded backdrop-blur-lg pointer-events-none bg-ui-popup-bg"
-  ></div>
-  <nav
-    class="relative z-10 flex flex-col py-4 shrink-0 w-36 border-r border-ui-border"
-  >
+  <div class="absolute inset-0 rounded backdrop-blur-lg pointer-events-none bg-ui-popup-bg"></div>
+  <nav class="relative z-10 flex flex-col py-4 shrink-0 w-36 border-r border-ui-border">
     <span class="font-bold text-sm px-4 pb-3 text-ui-text-primary">Settings</span>
     {#each tabs as tab}
       <button
-        class="text-left text-xs px-4 py-2 cursor-pointer transition-colors hover:bg-ui-elem {activeTab === tab
+        class="text-left text-xs px-4 py-2 cursor-pointer transition-colors hover:bg-ui-elem {activeTab ===
+        tab
           ? 'bg-ui-elem text-ui-link font-semibold'
           : 'text-ui-text-secondary'}"
         onclick={() => (activeTab = tab)}
@@ -297,9 +294,7 @@
                   'At 0% hidden objects are fully invisible. Above 0% they remain as faint ghosts.'
                 )}
               </div>
-              <span class="text-xs text-ui-text-secondary"
-                >{hiddenOpacityPct}%</span
-              >
+              <span class="text-xs text-ui-text-secondary">{hiddenOpacityPct}%</span>
             </div>
             <input
               id="hiddenOpacityRange"
@@ -325,9 +320,7 @@
                   'When a sub-group is highlighted, the parent mesh fades to this opacity so the selected group stands out.'
                 )}
               </div>
-              <span class="text-xs text-ui-text-secondary"
-                >{groupTransparencyPct}%</span
-              >
+              <span class="text-xs text-ui-text-secondary">{groupTransparencyPct}%</span>
             </div>
             <input
               id="groupTransparencyRange"
