@@ -2,6 +2,7 @@
 set -e
 
 npx prettier --write "src/**/*.ts" "resources/visu_vtk/src/**/*.{ts,svelte}" "resources/export_form/**/*.{js,css,html}"
+git add -u
 npx eslint --max-warnings=0 src/ resources/export_form/
 npx svelte-check --tsconfig resources/visu_vtk/tsconfig.json --fail-on-warnings
 python3 -m ruff check python/lsp/ python/med2obj.py

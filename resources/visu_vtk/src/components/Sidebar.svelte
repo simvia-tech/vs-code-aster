@@ -13,10 +13,7 @@
   });
 </script>
 
-<div
-  id="controls"
-  class="relative h-full flex flex-col z-10 p-2 bg-ui-muted"
->
+<div id="controls" class="relative h-full flex flex-col z-10 p-2 bg-ui-muted">
   <div id="sidebarGroups" class="flex flex-col items-center space-y-1 grow overflow-y-auto">
     {#each Object.entries($groupHierarchy) as [key, data]}
       <ObjectSection

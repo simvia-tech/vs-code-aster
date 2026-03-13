@@ -30,7 +30,8 @@
     <span class="font-bold text-sm px-4 pb-3 text-ui-text-primary">Help</span>
     {#each mainTabs as tab}
       <button
-        class="text-left text-xs px-4 py-2 cursor-pointer transition-colors hover:bg-ui-elem {activeTab === tab
+        class="text-left text-xs px-4 py-2 cursor-pointer transition-colors hover:bg-ui-elem {activeTab ===
+        tab
           ? 'bg-ui-elem text-ui-link font-semibold'
           : 'text-ui-text-secondary'}"
         onclick={() => (activeTab = tab)}
@@ -40,7 +41,8 @@
     {/each}
     <div class="grow"></div>
     <button
-      class="text-left text-xs px-4 py-2 cursor-pointer transition-colors hover:bg-ui-elem {activeTab === 'About'
+      class="text-left text-xs px-4 py-2 cursor-pointer transition-colors hover:bg-ui-elem {activeTab ===
+      'About'
         ? 'bg-ui-elem text-ui-link font-semibold'
         : 'text-ui-text-secondary'}"
       onclick={() => (activeTab = 'About')}
@@ -48,8 +50,9 @@
       <span class="flex items-center justify-between gap-2">
         About
         <span
-          class="{activeTab === 'About' ? 'text-ui-link' : 'text-ui-text-muted'} font-normal text-[0.6rem]"
-          >v{__APP_VERSION__}</span
+          class="{activeTab === 'About'
+            ? 'text-ui-link'
+            : 'text-ui-text-muted'} font-normal text-[0.6rem]">v{__APP_VERSION__}</span
         >
       </span>
     </button>
@@ -70,9 +73,7 @@
           <span
             class="inline-flex items-stretch rounded-full overflow-hidden text-[0.65rem] bg-ui-muted border border-ui-border"
           >
-            <span
-              class="flex items-center gap-1 pl-2 pr-1 py-1 bg-ui-elem-hover text-ui-fg"
-            >
+            <span class="flex items-center gap-1 pl-2 pr-1 py-1 bg-ui-elem-hover text-ui-fg">
               <ZoomIcon class="size-3" /><span class="font-mono">2.0×</span>
             </span>
             <span class="pl-0.5 pr-1.5 flex items-center text-ui-text-muted">
@@ -84,14 +85,10 @@
           <span
             class="inline-flex items-stretch rounded-full overflow-hidden text-[0.65rem] bg-ui-muted border border-ui-border"
           >
-            <span
-              class="flex items-center gap-1 pl-2 pr-1 py-1 text-ui-text-muted"
-            >
+            <span class="flex items-center gap-1 pl-2 pr-1 py-1 text-ui-text-muted">
               <ZoomIcon class="size-3" /><span class="font-mono">2.0×</span>
             </span>
-            <span
-              class="pl-0.5 pr-1.5 flex items-center bg-ui-elem-hover text-ui-fg"
-            >
+            <span class="pl-0.5 pr-1.5 flex items-center bg-ui-elem-hover text-ui-fg">
               <ResetIcon class="size-3 stroke-[2.5]" />
             </span>
           </span>
@@ -121,7 +118,8 @@
           >
             <span class="text-ui-text-muted"><ObjectIcon class="size-3.5" /></span>
             <span class="px-2 font-bold text-ui-text-muted">mesh</span>
-            <span class="size-3.5 flex items-center justify-center rounded bg-ui-elem-hover text-ui-fg"
+            <span
+              class="size-3.5 flex items-center justify-center rounded bg-ui-elem-hover text-ui-fg"
               ><EyeIcon class="size-3" /></span
             >
           </span>
@@ -197,8 +195,7 @@
               href="https://simvia.tech"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-ui-link underline"
-              >Simvia</a
+              class="text-ui-link underline">Simvia</a
             >.
           </p>
           <p>
@@ -206,8 +203,7 @@
               href="https://github.com/simvia-tech/vs-code-aster"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-ui-link underline"
-              >GitHub</a
+              class="text-ui-link underline">GitHub</a
             >.
           </p>
         </div>
