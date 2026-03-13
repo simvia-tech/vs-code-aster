@@ -1,3 +1,7 @@
+<script lang="ts" module>
+  declare const __APP_VERSION__: string;
+</script>
+
 <script lang="ts">
   import ClearIcon from '../../icons/ClearIcon.svelte';
   import EyeIcon from '../../icons/EyeIcon.svelte';
@@ -7,14 +11,11 @@
   import ObjectIcon from '../../icons/ObjectIcon.svelte';
   import MouseScrollIcon from '../../icons/MouseScrollIcon.svelte';
   import ResetIcon from '../../icons/ResetIcon.svelte';
-  import SettingsIcon from '../../icons/SettingsIcon.svelte';
   import ZoomIcon from '../../icons/ZoomIcon.svelte';
-
-  declare const __APP_VERSION__: string;
 
   let { onclose }: { onclose: () => void } = $props();
 
-  const mainTabs = ['Camera', 'Objects', 'Groups', 'Settings', 'Files'] as const;
+  const mainTabs = ['Camera', 'Objects', 'Groups', 'Files'] as const;
   const tabs = [...mainTabs, 'About'] as const;
   type Tab = typeof tabs[number];
   let activeTab = $state<Tab>('Camera');
@@ -163,17 +164,6 @@
             <span class="size-5 flex items-center justify-center" style="background: var(--ui-element-bg-hover); color: var(--ui-fg)"><ClearIcon class="size-3" /></span>
           </span>
           <span>Click to <strong>clear all highlights</strong></span>
-        </div>
-
-      {:else if activeTab === 'Settings'}
-        <p class="mb-4">
-          Open settings with <span class="inline-flex align-top mx-0.5"><SettingsIcon class="size-4" /></span> in the top-right corner.
-        </p>
-        <div class="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3 items-start">
-          <span class="font-semibold">Edge display</span>
-          <span>Choose when mesh edges are visible: always, never, or only when zooming in. Threshold mode shows edges abruptly at a zoom level; gradual mode fades them in (may impact performance on dense meshes)</span>
-          <span class="font-semibold whitespace-nowrap">Hidden opacity</span>
-          <span>How transparent hidden objects appear — at 0% they are fully invisible, above 0% they remain as ghosts</span>
         </div>
 
       {:else if activeTab === 'Files'}

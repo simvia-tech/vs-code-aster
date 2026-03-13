@@ -52,7 +52,7 @@ export class Group {
     }
     if (mode === 'show') {
       prop.setEdgeVisibility(true);
-      prop.setEdgeColor(0, 0, 0);
+      this._applyFlatEdgeColor(prop);
       return;
     }
 
@@ -60,7 +60,7 @@ export class Group {
 
     if (mode === 'threshold') {
       prop.setEdgeVisibility(currentDistance < threshold);
-      prop.setEdgeColor(0, 0, 0);
+      this._applyFlatEdgeColor(prop);
       return;
     }
 
@@ -69,10 +69,17 @@ export class Group {
     this._applyEdgeColor();
   }
 
+  private _applyFlatEdgeColor(prop: any): void {
+    const op = GlobalSettings.Instance.edgeOpacity;
+    const [r, g, b] = prop.getColor();
+    prop.setEdgeColor(r * (1 - op), g * (1 - op), b * (1 - op));
+  }
+
   private _applyEdgeColor(): void {
     const t = this._edgeT ?? 0;
+    const op = GlobalSettings.Instance.edgeOpacity;
     const [r, g, b] = this.actor.getProperty().getColor();
-    this.actor.getProperty().setEdgeColor(r * (1 - t), g * (1 - t), b * (1 - t));
+    this.actor.getProperty().setEdgeColor(r * (1 - t * op), g * (1 - t * op), b * (1 - t * op));
   }
 
   setSize(distance: number): void {

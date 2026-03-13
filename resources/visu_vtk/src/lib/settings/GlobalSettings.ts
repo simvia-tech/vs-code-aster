@@ -35,6 +35,11 @@ export class GlobalSettings {
   hiddenObjectOpacity = 0;
   edgeMode: EdgeMode = 'threshold';
   edgeThresholdMultiplier = 1;
+  specular = 0.3;
+  specularPower = 15;
+  ambientIntensity = 0.1;
+  groupTransparency = 0.2;
+  showOrientationWidget = true;
 
   get isDark(): boolean {
     return document.body.classList.contains('vscode-dark') ||

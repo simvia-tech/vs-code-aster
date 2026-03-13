@@ -10,6 +10,8 @@ export interface Settings {
   hiddenObjectOpacity: number;
   edgeMode: EdgeMode;
   edgeThresholdMultiplier: number;
+  groupTransparency: number;
+  showOrientationWidget: boolean;
 }
 
 export const groupHierarchy = writable<GroupHierarchy>({});
@@ -21,6 +23,8 @@ export const settings = writable<Settings>({
   hiddenObjectOpacity: 0,
   edgeMode: 'threshold',
   edgeThresholdMultiplier: 1,
+  groupTransparency: 0.2,
+  showOrientationWidget: true,
 });
 
 // Map<objectKey, Set<groupName>> — groups NOT shown in sidebar (hidden)
