@@ -33,6 +33,7 @@ class HoverManager:
             docstring = self.core.get_docstring(word)
             if docstring:
                 return Hover(contents=MarkupContent(kind=MarkupKind.PlainText, value=docstring))
+        return None
 
     def extract_word_at_position(self, line: str, char_pos: int) -> str:
         matches = list(re.finditer(r"\b\w+\b", line))

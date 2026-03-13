@@ -111,6 +111,8 @@ class CommandRegistry:
             CommandInfo or None
         """
         cmd_key = self._find_command_at_line(line)
+        if cmd_key is None:
+            return None
         return self.commands.get(cmd_key)
 
     def get_all_commands(self) -> dict[str, str]:
@@ -260,7 +262,7 @@ class CommandRegistry:
         Returns:
             Dict {param_name: value}
         """
-        params = {}
+        params: dict[str, str] = {}
 
         # Extract zone content
         zone_lines = lines[start_line - 1 : zone_end]

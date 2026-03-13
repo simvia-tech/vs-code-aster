@@ -60,7 +60,7 @@ class StatusBarManager:
         Returns:
             Dict[str, List[str]]: Complete commands grouped by family
         """
-        families_result = {v: [] for v in self.family_map.values()}
+        families_result: dict[str, list[str]] = {v: [] for v in self.family_map.values()}
 
         for display_name, key in self.family_map.items():
             try:
@@ -102,7 +102,7 @@ class StatusBarManager:
         if re.search(r"\bFIN\s*\(", full_text):
             found_commands.add("FIN")
 
-        families_result = {v: [] for v in self.family_map.values()}
+        families_result: dict[str, list[str]] = {v: [] for v in self.family_map.values()}
         for cmd_name in found_commands:
             try:
                 family_raw = self.cata.get_command_category(cmd_name)
