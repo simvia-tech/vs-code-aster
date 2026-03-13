@@ -1,7 +1,7 @@
-import * as vscode from "vscode";
-import * as path from "path";
-import * as fs from "fs";
-import { sendTelemetry, TelemetryType } from "./telemetry";
+import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
+import { sendTelemetry, TelemetryType } from './telemetry';
 
 interface ExportDescriptor {
   filename: string;
@@ -46,8 +46,8 @@ export class ExportEditor<TResult> implements vscode.Disposable {
 
   public static async initExportEditor() {
     let exportDescriptor: ExportDescriptor = {
-      filename: "",
-      content: "",
+      filename: '',
+      content: '',
     };
     let destinationFolder = undefined;
 
@@ -57,18 +57,18 @@ export class ExportEditor<TResult> implements vscode.Disposable {
       const filePath = editor.document.uri.fsPath;
       let fileName = path.basename(filePath);
       let fileDir = path.dirname(filePath);
-      if (fileName.toLowerCase().includes(".export")) {
+      if (fileName.toLowerCase().includes('.export')) {
         exportDescriptor.filename = fileName;
-        exportDescriptor.content = fs.readFileSync(filePath, "utf8");
+        exportDescriptor.content = fs.readFileSync(filePath, 'utf8');
         destinationFolder = fileDir;
       }
     }
-    const testDir = path.resolve(__dirname, "..");
+    const testDir = path.resolve(__dirname, '..');
 
     const d = new ExportEditor<ExportEditorResult>(
-      "export-editor-webview",
+      'export-editor-webview',
       testDir,
-      "resources/export_form/export.html",
+      'resources/export_form/export.html',
       exportDescriptor,
       destinationFolder,
       undefined
@@ -78,7 +78,7 @@ export class ExportEditor<TResult> implements vscode.Disposable {
 
     if (result) {
       vscode.window.showInformationMessage(
-        "File has been created in " + path.basename(d.destinationFolder) + "/"
+        'File has been created in ' + path.basename(d.destinationFolder) + '/'
       );
     }
 
@@ -117,21 +117,15 @@ export class ExportEditor<TResult> implements vscode.Disposable {
     if (destinationFolder) {
       this.destinationFolder = destinationFolder;
     } else {
-      this.destinationFolder =
-        vscode.workspace.workspaceFolders?.[0].uri.fsPath || __dirname;
+      this.destinationFolder = vscode.workspace.workspaceFolders?.[0].uri.fsPath || __dirname;
     }
 
     const htmlFile = path.join(resourceRootDir, htmlFileName);
-    let html = fs.readFileSync(htmlFile, { encoding: "utf8" });
+    let html = fs.readFileSync(htmlFile, { encoding: 'utf8' });
 
-    const title = this.extractHtmlTitle(html, "Export Editor");
+    const title = this.extractHtmlTitle(html, 'Export Editor');
 
-    this.panel = vscode.window.createWebviewPanel(
-      viewType,
-      title,
-      viewColumn,
-      options
-    );
+    this.panel = vscode.window.createWebviewPanel(viewType, title, viewColumn, options);
 
     html = this.fixResourceReferences(html, resourceRootDir);
     html = this.fixCspSourceReferences(html);
@@ -147,47 +141,47 @@ export class ExportEditor<TResult> implements vscode.Disposable {
       const outputFiles = Object.values(formData.outputFiles);
 
       if (
-        parameters.some((value) => value !== "") ||
+        parameters.some((value) => value !== '') ||
         inputFiles.length > 0 ||
         outputFiles.length > 0
       ) {
         this.panel.webview.postMessage({
-          command: "exportFileAlreadyDefined",
+          command: 'exportFileAlreadyDefined',
           formData,
         });
       }
     }
 
-    const files = this.getMatchingFiles("", "");
-    this.panel.webview.postMessage({ command: "verifyFileNames", files });
+    const files = this.getMatchingFiles('', '');
+    this.panel.webview.postMessage({ command: 'verifyFileNames', files });
 
     this.panel.webview.onDidReceiveMessage((message) => {
-      if (message.command === "cancel") {
+      if (message.command === 'cancel') {
         this.panel.dispose();
-      } else if (message.command === "wrongCreation") {
+      } else if (message.command === 'wrongCreation') {
         vscode.window.showInformationMessage(`${message.value}`);
-      } else if (message.command === "result") {
+      } else if (message.command === 'result') {
         this.result = message.value as TResult;
-        const lines = message.value.split("\n");
+        const lines = message.value.split('\n');
         const filename = lines[0];
-        const content = lines.slice(1).join("\n");
+        const content = lines.slice(1).join('\n');
         const fullPath = path.join(this.destinationFolder, filename);
-        fs.writeFileSync(fullPath, content, "utf8");
+        fs.writeFileSync(fullPath, content, 'utf8');
 
         // Report telemetry that an export file was created/saved
         void sendTelemetry(TelemetryType.EXPORT_SAVED);
 
         this.panel.dispose();
-      } else if (message.command === "autocomplete") {
+      } else if (message.command === 'autocomplete') {
         const suggestions = this.getMatchingFiles(message.value, message.type);
         if (suggestions.length !== 0) {
           this.panel.webview.postMessage({
-            command: "autocompleteResult",
+            command: 'autocompleteResult',
             suggestions,
           });
         } else {
           this.panel.webview.postMessage({
-            command: "autocompleteFailed",
+            command: 'autocompleteFailed',
             suggestions,
           });
         }
@@ -200,9 +194,7 @@ export class ExportEditor<TResult> implements vscode.Disposable {
       return [];
     }
     const allFiles = fs.readdirSync(this.destinationFolder);
-    return allFiles.filter((name) =>
-      name.toLowerCase().includes(partial.toLowerCase())
-    );
+    return allFiles.filter((name) => name.toLowerCase().includes(partial.toLowerCase()));
   }
 
   /** * Parse the content of an export file into structured form data.
@@ -211,46 +203,46 @@ export class ExportEditor<TResult> implements vscode.Disposable {
    */
   private parseExportFile(exportDescriptor: ExportDescriptor): FormData {
     let formData: FormData = {
-      name: "",
+      name: '',
       parameters: {
-        time_limit: "",
-        memory_limit: "",
-        ncpus: "",
-        mpi_nbcpu: "",
-        mpi_nbnoeud: "",
+        time_limit: '',
+        memory_limit: '',
+        ncpus: '',
+        mpi_nbcpu: '',
+        mpi_nbnoeud: '',
       },
       inputFiles: [],
       outputFiles: [],
     };
     formData.name = exportDescriptor.filename;
 
-    const lines = exportDescriptor.content.split("\n");
+    const lines = exportDescriptor.content.split('\n');
 
     for (const line of lines) {
-      const cleanLine = line.split("#")[0].trim();
+      const cleanLine = line.split('#')[0].trim();
       if (!cleanLine) {
         continue;
       }
 
       const tokens = cleanLine.split(/\s+/);
 
-      if (tokens[0] === "P" && tokens.length === 3) {
+      if (tokens[0] === 'P' && tokens.length === 3) {
         const [_, key, value] = tokens;
         if (key in formData.parameters) {
           formData.parameters[key as keyof Parameters] = value;
         }
       }
 
-      if (tokens[0] === "F" && tokens.length === 5) {
+      if (tokens[0] === 'F' && tokens.length === 5) {
         const [_, type, name, ioFlag, unit] = tokens;
         const fileObj: FileDescriptor = {
           type: type,
           name: name,
           unit: unit,
         };
-        if (ioFlag === "D") {
+        if (ioFlag === 'D') {
           formData.inputFiles.push(fileObj);
-        } else if (ioFlag === "R") {
+        } else if (ioFlag === 'R') {
           formData.outputFiles.push(fileObj);
         }
       }
@@ -309,9 +301,7 @@ export class ExportEditor<TResult> implements vscode.Disposable {
    * @param cancellation Optional cancellation token that can be used to
    * cancel waiting on a result. Cancelling the token also closes the dialog.
    */
-  public async getResult(
-    cancellation?: vscode.CancellationToken
-  ): Promise<TResult | null> {
+  public async getResult(cancellation?: vscode.CancellationToken): Promise<TResult | null> {
     const disposePromise = new Promise<void>((resolve, reject) => {
       this.panel.onDidDispose(resolve);
     });

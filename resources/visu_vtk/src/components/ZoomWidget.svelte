@@ -20,15 +20,15 @@
       zoomTriggerEl,
       [
         { value: '0.5', label: '0.5×' },
-        { value: '1',   label: '1×'   },
+        { value: '1', label: '1×' },
         { value: '1.5', label: '1.5×' },
-        { value: '2',   label: '2×'   },
-        { value: '5',   label: '5×'   },
-        { value: '10',  label: '10×'  },
+        { value: '2', label: '2×' },
+        { value: '5', label: '5×' },
+        { value: '10', label: '10×' },
       ],
       (value) => CameraManager.Instance.setZoom(parseFloat(value)),
       null,
-      { align: 'right' },
+      { align: 'right' }
     );
     return () => dropdown.close();
   });
@@ -42,7 +42,9 @@
   <div
     id="zoomTrigger"
     bind:this={zoomTriggerEl}
-    class="cursor-pointer select-none flex items-center gap-1.5 pl-2.5 py-1.5 transition-colors hover:bg-ui-elem-hover {$isAtDefaultZoom ? 'pr-2.5' : 'pr-0.75'}"
+    class="cursor-pointer select-none flex items-center gap-1.5 pl-2.5 py-1.5 transition-colors hover:bg-ui-elem-hover {$isAtDefaultZoom
+      ? 'pr-2.5'
+      : 'pr-0.75'}"
     style="color: var(--ui-text-secondary)"
     role="button"
     tabindex="0"

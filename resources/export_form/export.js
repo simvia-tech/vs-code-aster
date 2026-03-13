@@ -3,80 +3,121 @@ let nameText, createButton, cancelButton;
 let timeLimit, memoryLimit, ncpus, mpiNbcpu, mpiNbnoeud;
 let lastActiveInput = null;
 
-const allowedTypes = ['nom', 'comm', 'med', 'msh', 'datg', 'dat', 'rmed', 'mmed', 'base','mess', 'libr'];
+const allowedTypes = [
+  'nom',
+  'comm',
+  'med',
+  'msh',
+  'datg',
+  'dat',
+  'rmed',
+  'mmed',
+  'base',
+  'mess',
+  'libr',
+];
 const defaultUnits = {
-    nom: '0', comm: '1', med: '20', msh: '19', datg: '16', dat: '29',
-    rmed: '80', base: '0', mess: '6', mmed: '20', libr : '16'
+  nom: '0',
+  comm: '1',
+  med: '20',
+  msh: '19',
+  datg: '16',
+  dat: '29',
+  rmed: '80',
+  base: '0',
+  mess: '6',
+  mmed: '20',
+  libr: '16',
 };
 
 const formData = {
-    name: '',
-    parameters: { time_limit: '300', memory_limit: '1024', ncpus: '1', mpi_nbcpu: '4', mpi_nbnoeud: '1' },
-    inputFiles: [],
-    outputFiles: []
+  name: '',
+  parameters: {
+    time_limit: '300',
+    memory_limit: '1024',
+    ncpus: '1',
+    mpi_nbcpu: '4',
+    mpi_nbnoeud: '1',
+  },
+  inputFiles: [],
+  outputFiles: [],
 };
 
 let existingFiles = [];
 
-
 // Initialize form and attach event listeners
 window.addEventListener('load', () => {
-	try {
-		vscode = acquireVsCodeApi();
-	} catch (e) {
-		console.error(e.message);
-	}
+  try {
+    vscode = acquireVsCodeApi();
+  } catch (e) {
+    console.error(e.message);
+  }
 
-    // Create initial input/output file rows
-	modifyFileRows(true, true);
-	modifyFileRows(true, true);
-	modifyFileRows(true, false);
-    formData.name = "simvia.export";
+  // Create initial input/output file rows
+  modifyFileRows(true, true);
+  modifyFileRows(true, true);
+  modifyFileRows(true, false);
+  formData.name = 'simvia.export';
 
-    // DOM elements
-	nameText = document.getElementById('envName');
-	createButton = document.getElementById('boutonCreation');
-	cancelButton = document.getElementById('boutonAnnulation');
-	addOutputFileButton = document.getElementById('addOutputFile');
-	addInputFileButton = document.getElementById('addInputFile');
-	removeOutputFileButton = document.getElementById('removeOutputFile');
-	removeInputFileButton = document.getElementById('removeInputFile');
-	timeLimit = document.getElementById('time_limit');
-	memoryLimit = document.getElementById('memory_limit');
-	ncpus = document.getElementById('ncpus');
-	mpiNbcpu = document.getElementById('mpi_nbcpu');
-	mpiNbnoeud = document.getElementById('mpi_nbnoeud');
+  // DOM elements
+  nameText = document.getElementById('envName');
+  createButton = document.getElementById('boutonCreation');
+  cancelButton = document.getElementById('boutonAnnulation');
+  addOutputFileButton = document.getElementById('addOutputFile');
+  addInputFileButton = document.getElementById('addInputFile');
+  removeOutputFileButton = document.getElementById('removeOutputFile');
+  removeInputFileButton = document.getElementById('removeInputFile');
+  timeLimit = document.getElementById('time_limit');
+  memoryLimit = document.getElementById('memory_limit');
+  ncpus = document.getElementById('ncpus');
+  mpiNbcpu = document.getElementById('mpi_nbcpu');
+  mpiNbnoeud = document.getElementById('mpi_nbnoeud');
 
+  nameText.addEventListener('keyup', validate);
+  nameText.addEventListener('change', validate);
+  validate();
 
-	nameText.addEventListener('keyup', validate);
-	nameText.addEventListener('change', validate);
-    validate();
+  createButton.addEventListener('click', submitCreate);
+  cancelButton.addEventListener('click', submitCancel);
 
-	createButton.addEventListener('click', submitCreate);
-	cancelButton.addEventListener('click', submitCancel);
+  addOutputFileButton.addEventListener('click', () => modifyFileRows(true, false));
+  addInputFileButton.addEventListener('click', () => modifyFileRows(true, true));
+  removeOutputFileButton.addEventListener('click', () => modifyFileRows(false, false));
+  removeInputFileButton.addEventListener('click', () => modifyFileRows(false, true));
 
-	addOutputFileButton.addEventListener('click', () => modifyFileRows(true, false));
-	addInputFileButton.addEventListener('click', () =>  modifyFileRows(true, true));
-	removeOutputFileButton.addEventListener('click', () => modifyFileRows(false, false));
-	removeInputFileButton.addEventListener('click', () => modifyFileRows(false, true));
-
-    // Update form data on input changes
-    nameText.addEventListener('input', () => { formData.name = nameText.value.trim(); });
-    timeLimit.addEventListener('input', () => { formData.parameters.time_limit = timeLimit.value.trim(); verifyValueInput(timeLimit, formData.parameters.time_limit); });
-    memoryLimit.addEventListener('input', () => { formData.parameters.memory_limit = memoryLimit.value.trim(); verifyValueInput(memoryLimit, formData.parameters.memory_limit); });
-    ncpus.addEventListener('input', () => { formData.parameters.ncpus = ncpus.value.trim(); verifyValueInput(ncpus, formData.parameters.ncpus); });
-    mpiNbcpu.addEventListener('input', () => { formData.parameters.mpi_nbcpu = mpiNbcpu.value.trim(); verifyValueInput(mpiNbcpu, formData.parameters.mpi_nbcpu); });
-    mpiNbnoeud.addEventListener('input', () => { formData.parameters.mpi_nbnoeud = mpiNbnoeud.value.trim(); verifyValueInput(mpiNbnoeud, formData.parameters.mpi_nbnoeud); });
+  // Update form data on input changes
+  nameText.addEventListener('input', () => {
+    formData.name = nameText.value.trim();
   });
+  timeLimit.addEventListener('input', () => {
+    formData.parameters.time_limit = timeLimit.value.trim();
+    verifyValueInput(timeLimit, formData.parameters.time_limit);
+  });
+  memoryLimit.addEventListener('input', () => {
+    formData.parameters.memory_limit = memoryLimit.value.trim();
+    verifyValueInput(memoryLimit, formData.parameters.memory_limit);
+  });
+  ncpus.addEventListener('input', () => {
+    formData.parameters.ncpus = ncpus.value.trim();
+    verifyValueInput(ncpus, formData.parameters.ncpus);
+  });
+  mpiNbcpu.addEventListener('input', () => {
+    formData.parameters.mpi_nbcpu = mpiNbcpu.value.trim();
+    verifyValueInput(mpiNbcpu, formData.parameters.mpi_nbcpu);
+  });
+  mpiNbnoeud.addEventListener('input', () => {
+    formData.parameters.mpi_nbnoeud = mpiNbnoeud.value.trim();
+    verifyValueInput(mpiNbnoeud, formData.parameters.mpi_nbnoeud);
+  });
+});
 
 function verifyValueInput(inputItem, value) {
   const intVal = Number(value);
   if (Number.isInteger(intVal)) {
     inputItem.classList.remove('input-warning');
-	}
-  else {
+  } else {
     inputItem.classList.add('input-warning');
-	}
+  }
 }
 
 // Add or remove file rows dynamically
@@ -93,7 +134,6 @@ function modifyFileRows(add, input, fileObj) {
 
 // Dynamic creation of file input row with type/unit handling
 function addFileRow(container, targetArray, fileObj) {
-
   const copy = fileObj ? true : false;
   const wrapper = document.createElement('div');
   wrapper.className = 'field';
@@ -110,8 +150,10 @@ function addFileRow(container, targetArray, fileObj) {
 
   const select = document.createElement('select');
 
-  select.innerHTML = allowedTypes.map(type => `<option value="${type}">${type}</option>`).join('');
-  
+  select.innerHTML = allowedTypes
+    .map((type) => `<option value="${type}">${type}</option>`)
+    .join('');
+
   row.appendChild(select);
 
   const nameWrapper = document.createElement('div');
@@ -136,20 +178,20 @@ function addFileRow(container, targetArray, fileObj) {
     select.value = type;
     inputName.value = fileObj.name;
     inputUnit.value = fileObj.unit;
-  }
-
-  else {
+  } else {
     fileObj = { type: 'nom', name: '', unit: '0' };
     inputName.placeholder = 'File Name : ';
     inputUnit.value = '0';
   }
 
-  select.addEventListener('input', () => {fileObj.type = select.value.trim();
+  select.addEventListener('input', () => {
+    fileObj.type = select.value.trim();
     const unit = defaultUnits[fileObj.type];
     inputUnit.value = unit;
     fileObj.unit = unit;
   });
-  inputUnit.addEventListener('input', () => {const value = inputUnit.value.trim();
+  inputUnit.addEventListener('input', () => {
+    const value = inputUnit.value.trim();
     verifyValueInput(inputUnit, inputUnit.value.trim());
     fileObj.unit = value;
   });
@@ -157,7 +199,6 @@ function addFileRow(container, targetArray, fileObj) {
   inputName.fileObj = fileObj;
 
   if (targetArray === formData.inputFiles) {
-
     const triggerHandle = () => {
       fileObj.name = inputName.value.trim();
       handleFileNameInput(inputName);
@@ -169,52 +210,50 @@ function addFileRow(container, targetArray, fileObj) {
     inputName.addEventListener('blur', () => {
       // 100 ms delay to allow clicking on a suggestion
       // without this, the suggestions would disappear before the click registers
-      setTimeout(() => removeSuggestions(), 100); 
+      setTimeout(() => removeSuggestions(), 100);
     });
-
   } else {
-    inputName.addEventListener('input', () => fileObj.name = inputName.value.trim());
+    inputName.addEventListener('input', () => (fileObj.name = inputName.value.trim()));
   }
   if (!copy) {
     targetArray.push(fileObj);
   }
 }
 
-
 function removeFileRow(container, targetArray) {
   if (container.lastElementChild) {
     container.removeChild(container.lastElementChild);
-	  targetArray.pop();
+    targetArray.pop();
   }
 }
 
 function handleFileNameInput(inputElement) {
-	lastActiveInput = inputElement;
-  const row  = inputElement.parentElement?.parentElement;
+  lastActiveInput = inputElement;
+  const row = inputElement.parentElement?.parentElement;
   const select = row?.querySelector('select');
   const selectedType = select ? select.value.trim() : '';
 
-	vscode.postMessage({
-		command: 'autocomplete',
-		value: inputElement.value,
-    type: selectedType
-	});
+  vscode.postMessage({
+    command: 'autocomplete',
+    value: inputElement.value,
+    type: selectedType,
+  });
 }
 
 function removeSuggestions() {
-    const existing = lastActiveInput.parentElement.querySelector('.suggestion-box');
-    if (existing) {
-      existing.remove();
-    }
+  const existing = lastActiveInput.parentElement.querySelector('.suggestion-box');
+  if (existing) {
+    existing.remove();
+  }
 }
 
-window.addEventListener('message', event => {
-	const message = event.data;
+window.addEventListener('message', (event) => {
+  const message = event.data;
 
-	if (message.command === 'autocompleteResult') {
+  if (message.command === 'autocompleteResult') {
     lastActiveInput.classList.remove('input-warning');
-		showSuggestions(message.suggestions, lastActiveInput);
-	}
+    showSuggestions(message.suggestions, lastActiveInput);
+  }
 
   if (message.command === 'autocompleteFailed') {
     lastActiveInput.classList.add('input-warning');
@@ -222,12 +261,12 @@ window.addEventListener('message', event => {
     if (existing) {
       existing.remove();
     }
-	}
+  }
 
   if (message.command === 'verifyFileNames') {
     existingFiles = message.files;
-	}
-  
+  }
+
   if (message.command === 'exportFileAlreadyDefined') {
     copyExportFile(message.formData);
   }
@@ -270,19 +309,17 @@ function copyExportFile(exportData) {
   }
 
   for (const file of exportData.inputFiles) {
-    const fileObj = {type: file.type, name: file.name, unit: file.unit};
+    const fileObj = { type: file.type, name: file.name, unit: file.unit };
     formData.inputFiles.unshift(fileObj);
     modifyFileRows(true, true, fileObj);
   }
-  
+
   for (const file of exportData.outputFiles) {
-    const fileObj = {type: file.type, name: file.name, unit: file.unit};
+    const fileObj = { type: file.type, name: file.name, unit: file.unit };
     formData.outputFiles.unshift(fileObj);
     modifyFileRows(true, false, fileObj);
   }
-
 }
-
 
 function showSuggestions(suggestions, inputElement) {
   const existing = inputElement.parentElement.querySelector('.suggestion-box');
@@ -320,9 +357,7 @@ function showSuggestions(suggestions, inputElement) {
   let selectedIndex = 0;
 
   const updateHighlight = () => {
-    items.forEach((el, i) =>
-      el.classList.toggle('highlighted-suggestion', i === selectedIndex)
-    );
+    items.forEach((el, i) => el.classList.toggle('highlighted-suggestion', i === selectedIndex));
   };
 
   inputElement.addEventListener('keydown', function handleKeyDown(event) {
@@ -334,8 +369,7 @@ function showSuggestions(suggestions, inputElement) {
       event.preventDefault();
       selectedIndex = (selectedIndex - 1 + items.length) % items.length;
       updateHighlight();
-    } else if (event.key === 'Enter' || event.key === 'ArrowRight'
-      ||event.key === 'Tab') {
+    } else if (event.key === 'Enter' || event.key === 'ArrowRight' || event.key === 'Tab') {
       event.preventDefault();
       inputElement.value = suggestions[selectedIndex];
       inputElement.removeEventListener('keydown', handleKeyDown);
@@ -355,16 +389,12 @@ function showSuggestions(suggestions, inputElement) {
   inputElement.parentElement.appendChild(box);
 }
 
-
-
-
 function submitCreate() {
   const errorMsg = checkFields();
 
   if (errorMsg) {
     vscode.postMessage({ command: 'wrongCreation', value: errorMsg });
-  }
-  else {
+  } else {
     const lines = [];
     const filename = formData.name;
     lines.push(filename);
@@ -379,15 +409,14 @@ function submitCreate() {
 
     for (const file of formData.outputFiles) {
       lines.push(`F ${file.type} ${file.name} R ${file.unit}`);
-    } 
+    }
 
     const content = lines.join('\n');
-    vscode.postMessage({ command: 'result', value: content});
+    vscode.postMessage({ command: 'result', value: content });
   }
 }
 
 function checkFields() {
-
   for (const [key, value] of Object.entries(formData.parameters)) {
     const intVal = Number(value.trim());
     if (!value || !Number.isInteger(intVal)) {
@@ -404,7 +433,9 @@ function checkFields() {
     if (!Number.isInteger(intVal)) {
       return `Input file #${i + 1} is invalid: unit must be an integer.`;
     }
-    let alreadyUsed = formData.outputFiles.some(test => Number(file.unit) !== 0 && test.unit === file.unit);
+    let alreadyUsed = formData.outputFiles.some(
+      (test) => Number(file.unit) !== 0 && test.unit === file.unit
+    );
     for (let j = 0; j < formData.inputFiles.length; j++) {
       if (intVal && i !== j && formData.inputFiles[j].unit === file.unit) {
         alreadyUsed = true;
@@ -425,7 +456,9 @@ function checkFields() {
     if (!Number.isInteger(intVal)) {
       return `Output file #${i + 1} is invalid: unit must be an integer.`;
     }
-    let alreadyUsed = formData.inputFiles.some(test => Number(file.unit) !== 0 && test.unit === file.unit);
+    let alreadyUsed = formData.inputFiles.some(
+      (test) => Number(file.unit) !== 0 && test.unit === file.unit
+    );
     for (let j = 0; j < formData.outputFiles.length; j++) {
       if (intVal && i !== j && formData.outputFiles[j].unit === file.unit) {
         alreadyUsed = true;
@@ -435,18 +468,16 @@ function checkFields() {
     if (alreadyUsed) {
       return `Output file #${i + 1} is invalid: ${intVal} is already used as a unit value.`;
     }
-
   }
 
   return '';
 }
 
-
 function submitCancel() {
-	vscode.postMessage({ command: 'cancel' });
+  vscode.postMessage({ command: 'cancel' });
 }
 
 function validate() {
-	const isValid = !!nameText.value;
-	createButton.disabled = !isValid;
+  const isValid = !!nameText.value;
+  createButton.disabled = !isValid;
 }

@@ -1,13 +1,13 @@
-import * as vscode from "vscode";
-import * as path from "path";
+import * as vscode from 'vscode';
+import * as path from 'path';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   TransportKind,
-} from "vscode-languageclient/node";
-import { StatusBar } from "./StatusBar";
-import { SUPPORTED_COMM_EXTENSIONS } from "./VisuManager";
+} from 'vscode-languageclient/node';
+import { StatusBar } from './StatusBar';
+import { SUPPORTED_COMM_EXTENSIONS } from './VisuManager';
 /**
  * Singleton class to manage the Python LSP client for Code-Aster.
  * Handles client creation, start, restart, notifications, and editor listeners.
@@ -27,7 +27,7 @@ export class LspServer {
 
   public get client(): LanguageClient {
     if (!this._client) {
-      throw new Error("LSP client has not been initialized yet.");
+      throw new Error('LSP client has not been initialized yet.');
     }
     return this._client;
   }
@@ -43,25 +43,21 @@ export class LspServer {
     this._client
       .start()
       .then(() => {
-        vscode.window.showInformationMessage("LSP Python Code-Aster ready!");
+        vscode.window.showInformationMessage('LSP Python Code-Aster ready!');
         this.attachEditorListeners();
       })
       .catch((err: any) => {
-        vscode.window.showErrorMessage(
-          "Error starting LSP Python: " + err.message,
-        );
+        vscode.window.showErrorMessage('Error starting LSP Python: ' + err.message);
       });
 
-    this._client.onDidChangeState((e) =>
-      console.log("LSP client state changed:", e),
-    );
+    this._client.onDidChangeState((e) => console.log('LSP client state changed:', e));
 
-    this._client.onNotification("logParser", (params: { text: string }) => {
+    this._client.onNotification('logParser', (params: { text: string }) => {
       console.log(`${params.text}`);
     });
 
     //TO DO : reload the bar
-    this._client.onNotification("reloadStatusBar", (params) => {
+    this._client.onNotification('reloadStatusBar', (params) => {
       StatusBar.instance.onEditorChange(vscode.window.activeTextEditor);
     });
   }
@@ -69,21 +65,14 @@ export class LspServer {
   /**
    * Creates the LanguageClient for Python LSP
    */
-  private async createClient(
-    context: vscode.ExtensionContext,
-  ): Promise<LanguageClient> {
-    const serverModule = context.asAbsolutePath(
-      path.join("python", "lsp", "server.py"),
-    );
+  private async createClient(context: vscode.ExtensionContext): Promise<LanguageClient> {
+    const serverModule = context.asAbsolutePath(path.join('python', 'lsp', 'server.py'));
 
-    const config = vscode.workspace.getConfiguration("vs-code-aster");
-    const pythonExecutablePath = config.get<string>(
-      "pythonExecutablePath",
-      "python3",
-    );
+    const config = vscode.workspace.getConfiguration('vs-code-aster');
+    const pythonExecutablePath = config.get<string>('pythonExecutablePath', 'python3');
     const commFileExtensions = config.get<string[]>(
-      "commFileExtensions",
-      SUPPORTED_COMM_EXTENSIONS,
+      'commFileExtensions',
+      SUPPORTED_COMM_EXTENSIONS
     );
 
     // Build file system watcher patterns
@@ -96,25 +85,23 @@ export class LspServer {
       options: {
         env: {
           ...process.env,
-          PYTHONPATH: context.asAbsolutePath("python"),
+          PYTHONPATH: context.asAbsolutePath('python'),
         },
       },
     };
 
     const clientOptions: LanguageClientOptions = {
-      documentSelector: [{ scheme: "file", language: "comm" }],
+      documentSelector: [{ scheme: 'file', language: 'comm' }],
       synchronize: {
-        fileEvents: vscode.workspace.createFileSystemWatcher(
-          `{${watchPatterns.join(",")}}`,
-        ),
+        fileEvents: vscode.workspace.createFileSystemWatcher(`{${watchPatterns.join(',')}}`),
       },
     };
 
     return new LanguageClient(
-      "pythonLanguageServer",
-      "Python Language Server",
+      'pythonLanguageServer',
+      'Python Language Server',
       serverOptions,
-      clientOptions,
+      clientOptions
     );
   }
 
@@ -135,11 +122,8 @@ export class LspServer {
 
       //activate signature and completion triggers
       const lastChange = changes[changes.length - 1];
-      if (
-        ["(", ","].includes(lastChange.text) &&
-        editor.document.languageId === "comm"
-      ) {
-        vscode.commands.executeCommand("editor.action.triggerParameterHints");
+      if (['(', ','].includes(lastChange.text) && editor.document.languageId === 'comm') {
+        vscode.commands.executeCommand('editor.action.triggerParameterHints');
       }
     });
   }
@@ -154,15 +138,9 @@ export class LspServer {
 
     this._client
       ?.start()
-      .then(() =>
-        vscode.window.showInformationMessage(
-          "LSP Python Code-Aster restarted!",
-        ),
-      )
+      .then(() => vscode.window.showInformationMessage('LSP Python Code-Aster restarted!'))
       .catch((err: any) =>
-        vscode.window.showErrorMessage(
-          "Error restarting LSP Python: " + err.message,
-        ),
+        vscode.window.showErrorMessage('Error restarting LSP Python: ' + err.message)
       );
   }
 

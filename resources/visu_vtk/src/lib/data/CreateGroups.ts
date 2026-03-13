@@ -22,9 +22,20 @@ export class CreateGroups {
       Controller.Instance.getVSCodeAPI().postMessage({ type: 'debugPanel', text });
     };
 
-    if (!result) { return; }
+    if (!result) {
+      return;
+    }
 
-    const { vertices, cells, cellIndexToGroup, nodes, nodeIndexToGroup, faceGroups, nodeGroups, groupHierarchy } = result;
+    const {
+      vertices,
+      cells,
+      cellIndexToGroup,
+      nodes,
+      nodeIndexToGroup,
+      faceGroups,
+      nodeGroups,
+      groupHierarchy,
+    } = result;
 
     const faceActorCreator = new FaceActorCreator(vertices, cells, cellIndexToGroup);
     const nodeActorCreator = new NodeActorCreator(vertices, nodes, nodeIndexToGroup);
@@ -36,24 +47,61 @@ export class CreateGroups {
       const objColor = _oc[GlobalSettings.Instance.objIndex % _oc.length];
       (groupHierarchy[fileGroup] as any).color = objColor;
 
-      const { actor, colorIndex: fileColorIndex, isObjectActor: fileIsObj, cellCount: fileCellCount } = faceActorCreator.create(fileGroup, groupId);
+      const {
+        actor,
+        colorIndex: fileColorIndex,
+        isObjectActor: fileIsObj,
+        cellCount: fileCellCount,
+      } = faceActorCreator.create(fileGroup, groupId);
 
-      const groupInstance = new Group(actor, fileGroup, true, null, null, fileColorIndex, fileIsObj, fileCellCount);
+      const groupInstance = new Group(
+        actor,
+        fileGroup,
+        true,
+        null,
+        null,
+        fileColorIndex,
+        fileIsObj,
+        fileCellCount
+      );
       this.groups[fileGroup] = groupInstance;
 
       const size = this.computeSize(actor);
 
       for (const faceGroup of groupHierarchy[fileGroup].faces) {
         const faceGroupId = faceGroups.indexOf(`${fileGroup}::${faceGroup}`);
-        const { actor: faceActor, colorIndex: faceColorIndex, isObjectActor: faceIsObj, cellCount: faceCellCount } = faceActorCreator.create(faceGroup, faceGroupId);
-        const subGroup = new Group(faceActor, faceGroup, true, fileGroup, size, faceColorIndex, faceIsObj, faceCellCount);
+        const {
+          actor: faceActor,
+          colorIndex: faceColorIndex,
+          isObjectActor: faceIsObj,
+          cellCount: faceCellCount,
+        } = faceActorCreator.create(faceGroup, faceGroupId);
+        const subGroup = new Group(
+          faceActor,
+          faceGroup,
+          true,
+          fileGroup,
+          size,
+          faceColorIndex,
+          faceIsObj,
+          faceCellCount
+        );
         this.groups[`${fileGroup}::${faceGroup}`] = subGroup;
       }
 
       for (const nodeGroup of groupHierarchy[fileGroup].nodes) {
         const nodeGroupId = nodeGroups.indexOf(`${fileGroup}::${nodeGroup}`);
-        const { actor: nodeActor, colorIndex: nodeColorIndex } = nodeActorCreator.create(nodeGroupId);
-        const subGroup = new Group(nodeActor, nodeGroup, false, fileGroup, size, nodeColorIndex, false);
+        const { actor: nodeActor, colorIndex: nodeColorIndex } =
+          nodeActorCreator.create(nodeGroupId);
+        const subGroup = new Group(
+          nodeActor,
+          nodeGroup,
+          false,
+          fileGroup,
+          size,
+          nodeColorIndex,
+          false
+        );
         this.groups[`${fileGroup}::${nodeGroup}`] = subGroup;
       }
     }

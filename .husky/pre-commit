@@ -1,30 +1,8 @@
 #!/bin/sh
 set -e
 
-STAGED=$(git diff --cached --name-only --diff-filter=ACM)
-
-STAGED_FORMATTABLE=$(echo "$STAGED" | grep -E '\.(ts|svelte|js|json|html|css)$' || true)
-STAGED_TS=$(echo "$STAGED" | grep -E '^src/.*\.ts$' || true)
-STAGED_EXPORT_JS=$(echo "$STAGED" | grep -E '^resources/export_form/.*\.js$' || true)
-STAGED_SVELTE=$(echo "$STAGED" | grep -E '\.svelte$' || true)
-STAGED_PY=$(echo "$STAGED" | grep -E '^python/(lsp/.*\.py|med2obj\.py)$' || true)
-
-if [ -n "$STAGED_FORMATTABLE" ]; then
-  echo "$STAGED_FORMATTABLE" | xargs npx prettier --write
-  echo "$STAGED_FORMATTABLE" | xargs git add
-fi
-
-if [ -n "$STAGED_TS" ] || [ -n "$STAGED_EXPORT_JS" ]; then
-  FILES=$(printf '%s\n%s' "$STAGED_TS" "$STAGED_EXPORT_JS" | grep -v '^$' || true)
-  echo "$FILES" | xargs npx eslint --max-warnings=0
-fi
-
-if [ -n "$STAGED_SVELTE" ]; then
-  npx svelte-check --tsconfig resources/visu_vtk/tsconfig.json --fail-on-warnings
-fi
-
-if [ -n "$STAGED_PY" ]; then
-  echo "$STAGED_PY" | xargs python3 -m ruff check
-  echo "$STAGED_PY" | xargs python3 -m ruff format
-  echo "$STAGED_PY" | xargs git add
-fi
+npx prettier --check "src/**/*.ts" "resources/visu_vtk/src/**/*.{ts,svelte}" "resources/export_form/**/*.{js,css,html}"
+npx eslint --max-warnings=0 src/ resources/export_form/
+npx svelte-check --tsconfig resources/visu_vtk/tsconfig.json --fail-on-warnings
+python3 -m ruff check python/lsp/ python/med2obj.py
+python3 -m ruff format --check python/lsp/ python/med2obj.py

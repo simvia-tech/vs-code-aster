@@ -20,7 +20,7 @@
           ...nodes.map((name) => ({ name, isFace: false })),
         ],
       };
-    }),
+    })
   );
 
   function isVisible(objectKey: string, groupName: string): boolean {
@@ -84,7 +84,10 @@
     {#each objects as obj (obj.key)}
       {@const allOff = allUnchecked(obj.key, obj.allGroups)}
       <div class="break-inside-avoid flex flex-col space-y-1.5 mb-5">
-        <div class="flex items-center justify-between pb-1" style="border-bottom: 1px solid var(--ui-border)">
+        <div
+          class="flex items-center justify-between pb-1"
+          style="border-bottom: 1px solid var(--ui-border)"
+        >
           <div class="flex items-center gap-1.5">
             <span style="color: {colorCss(obj.color)}"><ObjectIcon class="size-4 shrink-0" /></span>
             <span class="font-semibold text-sm">{obj.name}</span>

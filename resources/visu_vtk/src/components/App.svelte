@@ -16,28 +16,52 @@
 </script>
 
 {#if hasData}
-  <Sidebar onOpenGroups={() => { openPopup = 'groups'; }} />
+  <Sidebar
+    onOpenGroups={() => {
+      openPopup = 'groups';
+    }}
+  />
 {:else}
   <LoadingScreen />
 {/if}
 
 {#if hasData}
   <TopActions
-    onOpenSettings={() => { openPopup = 'settings'; }}
-    onOpenHelp={() => { openPopup = 'help'; }}
+    onOpenSettings={() => {
+      openPopup = 'settings';
+    }}
+    onOpenHelp={() => {
+      openPopup = 'help';
+    }}
   />
 
   <ZoomWidget />
 {/if}
 
 {#if openPopup}
-  <Popup onclose={() => { openPopup = null; }}>
+  <Popup
+    onclose={() => {
+      openPopup = null;
+    }}
+  >
     {#if openPopup === 'help'}
-      <HelpPopup onclose={() => { openPopup = null; }} />
+      <HelpPopup
+        onclose={() => {
+          openPopup = null;
+        }}
+      />
     {:else if openPopup === 'settings'}
-      <SettingsPopup onclose={() => { openPopup = null; }} />
+      <SettingsPopup
+        onclose={() => {
+          openPopup = null;
+        }}
+      />
     {:else if openPopup === 'groups'}
-      <GroupsPopup onclose={() => { openPopup = null; }} />
+      <GroupsPopup
+        onclose={() => {
+          openPopup = null;
+        }}
+      />
     {/if}
   </Popup>
 {/if}

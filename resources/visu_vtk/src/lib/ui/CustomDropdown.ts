@@ -16,7 +16,7 @@ export class CustomDropdown {
     options: DropdownOption[],
     onSelect: (value: string) => void,
     getValue: (() => string | null) | null = null,
-    opts: { align?: 'left' | 'right' } = {},
+    opts: { align?: 'left' | 'right' } = {}
   ) {
     this._trigger = trigger;
     this._options = options;
@@ -75,9 +75,16 @@ export class CustomDropdown {
       labelEl.textContent = label;
       item.appendChild(labelEl);
 
-      item.addEventListener('mouseenter', () => { item.style.background = 'var(--ui-element-bg-hover)'; });
-      item.addEventListener('mouseleave', () => { item.style.background = ''; });
-      item.addEventListener('click', () => { this._onSelect(value); this.close(); });
+      item.addEventListener('mouseenter', () => {
+        item.style.background = 'var(--ui-element-bg-hover)';
+      });
+      item.addEventListener('mouseleave', () => {
+        item.style.background = '';
+      });
+      item.addEventListener('click', () => {
+        this._onSelect(value);
+        this.close();
+      });
 
       panel.appendChild(item);
     }
@@ -94,9 +101,7 @@ export class CustomDropdown {
     panel.style.left = `${left}px`;
 
     const openUp = window.innerHeight - rect.bottom < panelH + 8;
-    panel.style.top = openUp
-      ? `${rect.top - panelH - 4}px`
-      : `${rect.bottom + 4}px`;
+    panel.style.top = openUp ? `${rect.top - panelH - 4}px` : `${rect.bottom + 4}px`;
 
     this._panel = panel;
   }

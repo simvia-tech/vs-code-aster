@@ -14,10 +14,16 @@ export class VtkApp {
   }
 
   private _readEditorBackground(): number[] {
-    const raw = getComputedStyle(document.body).getPropertyValue('--vscode-editor-background').trim();
+    const raw = getComputedStyle(document.body)
+      .getPropertyValue('--vscode-editor-background')
+      .trim();
     const match = raw.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
     if (match) {
-      return [parseInt(match[1], 16) / 255, parseInt(match[2], 16) / 255, parseInt(match[3], 16) / 255];
+      return [
+        parseInt(match[1], 16) / 255,
+        parseInt(match[2], 16) / 255,
+        parseInt(match[3], 16) / 255,
+      ];
     }
     return [0.4, 0.6, 1.0];
   }
@@ -27,7 +33,9 @@ export class VtkApp {
   }
 
   init(scene: HTMLElement): void {
-    if (!window.vtk) { return; }
+    if (!window.vtk) {
+      return;
+    }
 
     this.fullScreenRenderer = vtk.Rendering.Misc.vtkFullScreenRenderWindow.newInstance({
       rootContainer: scene,
@@ -61,9 +69,7 @@ export class VtkApp {
     if (!this.renderer) return;
     const controls = document.getElementById('controls');
     const sidebarActions = document.getElementById('sidebarActions');
-    const sidebarWidth = controls
-      ? controls.offsetWidth - (sidebarActions?.offsetWidth ?? 0)
-      : 0;
+    const sidebarWidth = controls ? controls.offsetWidth - (sidebarActions?.offsetWidth ?? 0) : 0;
     const offset = sidebarWidth / window.innerWidth;
     this.renderer.getActiveCamera().setWindowCenter(-offset, 0);
     this.renderWindow.render();
