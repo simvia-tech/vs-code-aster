@@ -350,7 +350,7 @@
               onclick={toggleOrientationWidget}
             >
               <span
-                class="inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-150 mt-[3px]"
+                class="inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-150 mt-0.75"
                 style={$settings.showOrientationWidget
                   ? 'transform: translateX(19px)'
                   : 'transform: translateX(3px)'}

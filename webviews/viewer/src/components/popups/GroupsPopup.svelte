@@ -98,18 +98,34 @@
 
         {#each obj.allGroups as group}
           <label class="flex items-center gap-1.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              class="custom-cb"
-              checked={isVisible(obj.key, group.name)}
-              onchange={() => toggleGroup(obj.key, group.name)}
-            />
             {#if group.isFace}
               <FaceIcon class="size-3.5 shrink-0" />
             {:else}
               <NodeIcon class="size-3.5 shrink-0" />
             {/if}
-            <span class="text-xs truncate -translate-y-px">{group.name}</span>
+            <span class="text-xs truncate -translate-y-px grow" title={group.name}
+              >{group.name}</span
+            >
+
+            <button
+              role="switch"
+              aria-label="Show orientation widget"
+              aria-checked={isVisible(obj.key, group.name)}
+              class="relative inline-flex h-3 w-6 shrink-0 rounded-full transition-colors duration-150 focus:outline-none cursor-pointer {isVisible(
+                obj.key,
+                group.name
+              )
+                ? 'bg-ui-link'
+                : 'bg-ui-border'}"
+              onclick={() => toggleGroup(obj.key, group.name)}
+            >
+              <span
+                class="inline-block h-1.5 w-1.5 rounded-full bg-white shadow-sm transition-transform duration-150 mt-0.75"
+                style={isVisible(obj.key, group.name)
+                  ? 'transform: translateX(15px)'
+                  : 'transform: translateX(3px)'}
+              ></span>
+            </button>
           </label>
         {/each}
       </div>
