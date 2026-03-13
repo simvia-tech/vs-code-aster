@@ -40,7 +40,9 @@ export class ObjLoader {
         for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
           const line = lines[lineIdx];
           const ss = line.split(' ').filter((p) => p.length !== 0);
-          if (ss.length === 0) { continue; }
+          if (ss.length === 0) {
+            continue;
+          }
 
           switch (ss[0]) {
             case 'v':
@@ -96,6 +98,15 @@ export class ObjLoader {
       text: `TOTAL: ${vertices.length} vertices, ${cells.length} cells, ${nodes.length} nodes`,
     });
 
-    return { vertices, cells, cellIndexToGroup, nodes, nodeIndexToGroup, faceGroups, nodeGroups, groupHierarchy };
+    return {
+      vertices,
+      cells,
+      cellIndexToGroup,
+      nodes,
+      nodeIndexToGroup,
+      faceGroups,
+      nodeGroups,
+      groupHierarchy,
+    };
   }
 }

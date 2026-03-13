@@ -13,7 +13,9 @@
   role="dialog"
   aria-modal="true"
   tabindex="0"
-  onclick={(e) => { if (e.target === e.currentTarget) onclose(); }}
+  onclick={(e) => {
+    if (e.target === e.currentTarget) onclose();
+  }}
   onkeydown={(e) => e.key === 'Escape' && onclose()}
 >
   {@render children()}

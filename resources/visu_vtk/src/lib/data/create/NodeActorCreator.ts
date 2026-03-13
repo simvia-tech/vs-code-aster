@@ -9,7 +9,7 @@ export class NodeActorCreator {
   constructor(
     vertices: { x: number; y: number; z: number }[],
     nodes: number[],
-    nodeIndexToGroup: number[],
+    nodeIndexToGroup: number[]
   ) {
     this.vertices = vertices;
     this.nodes = nodes;

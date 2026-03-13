@@ -18,10 +18,7 @@
   class="relative h-full flex flex-col z-10 p-2"
   style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent)"
 >
-  <div
-    id="sidebarGroups"
-    class="flex flex-col items-center space-y-1 grow overflow-y-auto"
-  >
+  <div id="sidebarGroups" class="flex flex-col items-center space-y-1 grow overflow-y-auto">
     {#each Object.entries($groupHierarchy) as [key, data]}
       <ObjectSection
         objectKey={key}
