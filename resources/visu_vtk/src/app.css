@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+@theme {
+  --color-ui-bg: var(--ui-bg);
+  --color-ui-fg: var(--ui-fg);
+  --color-ui-btn: var(--ui-btn-bg);
+  --color-ui-btn-hover: var(--ui-btn-hover-bg);
+  --color-ui-btn-fg: var(--ui-btn-fg);
+  --color-ui-popup-bg: var(--ui-popup-bg);
+  --color-ui-border: var(--ui-border);
+  --color-ui-text-primary: var(--ui-text-primary);
+  --color-ui-text-secondary: var(--ui-text-secondary);
+  --color-ui-text-muted: var(--ui-text-muted);
+  --color-ui-elem: var(--ui-element-bg);
+  --color-ui-elem-hover: var(--ui-element-bg-hover);
+  --color-ui-muted: var(--ui-bg-translucent);
+  --color-ui-link: var(--vscode-textLink-foreground, #0078d4);
+}
+
 :root {
   --ui-bg: var(--vscode-sideBar-background, var(--vscode-editor-background, #e8eaf0));
   --ui-fg: var(--vscode-sideBar-foreground, var(--vscode-editor-foreground, #1f1f1f));
@@ -23,26 +40,6 @@ body.vscode-dark,
 body.vscode-high-contrast {
   --icon-filter: invert(1);
   --ui-highlight-text: rgba(0, 0, 0, 0.8);
-}
-
-@utility bg-ui-elem {
-  background: var(--ui-element-bg);
-}
-
-@utility bg-ui-elem-hover {
-  background: var(--ui-element-bg-hover);
-}
-
-@utility bg-ui-muted {
-  background: var(--ui-bg-translucent);
-}
-
-@utility bg-ui-btn {
-  background: var(--ui-btn-bg);
-}
-
-@utility bg-ui-btn-hover {
-  background: var(--ui-btn-hover-bg);
 }
 
 kbd {

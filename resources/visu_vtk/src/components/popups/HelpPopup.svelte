@@ -23,25 +23,16 @@
 
 <div
   id="helpPopup"
-  class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 rounded shadow-lg backdrop-blur-lg flex overflow-hidden"
-  style="width: min(52rem, 80vw); height: 70vh; background: var(--ui-popup-bg); color: var(--ui-fg); border: 1px solid var(--ui-border)"
+  class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-[min(52rem,80vw)] h-[70vh] rounded shadow-lg backdrop-blur-lg flex overflow-hidden bg-ui-popup-bg text-ui-fg border border-ui-border"
   role="document"
 >
-  <nav class="flex flex-col py-4 shrink-0 w-36" style="border-right: 1px solid var(--ui-border)">
-    <span class="font-bold text-sm px-4 pb-3" style="color: var(--ui-text-primary)">Help</span>
+  <nav class="flex flex-col py-4 shrink-0 w-36 border-r border-ui-border">
+    <span class="font-bold text-sm px-4 pb-3 text-ui-text-primary">Help</span>
     {#each mainTabs as tab}
       <button
-        class="text-left text-xs px-4 py-2 cursor-pointer transition-colors"
-        style={activeTab === tab
-          ? 'background: var(--ui-element-bg); color: var(--vscode-textLink-foreground, #0078d4); font-weight: 600;'
-          : 'color: var(--ui-text-secondary);'}
-        onmouseenter={(e) => {
-          if (activeTab !== tab)
-            (e.currentTarget as HTMLElement).style.background = 'var(--ui-element-bg)';
-        }}
-        onmouseleave={(e) => {
-          if (activeTab !== tab) (e.currentTarget as HTMLElement).style.background = '';
-        }}
+        class="text-left text-xs px-4 py-2 cursor-pointer transition-colors hover:bg-ui-elem {activeTab === tab
+          ? 'bg-ui-elem text-ui-link font-semibold'
+          : 'text-ui-text-secondary'}"
         onclick={() => (activeTab = tab)}
       >
         {tab}
@@ -49,25 +40,15 @@
     {/each}
     <div class="grow"></div>
     <button
-      class="text-left text-xs px-4 py-2 cursor-pointer transition-colors"
-      style={activeTab === 'About'
-        ? 'background: var(--ui-element-bg); color: var(--vscode-textLink-foreground, #0078d4); font-weight: 600;'
-        : 'color: var(--ui-text-secondary);'}
-      onmouseenter={(e) => {
-        if (activeTab !== 'About')
-          (e.currentTarget as HTMLElement).style.background = 'var(--ui-element-bg)';
-      }}
-      onmouseleave={(e) => {
-        if (activeTab !== 'About') (e.currentTarget as HTMLElement).style.background = '';
-      }}
+      class="text-left text-xs px-4 py-2 cursor-pointer transition-colors hover:bg-ui-elem {activeTab === 'About'
+        ? 'bg-ui-elem text-ui-link font-semibold'
+        : 'text-ui-text-secondary'}"
       onclick={() => (activeTab = 'About')}
     >
       <span class="flex items-center justify-between gap-2">
         About
         <span
-          style="color: {activeTab === 'About'
-            ? 'var(--vscode-textLink-foreground, #0078d4)'
-            : 'var(--ui-text-muted)'}; font-weight: 400; font-size: 0.6rem;"
+          class="{activeTab === 'About' ? 'text-ui-link' : 'text-ui-text-muted'} font-normal text-[0.6rem]"
           >v{__APP_VERSION__}</span
         >
       </span>
@@ -87,34 +68,29 @@
           ><span>Drag to pan</span>
           <MouseScrollIcon class="size-5" /><span>Zoom in / out</span>
           <span
-            class="inline-flex items-stretch rounded-full overflow-hidden text-[0.65rem]"
-            style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent); border: 1px solid var(--ui-border)"
+            class="inline-flex items-stretch rounded-full overflow-hidden text-[0.65rem] bg-ui-muted border border-ui-border"
           >
             <span
-              class="flex items-center gap-1 pl-2 pr-1 py-1"
-              style="background: var(--ui-element-bg-hover); color: var(--ui-fg)"
+              class="flex items-center gap-1 pl-2 pr-1 py-1 bg-ui-elem-hover text-ui-fg"
             >
               <ZoomIcon class="size-3" /><span class="font-mono">2.0×</span>
             </span>
-            <span class="pl-0.5 pr-1.5 flex items-center" style="color: var(--ui-text-muted)">
+            <span class="pl-0.5 pr-1.5 flex items-center text-ui-text-muted">
               <ResetIcon class="size-3 stroke-[2.5]" />
             </span>
           </span>
           <span>Open the zoom level selector to choose a preset</span>
 
           <span
-            class="inline-flex items-stretch rounded-full overflow-hidden text-[0.65rem]"
-            style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent); border: 1px solid var(--ui-border)"
+            class="inline-flex items-stretch rounded-full overflow-hidden text-[0.65rem] bg-ui-muted border border-ui-border"
           >
             <span
-              class="flex items-center gap-1 pl-2 pr-1 py-1"
-              style="color: var(--ui-text-muted)"
+              class="flex items-center gap-1 pl-2 pr-1 py-1 text-ui-text-muted"
             >
               <ZoomIcon class="size-3" /><span class="font-mono">2.0×</span>
             </span>
             <span
-              class="pl-0.5 pr-1.5 flex items-center"
-              style="background: var(--ui-element-bg-hover); color: var(--ui-fg)"
+              class="pl-0.5 pr-1.5 flex items-center bg-ui-elem-hover text-ui-fg"
             >
               <ResetIcon class="size-3 stroke-[2.5]" />
             </span>
@@ -130,44 +106,34 @@
       {:else if activeTab === 'Objects'}
         <div class="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3 items-center">
           <span
-            class="inline-flex items-center gap-1 text-[0.65rem] pl-1 pr-0.5 py-0.5 rounded"
-            style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent); border: 1px solid var(--ui-border)"
+            class="inline-flex items-center gap-1 text-[0.65rem] pl-1 pr-0.5 py-0.5 rounded bg-ui-muted border border-ui-border"
           >
-            <span style="color: var(--ui-text-muted)"><ObjectIcon class="size-3.5" /></span>
-            <span
-              class="px-2 font-bold rounded"
-              style="background: var(--ui-element-bg-hover); color: var(--ui-fg)">mesh</span
-            >
-            <span
-              class="size-3.5 flex items-center justify-center"
-              style="color: var(--ui-text-muted); opacity: 0.4"><EyeIcon class="size-3" /></span
+            <span class="text-ui-text-muted"><ObjectIcon class="size-3.5" /></span>
+            <span class="px-2 font-bold rounded bg-ui-elem-hover text-ui-fg">mesh</span>
+            <span class="size-3.5 flex items-center justify-center text-ui-text-muted opacity-40"
+              ><EyeIcon class="size-3" /></span
             >
           </span>
           <span>Click the name to <strong>collapse or expand</strong> its groups</span>
 
           <span
-            class="inline-flex items-center gap-1 text-[0.65rem] pl-1 pr-0.5 py-0.5 rounded"
-            style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent); border: 1px solid var(--ui-border)"
+            class="inline-flex items-center gap-1 text-[0.65rem] pl-1 pr-0.5 py-0.5 rounded bg-ui-muted border border-ui-border"
           >
-            <span style="color: var(--ui-text-muted)"><ObjectIcon class="size-3.5" /></span>
-            <span class="px-2 font-bold" style="color: var(--ui-text-muted)">mesh</span>
-            <span
-              class="size-3.5 flex items-center justify-center rounded"
-              style="background: var(--ui-element-bg-hover); color: var(--ui-fg)"
+            <span class="text-ui-text-muted"><ObjectIcon class="size-3.5" /></span>
+            <span class="px-2 font-bold text-ui-text-muted">mesh</span>
+            <span class="size-3.5 flex items-center justify-center rounded bg-ui-elem-hover text-ui-fg"
               ><EyeIcon class="size-3" /></span
             >
           </span>
           <span>Click to <strong>show or hide</strong> an entire object</span>
 
           <span
-            class="inline-flex items-center gap-1 text-[0.65rem] pl-1 pr-0.5 py-0.5 rounded"
-            style="background: var(--ui-element-bg-hover); border: 1px solid var(--ui-border)"
+            class="inline-flex items-center gap-1 text-[0.65rem] pl-1 pr-0.5 py-0.5 rounded bg-ui-elem-hover border border-ui-border"
           >
-            <span style="color: var(--ui-text-muted)"><ObjectIcon class="size-3.5" /></span>
-            <span class="px-2 font-bold" style="color: var(--ui-fg)">mesh</span>
-            <span
-              class="size-3.5 flex items-center justify-center"
-              style="color: var(--ui-text-muted); opacity: 0.4"><EyeIcon class="size-3" /></span
+            <span class="text-ui-text-muted"><ObjectIcon class="size-3.5" /></span>
+            <span class="px-2 font-bold text-ui-fg">mesh</span>
+            <span class="size-3.5 flex items-center justify-center text-ui-text-muted opacity-40"
+              ><EyeIcon class="size-3" /></span
             >
           </span>
           <span>Right-click for more options — e.g. hide all other objects</span>
@@ -175,8 +141,7 @@
       {:else if activeTab === 'Groups'}
         <div class="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3 items-center">
           <span
-            class="relative inline-flex items-center text-[0.65rem] px-2 pt-0.5 pb-1 rounded-sm"
-            style="background: var(--ui-element-bg-hover); color: var(--ui-fg); font-weight: 600; min-width: 4rem;"
+            class="relative inline-flex items-center text-[0.65rem] px-2 pt-0.5 pb-1 rounded-sm bg-ui-elem-hover text-ui-fg font-semibold min-w-16"
           >
             <span class="absolute left-1 top-0.5"><FaceIcon class="size-3.5" /></span>
             <span class="pl-4">group_A</span>
@@ -187,18 +152,14 @@
           >
 
           <span
-            class="w-fit inline-flex flex-col items-center rounded-sm overflow-hidden"
-            style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent); border: 1px solid var(--ui-border)"
+            class="w-fit inline-flex flex-col items-center rounded-sm overflow-hidden bg-ui-muted border border-ui-border"
           >
-            <span
-              class="size-5 flex items-center justify-center"
-              style="background: var(--ui-element-bg-hover); color: var(--ui-fg)"
+            <span class="size-5 flex items-center justify-center bg-ui-elem-hover text-ui-fg"
               ><FilterIcon class="size-3" /></span
             >
-            <span class="w-3/4 h-px" style="background: var(--ui-border)"></span>
-            <span
-              class="size-5 flex items-center justify-center"
-              style="color: var(--ui-text-muted)"><ClearIcon class="size-3" /></span
+            <span class="w-3/4 h-px bg-ui-border"></span>
+            <span class="size-5 flex items-center justify-center text-ui-text-muted"
+              ><ClearIcon class="size-3" /></span
             >
           </span>
           <span
@@ -207,24 +168,20 @@
           >
 
           <span
-            class="w-fit inline-flex flex-col items-center rounded-sm overflow-hidden"
-            style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent); border: 1px solid var(--ui-border)"
+            class="w-fit inline-flex flex-col items-center rounded-sm overflow-hidden bg-ui-muted border border-ui-border"
           >
-            <span
-              class="size-5 flex items-center justify-center"
-              style="color: var(--ui-text-muted)"><FilterIcon class="size-3" /></span
+            <span class="size-5 flex items-center justify-center text-ui-text-muted"
+              ><FilterIcon class="size-3" /></span
             >
-            <span class="w-3/4 h-px" style="background: var(--ui-border)"></span>
-            <span
-              class="size-5 flex items-center justify-center"
-              style="background: var(--ui-element-bg-hover); color: var(--ui-fg)"
+            <span class="w-3/4 h-px bg-ui-border"></span>
+            <span class="size-5 flex items-center justify-center bg-ui-elem-hover text-ui-fg"
               ><ClearIcon class="size-3" /></span
             >
           </span>
           <span>Click to <strong>clear all highlights</strong></span>
         </div>
       {:else if activeTab === 'Files'}
-        <div class="space-y-2" style="color: var(--ui-text-secondary)">
+        <div class="space-y-2 text-ui-text-secondary">
           <p>
             <code>.med</code> mesh files are automatically converted to <code>.obj</code> when opened.
           </p>
@@ -234,13 +191,13 @@
           </p>
         </div>
       {:else if activeTab === 'About'}
-        <div class="space-y-3" style="color: var(--ui-text-secondary)">
+        <div class="space-y-3 text-ui-text-secondary">
           <p>
             This extension is made by <a
               href="https://simvia.tech"
               target="_blank"
               rel="noopener noreferrer"
-              style="color: var(--vscode-textLink-foreground, #0078d4); text-decoration: underline;"
+              class="text-ui-link underline"
               >Simvia</a
             >.
           </p>
@@ -249,7 +206,7 @@
               href="https://github.com/simvia-tech/vs-code-aster"
               target="_blank"
               rel="noopener noreferrer"
-              style="color: var(--vscode-textLink-foreground, #0078d4); text-decoration: underline;"
+              class="text-ui-link underline"
               >GitHub</a
             >.
           </p>
@@ -259,8 +216,7 @@
 
     <div class="mt-4 flex justify-end">
       <button
-        class="font-bold px-3 py-1 rounded-sm cursor-pointer text-xs bg-ui-btn hover:bg-ui-btn-hover"
-        style="color: var(--ui-btn-fg)"
+        class="font-bold px-3 py-1 rounded-sm cursor-pointer text-xs bg-ui-btn hover:bg-ui-btn-hover text-ui-btn-fg"
         onclick={onclose}
       >
         Close

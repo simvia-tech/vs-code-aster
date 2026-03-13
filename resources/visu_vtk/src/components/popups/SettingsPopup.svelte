@@ -189,11 +189,10 @@
 </script>
 
 {#snippet tip(text: string)}
-  <span class="relative group cursor-help shrink-0" style="color: var(--ui-text-muted)">
+  <span class="relative group cursor-help shrink-0 text-ui-text-muted">
     <span class="text-[0.65rem] leading-none select-none font-bold">ⓘ</span>
     <span
-      class="pointer-events-none invisible group-hover:visible absolute top-full left-0 z-50 mt-1.5 w-56 rounded px-2 py-1.5 text-xs font-normal"
-      style="background: var(--ui-popup-bg); border: 1px solid var(--ui-border); color: var(--ui-fg); box-shadow: 0 2px 8px rgba(0,0,0,0.2)"
+      class="pointer-events-none invisible group-hover:visible absolute top-full left-0 z-50 mt-1.5 w-56 rounded px-2 py-1.5 text-xs font-normal bg-ui-popup-bg border border-ui-border text-ui-fg shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
     >
       {text}
     </span>
@@ -202,32 +201,21 @@
 
 <div
   id="settingsPopup"
-  class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 rounded shadow-lg flex"
-  style="width: min(36rem, 80vw); height: min(22rem, 70vh); color: var(--ui-fg); border: 1px solid var(--ui-border)"
+  class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-[min(36rem,80vw)] h-[min(22rem,70vh)] rounded shadow-lg flex text-ui-fg border border-ui-border"
   role="document"
 >
   <div
-    class="absolute inset-0 rounded backdrop-blur-lg pointer-events-none"
-    style="background: var(--ui-popup-bg)"
+    class="absolute inset-0 rounded backdrop-blur-lg pointer-events-none bg-ui-popup-bg"
   ></div>
   <nav
-    class="relative z-10 flex flex-col py-4 shrink-0 w-36"
-    style="border-right: 1px solid var(--ui-border)"
+    class="relative z-10 flex flex-col py-4 shrink-0 w-36 border-r border-ui-border"
   >
-    <span class="font-bold text-sm px-4 pb-3" style="color: var(--ui-text-primary)">Settings</span>
+    <span class="font-bold text-sm px-4 pb-3 text-ui-text-primary">Settings</span>
     {#each tabs as tab}
       <button
-        class="text-left text-xs px-4 py-2 cursor-pointer transition-colors"
-        style={activeTab === tab
-          ? 'background: var(--ui-element-bg); color: var(--vscode-textLink-foreground, #0078d4); font-weight: 600;'
-          : 'color: var(--ui-text-secondary);'}
-        onmouseenter={(e) => {
-          if (activeTab !== tab)
-            (e.currentTarget as HTMLElement).style.background = 'var(--ui-element-bg)';
-        }}
-        onmouseleave={(e) => {
-          if (activeTab !== tab) (e.currentTarget as HTMLElement).style.background = '';
-        }}
+        class="text-left text-xs px-4 py-2 cursor-pointer transition-colors hover:bg-ui-elem {activeTab === tab
+          ? 'bg-ui-elem text-ui-link font-semibold'
+          : 'text-ui-text-secondary'}"
         onclick={() => (activeTab = tab)}
       >
         {tab}
@@ -236,8 +224,7 @@
     <div class="grow"></div>
     <div class="px-4">
       <button
-        class="w-full px-2 py-1 rounded-sm cursor-pointer text-xs bg-ui-elem hover:bg-ui-elem-hover"
-        style="color: var(--ui-fg); border: 1px solid var(--ui-border)"
+        class="w-full px-2 py-1 rounded-sm cursor-pointer text-xs bg-ui-elem hover:bg-ui-elem-hover text-ui-fg border border-ui-border"
         onclick={resetSettings}
       >
         Reset defaults
@@ -257,15 +244,14 @@
           </div>
           <div
             bind:this={edgeModeSelectEl}
-            class="w-full text-xs px-2 py-1.5 rounded-sm cursor-pointer flex items-center justify-between gap-2 select-none bg-ui-elem hover:bg-ui-elem-hover"
-            style="color: var(--ui-fg); border: 1px solid var(--ui-border)"
+            class="w-full text-xs px-2 py-1.5 rounded-sm cursor-pointer flex items-center justify-between gap-2 select-none bg-ui-elem hover:bg-ui-elem-hover text-ui-fg border border-ui-border"
             role="button"
             tabindex="0"
           >
             <span class="truncate">{edgeModeLabel}</span>
             <ChevronIcon class="size-3 shrink-0" />
           </div>
-          <span class="text-xs" style="color: var(--ui-text-secondary)">
+          <span class="text-xs text-ui-text-secondary">
             {edgeModeDesc}
           </span>
           {#if showThresholdSection}
@@ -279,7 +265,7 @@
                     'Higher values show edges at a lower zoom level, from farther away.'
                   )}
                 </div>
-                <span class="text-xs" style="color: var(--ui-text-secondary)">
+                <span class="text-xs text-ui-text-secondary">
                   {edgeThresholdDisplay.toPrecision(edgeThresholdDisplay < 1 ? 2 : 3)}×
                 </span>
               </div>
@@ -293,7 +279,7 @@
                 class="w-full cursor-pointer focus:outline-none accent-(--vscode-textLink-foreground,#0078d4)"
                 oninput={onEdgeThresholdInput}
               />
-              <span class="text-xs" style="color: var(--ui-text-secondary)"
+              <span class="text-xs text-ui-text-secondary"
                 >Higher values show edges from farther away.</span
               >
             </div>
@@ -311,7 +297,7 @@
                   'At 0% hidden objects are fully invisible. Above 0% they remain as faint ghosts.'
                 )}
               </div>
-              <span class="text-xs" style="color: var(--ui-text-secondary)"
+              <span class="text-xs text-ui-text-secondary"
                 >{hiddenOpacityPct}%</span
               >
             </div>
@@ -325,7 +311,7 @@
               class="w-full cursor-pointer focus:outline-none [accent-color:var(--vscode-textLink-foreground,#0078d4)]"
               oninput={onHiddenOpacityInput}
             />
-            <span class="text-xs" style="color: var(--ui-text-secondary)"
+            <span class="text-xs text-ui-text-secondary"
               >When hiding an object with the eye button, it can remain slightly visible as a ghost.</span
             >
           </div>
@@ -339,7 +325,7 @@
                   'When a sub-group is highlighted, the parent mesh fades to this opacity so the selected group stands out.'
                 )}
               </div>
-              <span class="text-xs" style="color: var(--ui-text-secondary)"
+              <span class="text-xs text-ui-text-secondary"
                 >{groupTransparencyPct}%</span
               >
             </div>
@@ -353,7 +339,7 @@
               class="w-full cursor-pointer focus:outline-none [accent-color:var(--vscode-textLink-foreground,#0078d4)]"
               oninput={onGroupTransparencyInput}
             />
-            <span class="text-xs" style="color: var(--ui-text-secondary)"
+            <span class="text-xs text-ui-text-secondary"
               >Opacity of the parent mesh when a sub-group is highlighted.</span
             >
           </div>
@@ -365,10 +351,9 @@
               role="switch"
               aria-label="Show orientation widget"
               aria-checked={$settings.showOrientationWidget}
-              class="relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-150 focus:outline-none cursor-pointer"
-              style={$settings.showOrientationWidget
-                ? 'background: var(--vscode-textLink-foreground, #0078d4)'
-                : 'background: var(--ui-border)'}
+              class="relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-150 focus:outline-none cursor-pointer {$settings.showOrientationWidget
+                ? 'bg-ui-link'
+                : 'bg-ui-border'}"
               onclick={toggleOrientationWidget}
             >
               <span
@@ -385,7 +370,7 @@
                   'Toggle the XYZ axes indicator in the bottom-right corner of the viewport.'
                 )}
               </div>
-              <span class="text-xs" style="color: var(--ui-text-secondary)"
+              <span class="text-xs text-ui-text-secondary"
                 >Show the axes widget in the bottom-right corner.</span
               >
             </div>
@@ -396,15 +381,13 @@
 
     <div class="pt-4 flex items-center justify-between">
       <button
-        class="px-2 py-1 rounded-sm cursor-pointer text-xs bg-ui-elem hover:bg-ui-elem-hover"
-        style="color: var(--ui-text-secondary); border: 1px solid var(--ui-border)"
+        class="px-2 py-1 rounded-sm cursor-pointer text-xs bg-ui-elem hover:bg-ui-elem-hover text-ui-text-secondary border border-ui-border"
         onclick={tabResets[activeTab]}
       >
         Reset {activeTab.toLowerCase()} settings
       </button>
       <button
-        class="font-bold px-3 py-1 rounded-sm cursor-pointer text-xs bg-ui-btn hover:bg-ui-btn-hover"
-        style="color: var(--ui-btn-fg)"
+        class="font-bold px-3 py-1 rounded-sm cursor-pointer text-xs bg-ui-btn hover:bg-ui-btn-hover text-ui-btn-fg"
         onclick={onclose}
       >
         Close
