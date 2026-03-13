@@ -21,7 +21,7 @@
     width="3"
     height="5"
     rx="1.5"
-    style="fill: var(--vscode-textLink-foreground, #0078d4)"
+    class="fill-ui-link"
     stroke="none"
   />
 </svg>

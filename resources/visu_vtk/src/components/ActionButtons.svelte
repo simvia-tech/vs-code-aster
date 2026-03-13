@@ -12,8 +12,7 @@
 
 <div
   id="sidebarActions"
-  class="absolute left-full top-1 flex flex-col items-center rounded-r-sm border-l"
-  style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent); border-color: var(--ui-border)"
+  class="absolute left-full top-1 flex flex-col items-center rounded-r-sm border-l bg-ui-muted border-ui-border"
 >
   <div class="group flex items-center">
     <button
@@ -23,13 +22,12 @@
       <FilterIcon class="size-3.5" />
     </button>
     <span
-      class="absolute left-full pl-1.5 hidden group-hover:inline whitespace-nowrap"
-      style="color: var(--ui-text-secondary)"
+      class="absolute left-full pl-1.5 hidden group-hover:inline whitespace-nowrap text-ui-text-secondary"
     >
       Select groups to show in sidebar
     </span>
   </div>
-  <div class="w-3/4 h-px mx-auto" style="background: var(--ui-border)"></div>
+  <div class="w-3/4 h-px mx-auto bg-ui-border"></div>
   <div class="group flex items-center">
     <button
       class="size-6 p-1 flex items-center justify-center cursor-pointer hover:bg-ui-elem"
@@ -38,8 +36,7 @@
       <ClearIcon class="size-3.5" />
     </button>
     <span
-      class="absolute left-full pl-1.5 hidden group-hover:inline whitespace-nowrap"
-      style="color: var(--ui-text-secondary)"
+      class="absolute left-full pl-1.5 hidden group-hover:inline whitespace-nowrap text-ui-text-secondary"
     >
       Clear highlighted groups
     </span>

@@ -15,8 +15,7 @@
 
 <div
   id="controls"
-  class="relative h-full flex flex-col z-10 p-2"
-  style="background: color-mix(in srgb, var(--ui-bg) 85%, transparent)"
+  class="relative h-full flex flex-col z-10 p-2 bg-ui-muted"
 >
   <div id="sidebarGroups" class="flex flex-col items-center space-y-1 grow overflow-y-auto">
     {#each Object.entries($groupHierarchy) as [key, data]}
@@ -31,7 +30,7 @@
 
   <ActionButtons {onOpenGroups} />
 
-  <div class="w-3/4 h-px my-2 mx-auto" style="background: var(--ui-border)"></div>
+  <div class="w-3/4 h-px my-2 mx-auto bg-ui-border"></div>
 
   <AxisButtons />
 </div>

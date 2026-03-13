@@ -18,8 +18,7 @@
   >
     <SettingsIcon class="size-4" />
     <span
-      class="absolute right-full pr-1.5 hidden group-hover:inline whitespace-nowrap"
-      style="color: var(--ui-text-secondary)"
+      class="absolute right-full pr-1.5 hidden group-hover:inline whitespace-nowrap text-ui-text-secondary"
     >
       Settings
     </span>
@@ -30,8 +29,7 @@
   >
     <QuestionIcon class="size-4" />
     <span
-      class="absolute right-full pr-1.5 hidden group-hover:inline whitespace-nowrap"
-      style="color: var(--ui-text-secondary)"
+      class="absolute right-full pr-1.5 hidden group-hover:inline whitespace-nowrap text-ui-text-secondary"
     >
       Help
     </span>

@@ -42,26 +42,6 @@ body.vscode-high-contrast {
   --ui-highlight-text: rgba(0, 0, 0, 0.8);
 }
 
-@utility bg-ui-elem {
-  background: var(--ui-element-bg);
-}
-
-@utility bg-ui-elem-hover {
-  background: var(--ui-element-bg-hover);
-}
-
-@utility bg-ui-muted {
-  background: var(--ui-bg-translucent);
-}
-
-@utility bg-ui-btn {
-  background: var(--ui-btn-bg);
-}
-
-@utility bg-ui-btn-hover {
-  background: var(--ui-btn-hover-bg);
-}
-
 kbd {
   @apply px-1 py-px rounded-sm;
   color: var(--vscode-textLink-foreground, #0078d4);

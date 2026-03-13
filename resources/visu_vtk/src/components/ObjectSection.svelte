@@ -76,13 +76,11 @@
     role="presentation"
   ></div>
   <div
-    style="position: fixed; z-index: 9999; left: {contextMenu.x}px; top: {contextMenu.y}px; background: var(--ui-popup-bg); border: 1px solid var(--ui-border); border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,0.25); padding: 3px 0; overflow: hidden;"
+    class="fixed z-[9999] bg-ui-popup-bg border border-ui-border rounded shadow-[0_4px_16px_rgba(0,0,0,0.25)] py-[3px] overflow-hidden"
+    style="left: {contextMenu.x}px; top: {contextMenu.y}px"
   >
     <button
-      style="display: flex; align-items: center; width: 100%; padding: 5px 10px; font-size: 0.75rem; cursor: pointer; color: var(--ui-fg); white-space: nowrap; background: none; border: none; text-align: left;"
-      onmouseenter={(e) =>
-        ((e.currentTarget as HTMLElement).style.background = 'var(--ui-element-bg-hover)')}
-      onmouseleave={(e) => ((e.currentTarget as HTMLElement).style.background = '')}
+      class="flex items-center w-full px-[10px] py-[5px] text-xs cursor-pointer text-ui-fg whitespace-nowrap bg-transparent border-0 text-left hover:bg-ui-elem-hover"
       onclick={hideAllOthers}
     >
       Hide all other objects
@@ -92,8 +90,7 @@
 
 <span
   role="group"
-  class="h-4.5 w-full self-stretch flex items-center gap-1 pl-1.25 pr-0.5 mb-2 not-nth-of-type-[1]:mt-1 text-xs font-bold"
-  style="color: var(--ui-text-primary)"
+  class="h-4.5 w-full self-stretch flex items-center gap-1 pl-1.25 pr-0.5 mb-2 not-nth-of-type-[1]:mt-1 text-xs font-bold text-ui-text-primary"
   oncontextmenu={onContextMenu}
 >
   <span style="color: {colorCss}"><ObjectIcon class="size-[18px]" /></span>
@@ -121,10 +118,7 @@
 </span>
 
 {#if isHidden}
-  <div
-    class="w-full text-center text-[0.7rem] font-normal mb-2"
-    style="color: var(--ui-text-muted)"
-  >
+  <div class="w-full text-center text-[0.7rem] font-normal mb-2 text-ui-text-muted">
     {groupCount} groups
   </div>
 {:else if !collapsed}
@@ -136,16 +130,13 @@
       <GroupButton {objectKey} {groupName} isFace={false} />
     {/each}
     {#if hiddenGroupCount > 0}
-      <div class="w-full text-center text-[0.7rem] pb-1" style="color: var(--ui-text-muted)">
+      <div class="w-full text-center text-[0.7rem] pb-1 text-ui-text-muted">
         {hiddenGroupCount} hidden
       </div>
     {/if}
   </div>
 {:else}
-  <div
-    class="w-full text-center text-[0.7rem] font-normal mb-2"
-    style="color: var(--ui-text-muted)"
-  >
+  <div class="w-full text-center text-[0.7rem] font-normal mb-2 text-ui-text-muted">
     {groupCount} groups
   </div>
 {/if}

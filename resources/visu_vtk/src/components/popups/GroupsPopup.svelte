@@ -69,13 +69,12 @@
 
 <div
   id="groupsPopup"
-  class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-2/3 max-h-2/3 rounded shadow-lg backdrop-blur-lg p-8 flex flex-col"
-  style="background: var(--ui-popup-bg); color: var(--ui-fg); border: 1px solid var(--ui-border)"
+  class="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-2/3 max-h-2/3 rounded shadow-lg backdrop-blur-lg p-8 flex flex-col bg-ui-popup-bg text-ui-fg border border-ui-border"
   role="document"
 >
   <div class="flex flex-col mb-4">
     <span class="font-bold text-base">Sidebar groups</span>
-    <span class="text-xs mt-1" style="color: var(--ui-text-secondary)">
+    <span class="text-xs mt-1 text-ui-text-secondary">
       Choose which groups are shown in the sidebar. Hidden groups remain visible in the 3D view.
     </span>
   </div>
@@ -85,16 +84,14 @@
       {@const allOff = allUnchecked(obj.key, obj.allGroups)}
       <div class="break-inside-avoid flex flex-col space-y-1.5 mb-5">
         <div
-          class="flex items-center justify-between pb-1"
-          style="border-bottom: 1px solid var(--ui-border)"
+          class="flex items-center justify-between pb-1 border-b border-ui-border"
         >
           <div class="flex items-center gap-1.5">
             <span style="color: {colorCss(obj.color)}"><ObjectIcon class="size-4 shrink-0" /></span>
             <span class="font-semibold text-sm">{obj.name}</span>
           </div>
           <button
-            class="text-xs leading-none cursor-pointer px-1.5 py-0.5 rounded-sm hover:bg-ui-elem"
-            style="color: var(--ui-text-secondary)"
+            class="text-xs leading-none cursor-pointer px-1.5 py-0.5 rounded-sm hover:bg-ui-elem text-ui-text-secondary"
             onclick={() => toggleAll(obj.key, obj.allGroups)}
           >
             {allOff ? 'Show all' : 'Hide all'}
@@ -123,15 +120,13 @@
 
   <div class="mt-4 flex justify-between items-center">
     <button
-      class="px-3 py-1 rounded-sm cursor-pointer text-xs bg-ui-elem hover:bg-ui-elem-hover"
-      style="color: var(--ui-fg); border: 1px solid var(--ui-border)"
+      class="px-3 py-1 rounded-sm cursor-pointer text-xs bg-ui-elem hover:bg-ui-elem-hover text-ui-fg border border-ui-border"
       onclick={resetAll}
     >
       Reset
     </button>
     <button
-      class="font-bold px-3 py-1 rounded-sm cursor-pointer text-xs bg-ui-btn hover:bg-ui-btn-hover"
-      style="color: var(--ui-btn-fg)"
+      class="font-bold px-3 py-1 rounded-sm cursor-pointer text-xs bg-ui-btn hover:bg-ui-btn-hover text-ui-btn-fg"
       onclick={onclose}
     >
       Close
