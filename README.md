@@ -1,4 +1,4 @@
-<p align="center"><img src="https://raw.githubusercontent.com/simvia-tech/vs-code-aster/main/resources/images/simvia.png" alt="Simvia Logo" width="50%" /></p>
+<p align="center"><img src="https://raw.githubusercontent.com/simvia-tech/vs-code-aster/main/media/images/simvia.png" alt="Simvia Logo" width="50%" /></p>
 
 <p align="center">
   <a href="/"><img src="https://img.shields.io/badge/version-1.5.0-blue" alt="Version" /></a>
