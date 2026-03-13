@@ -121,7 +121,7 @@ export class VisuManager {
     const visu = new WebviewVisu(
       'meshViewer',
       testDir,
-      'resources/visu_vtk/dist/index.html',
+      'webviews/viewer/dist/index.html',
       fileContexts,
       objUris.map((uri) => path.basename(uri.fsPath)),
       undefined,

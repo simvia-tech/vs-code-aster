@@ -258,7 +258,7 @@ npm install
 The extension consists of two independently compiled parts :
 
 - **Extension host** (`src/`) — TypeScript compiled with esbuild, runs in Node.js inside VS Code
-- **Webview** (`resources/visu_vtk/`) — Svelte 5 + Vite app that powers the 3D visualizer; built separately into `resources/visu_vtk/dist/`
+- **Webview** (`webviews/viewer/`) — Svelte 5 + Vite app that powers the 3D visualizer; built separately into `webviews/viewer/dist/`
 
 ### 4. Running the extension locally
 
@@ -274,7 +274,7 @@ This starts three background watch tasks automatically (defined in `.vscode/task
 
 After making changes to the **extension host** (`src/`), reload the debug window with `Ctrl + R`.
 
-After making changes to the **webview** (`resources/visu_vtk/src/`), wait for the `watch:webview` task to finish rebuilding, then run `Developer: Reload Webviews` from the Command Palette.
+After making changes to the **webview** (`webviews/viewer/src/`), wait for the `watch:webview` task to finish rebuilding, then run `Developer: Reload Webviews` from the Command Palette.
 
 ### 5. Building manually
 

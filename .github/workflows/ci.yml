@@ -28,16 +28,16 @@ jobs:
         run: pip install ruff mypy
 
       - name: Prettier
-        run: npx prettier --check "src/**/*.ts" "resources/visu_vtk/src/**/*.{ts,svelte}" "resources/export_form/**/*.{js,css,html}"
+        run: npx prettier --check "src/**/*.ts" "webviews/viewer/src/**/*.{ts,svelte}" "webviews/export/**/*.{js,css,html}"
 
       - name: ESLint
-        run: npx eslint --max-warnings=0 src/ resources/export_form/
+        run: npx eslint --max-warnings=0 src/ webviews/export/
 
       - name: TypeScript
         run: npx tsc --noEmit
 
       - name: svelte-check
-        run: npx svelte-check --tsconfig resources/visu_vtk/tsconfig.json --fail-on-warnings
+        run: npx svelte-check --tsconfig webviews/viewer/tsconfig.json --fail-on-warnings
 
       - name: Ruff lint
         run: python3 -m ruff check python/lsp/ python/med2obj.py

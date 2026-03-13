@@ -68,7 +68,7 @@ export class ExportEditor<TResult> implements vscode.Disposable {
     const d = new ExportEditor<ExportEditorResult>(
       'export-editor-webview',
       testDir,
-      'resources/export_form/export.html',
+      'webviews/export/export.html',
       exportDescriptor,
       destinationFolder,
       undefined
