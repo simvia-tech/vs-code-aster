@@ -1,5 +1,5 @@
-import * as vscode from "vscode";
-import * as utils from "./utils";
+import * as vscode from 'vscode';
+import * as utils from './utils';
 
 /**
  * Telemetry event types
@@ -25,9 +25,8 @@ interface TelemetryData {
 /**
  * Default telemetry server URL
  */
-const TELEMETRY_SERVER_URL =
-  "https://7a98391a395292bd9f0f.lambda.simvia-app.fr/";
-const TELEMETRY_USER_ID_KEY = "telemetryUserId";
+const TELEMETRY_SERVER_URL = 'https://7a98391a395292bd9f0f.lambda.simvia-app.fr/';
+const TELEMETRY_USER_ID_KEY = 'telemetryUserId';
 
 /**
  * Global extension context for telemetry
@@ -70,13 +69,11 @@ export async function getOrCreateUserTelemetryID(
 export async function sendTelemetry(type: TelemetryType): Promise<void> {
   try {
     // Check if telemetry is enabled
-    const config = vscode.workspace.getConfiguration("vs-code-aster");
-    const isTelemetryEnabled = config.get<boolean>("enableTelemetry", true);
+    const config = vscode.workspace.getConfiguration('vs-code-aster');
+    const isTelemetryEnabled = config.get<boolean>('enableTelemetry', true);
 
     if (!isTelemetryEnabled) {
-      console.log(
-        `[telemetry] Skipped event (telemetry disabled): ${TelemetryType[type]}`
-      );
+      console.log(`[telemetry] Skipped event (telemetry disabled): ${TelemetryType[type]}`);
       return;
     }
 

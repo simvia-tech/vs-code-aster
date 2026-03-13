@@ -5,20 +5,17 @@
 
 
 import argparse
-import medcoupling as mc
 import pathlib as pl
+
+import medcoupling as mc
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Convert a .med mesh file to a .obj file with groups."
     )
-    parser.add_argument(
-        "-i", "--input", type=str, required=True, help="Input .med file path."
-    )
-    parser.add_argument(
-        "-o", "--output", type=str, required=True, help="Output .obj file path."
-    )
+    parser.add_argument("-i", "--input", type=str, required=True, help="Input .med file path.")
+    parser.add_argument("-o", "--output", type=str, required=True, help="Output .obj file path.")
     return parser.parse_args()
 
 
@@ -54,7 +51,7 @@ def write_obj(
         for elem in skin_mesh:
             conn = elem.getAllConn()  # OBJ is 1-indexed
             end_connectivity = END_CONNECTIVITY[len(conn) - 1] + 1
-            f.write(f'f {" ".join([str(x+1) for x in conn[1:end_connectivity]])}\n')
+            f.write(f"f {' '.join([str(x + 1) for x in conn[1:end_connectivity]])}\n")
 
         for group_name in skin_groups:
             submesh = med_file.getGroup(skin_level, group_name)
@@ -62,7 +59,7 @@ def write_obj(
             for elem in submesh:
                 conn = elem.getAllConn()
                 end_connectivity = END_CONNECTIVITY[len(conn) - 1] + 1
-                f.write(f'f {" ".join([str(x+1) for x in conn[1:end_connectivity]])}\n')
+                f.write(f"f {' '.join([str(x + 1) for x in conn[1:end_connectivity]])}\n")
 
         for group_name in node_groups:
             node_ids = med_file.getGroupArr(node_level, group_name).toNumPyArray()

@@ -1,9 +1,9 @@
+from command_core import CommandCore
 from lsprotocol.types import (
-    CompletionList,
     CompletionItem,
     CompletionItemKind,
+    CompletionList,
 )
-from command_core import CommandCore
 
 
 class CompletionManager:
@@ -37,17 +37,16 @@ class CompletionManager:
         items = []
         commands = self.core.get_CATA_commands()
 
-        for cmd in commands:  
+        for cmd in commands:
             items.append(
                 CompletionItem(
                     label=cmd["name"],
                     kind=CompletionItemKind.Function,
-                    documentation=cmd.get("doc", "")
+                    documentation=cmd.get("doc", ""),
                 )
             )
 
         return CompletionList(is_incomplete=False, items=items)
-
 
     def _suggest_parameters(self, cmd_info) -> CompletionList:
         """
@@ -65,7 +64,6 @@ class CompletionManager:
         items = []
         written = set(cmd_info.parsed_params.keys())
         for param in visible_params:
-
             if param["name"] in written:
                 continue
 
@@ -77,7 +75,7 @@ class CompletionManager:
                             CompletionItem(
                                 label=arg["name"],
                                 kind=CompletionItemKind.Property,
-                                insert_text=arg["name"] + "="
+                                insert_text=arg["name"] + "=",
                             )
                         )
             # Normal parameter (can be a single param or a dico (_F))
@@ -89,12 +87,11 @@ class CompletionManager:
                     CompletionItem(
                         label=param["name"],
                         kind=CompletionItemKind.Property,
-                        insert_text=insert_text
+                        insert_text=insert_text,
                     )
                 )
 
         return CompletionList(is_incomplete=False, items=items)
-
 
     def _expand_condition_bloc(self, params, context):
         """
@@ -107,6 +104,6 @@ class CompletionManager:
                 if arg["bloc"].isEnabled(context):
                     for param in arg["children"]:
                         visible_params.append(param)
-            else :
+            else:
                 visible_params.append(arg)
         return visible_params

@@ -1,8 +1,8 @@
 import re
-from lsprotocol.types import (
-    SignatureHelp, SignatureInformation
-)
+
 from command_core import CommandCore
+from lsprotocol.types import SignatureHelp, SignatureInformation
+
 
 class SignatureManager:
     """
@@ -10,7 +10,7 @@ class SignatureManager:
     """
 
     def __init__(self):
-        self.core = CommandCore() 
+        self.core = CommandCore()
 
     def help(self, doc_uri, position):
         """
@@ -18,11 +18,13 @@ class SignatureManager:
         """
         doc = self.core.get_doc_from_uri(doc_uri)
         if position.line >= len(doc.lines) or position.line < 0:
-            self.core.log(f"[signature_help] Position line {position.line} out of range (doc has {len(doc.lines)} lines)")
+            self.core.log(
+                f"[signature_help] Position line {position.line} out of range (doc has {len(doc.lines)} lines)"
+            )
             return SignatureHelp(signatures=[], active_signature=0, active_parameter=0)
-        
-        line_text = doc.lines[position.line][:position.character]
-        
+
+        line_text = doc.lines[position.line][: position.character]
+
         default_signature = SignatureHelp(signatures=[], active_signature=0, active_parameter=0)
 
         # Match a command before the opening parenthesis
@@ -51,11 +53,12 @@ class SignatureManager:
             cmd_name = cmd_info.name
             cmd_def = self.core.get_command_def(cmd_name)
             if cmd_def:
-                signature = SignatureInformation(label=self.params_label(cmd_def["params"], cmd_info.parsed_params))
+                signature = SignatureInformation(
+                    label=self.params_label(cmd_def["params"], cmd_info.parsed_params)
+                )
                 self.core.log(f"Comma inside command: {cmd_name}")
                 return SignatureHelp(signatures=[signature], active_signature=0, active_parameter=0)
         return default_signature
-
 
     def params_label(self, command_params, current_context):
         """
@@ -72,7 +75,9 @@ class SignatureManager:
                     if param["bloc"].isEnabled(current_context):
                         label.append(f"{self.params_label(param['children'], current_context)}")
                 else:
-                    label.append(f"{param['name']}: ({self.params_label(param['children'], current_context)})")
+                    label.append(
+                        f"{param['name']}: ({self.params_label(param['children'], current_context)})"
+                    )
             else:
                 label.append(f"{param['name']}: {param['type']}")
         return ", ".join(label)

@@ -1,8 +1,9 @@
 # status_bar.py
-from pathlib import Path
 import re
-from typing import Dict, List
+from pathlib import Path
+
 from command_core import CommandCore
+
 
 class StatusBarManager:
     """
@@ -12,11 +13,11 @@ class StatusBarManager:
     """
 
     FAMILY_MAP = {
-        'Mesh': 'mesh',
-        'Material': 'material',
-        'BC and Load': 'bcAndLoads',
-        'Analysis': 'analysis',
-        'Output': 'output'
+        "Mesh": "mesh",
+        "Material": "material",
+        "BC and Load": "bcAndLoads",
+        "Analysis": "analysis",
+        "Output": "output",
     }
 
     def __init__(self):
@@ -29,7 +30,7 @@ class StatusBarManager:
         self.cata = CommandCore().get_CATA()
         self.family_map = self.FAMILY_MAP
 
-    def analyze_command_families(self, uri: str) -> Dict[str, List[str]]:
+    def analyze_command_families(self, uri: str) -> dict[str, list[str]]:
         """
         Parse a .comm file and return the commands found in each family.
 
@@ -47,19 +48,19 @@ class StatusBarManager:
         if not path.exists():
             return {}
 
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             lines = f.readlines()
         content = "\n".join(lines)
         return self._parse_comm_file(content)
 
-    def get_complete_families(self) -> Dict[str, List[str]]:
+    def get_complete_families(self) -> dict[str, list[str]]:
         """
         Return the complete list of known commands for each family.
 
         Returns:
             Dict[str, List[str]]: Complete commands grouped by family
         """
-        families_result = {v: [] for v in self.family_map.values()}
+        families_result: dict[str, list[str]] = {v: [] for v in self.family_map.values()}
 
         for display_name, key in self.family_map.items():
             try:
@@ -72,7 +73,7 @@ class StatusBarManager:
 
         return families_result
 
-    def _parse_comm_file(self, content: str) -> Dict[str, List[str]]:
+    def _parse_comm_file(self, content: str) -> dict[str, list[str]]:
         """
         Parse the content of a .comm file and extract commands by family.
 
@@ -82,24 +83,26 @@ class StatusBarManager:
         Returns:
             Dict[str, List[str]]: Commands grouped by family
         """
-        lines = content.split('\n')
-        code_without_comments = [re.sub(r'#.*$', '', l).strip() for l in lines if l.strip()]
-        full_text = ' '.join(code_without_comments)
+        lines = content.split("\n")
+        code_without_comments = [
+            re.sub(r"#.*$", "", line).strip() for line in lines if line.strip()
+        ]
+        full_text = " ".join(code_without_comments)
 
-        command_pattern = r'(?:^|\s)(?:[\w]+\s*=\s*)?(?!_F\b)([A-Z][A-Z0-9_]*)\s*\('
+        command_pattern = r"(?:^|\s)(?:[\w]+\s*=\s*)?(?!_F\b)([A-Z][A-Z0-9_]*)\s*\("
         matches = re.finditer(command_pattern, full_text, re.VERBOSE)
         found_commands = set()
         for m in matches:
             cmd_name = m.group(1)
-            if cmd_name not in ['DEBUT', 'FIN', 'POURSUITE']:
+            if cmd_name not in ["DEBUT", "FIN", "POURSUITE"]:
                 found_commands.add(cmd_name)
 
-        if re.search(r'\bDEBUT\s*\(', full_text):
-            found_commands.add('DEBUT')
-        if re.search(r'\bFIN\s*\(', full_text):
-            found_commands.add('FIN')
+        if re.search(r"\bDEBUT\s*\(", full_text):
+            found_commands.add("DEBUT")
+        if re.search(r"\bFIN\s*\(", full_text):
+            found_commands.add("FIN")
 
-        families_result = {v: [] for v in self.family_map.values()}
+        families_result: dict[str, list[str]] = {v: [] for v in self.family_map.values()}
         for cmd_name in found_commands:
             try:
                 family_raw = self.cata.get_command_category(cmd_name)

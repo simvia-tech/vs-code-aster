@@ -1,6 +1,7 @@
 from command_core import CommandCore
 from command_registry import CommandRegistry
 
+
 class UpdateManager:
     """
     Manager for handling document open and change events for .comm files.
@@ -36,13 +37,13 @@ class UpdateManager:
             self.core.set_registry(doc_uri, registry)
 
         for change in changes:
-            if hasattr(change, 'range') and change.range:
+            if hasattr(change, "range") and change.range:
                 start_line = change.range.start.line + 1
                 end_line = change.range.end.line + 1
                 text = change.text
 
                 # Handle multi-line deletions or additions
-                if end_line - start_line > 0 or text.count('\n') > 0 or text == '(':
+                if end_line - start_line > 0 or text.count("\n") > 0 or text == "(":
                     self.core.log("on reload entierement")
                     registry.initialize(ls, doc.lines)
                     continue

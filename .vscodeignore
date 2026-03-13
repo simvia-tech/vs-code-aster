@@ -16,7 +16,14 @@ vsc-extension-quickstart.md
 **/.vscode-test.*
 .venv
 noxfile.py
-requirements.txt 
+requirements.txt
 python/data
 python/lsp/.venv
 python/.venv
+webviews/viewer/src/**
+webviews/viewer/vite.config.ts
+webviews/viewer/svelte.config.js
+webviews/viewer/tsconfig.json
+webviews/viewer/tailwind.css
+webviews/viewer/styles.css
+webviews/viewer/index.js

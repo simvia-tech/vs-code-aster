@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ui-bg: var(--ui-bg);
+  --color-ui-fg: var(--ui-fg);
+  --color-ui-btn: var(--ui-btn-bg);
+  --color-ui-btn-hover: var(--ui-btn-hover-bg);
+  --color-ui-btn-fg: var(--ui-btn-fg);
+  --color-ui-popup-bg: var(--ui-popup-bg);
+  --color-ui-border: var(--ui-border);
+  --color-ui-text-primary: var(--ui-text-primary);
+  --color-ui-text-secondary: var(--ui-text-secondary);
+  --color-ui-text-muted: var(--ui-text-muted);
+  --color-ui-elem: var(--ui-element-bg);
+  --color-ui-elem-hover: var(--ui-element-bg-hover);
+  --color-ui-muted: var(--ui-bg-translucent);
+  --color-ui-link: var(--vscode-textLink-foreground, #0078d4);
+}
+
+:root {
+  --ui-bg: var(--vscode-sideBar-background, var(--vscode-editor-background, #e8eaf0));
+  --ui-fg: var(--vscode-sideBar-foreground, var(--vscode-editor-foreground, #1f1f1f));
+  --ui-btn-bg: var(--vscode-button-background, #0078d4);
+  --ui-btn-fg: var(--vscode-button-foreground, #ffffff);
+  --ui-btn-hover-bg: var(--vscode-button-hoverBackground, #005fa3);
+  --ui-popup-bg: var(--vscode-editorWidget-background, var(--vscode-editor-background, #f3f3f3));
+  --ui-border: var(--vscode-widget-border, var(--vscode-editorWidget-border, rgba(0,0,0,0.1)));
+  --icon-filter: none;
+
+  --ui-text-primary: color-mix(in srgb, var(--ui-fg) 90%, transparent);
+  --ui-text-secondary: color-mix(in srgb, var(--ui-fg) 70%, transparent);
+  --ui-text-muted: color-mix(in srgb, var(--ui-fg) 55%, transparent);
+  --ui-element-bg: color-mix(in srgb, var(--ui-fg) 10%, transparent);
+  --ui-element-bg-hover: color-mix(in srgb, var(--ui-fg) 18%, transparent);
+  --ui-bg-translucent: color-mix(in srgb, var(--ui-bg) 85%, transparent);
+  --ui-highlight-text: rgba(255, 255, 255, 0.9);
+}
+
+body.vscode-dark,
+body.vscode-high-contrast {
+  --icon-filter: invert(1);
+  --ui-highlight-text: rgba(0, 0, 0, 0.8);
+}
+
+kbd {
+  @apply px-1 py-px rounded-sm;
+  color: var(--vscode-textLink-foreground, #0078d4);
+  background: color-mix(in srgb, var(--ui-bg) 70%, transparent);
+}
+
+input[type="checkbox"].custom-cb:focus {
+  outline: none;
+}
+
+input[type="checkbox"].custom-cb {
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  border: 1.5px solid var(--ui-text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+input[type="checkbox"].custom-cb:checked {
+  background: var(--ui-btn-bg);
+  border-color: var(--ui-btn-bg);
+}
+
+input[type="checkbox"].custom-cb:checked::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 4px;
+  height: 7px;
+  border-right: 1.5px solid var(--ui-btn-fg);
+  border-bottom: 1.5px solid var(--ui-btn-fg);
+  transform: translateY(-1px) rotate(45deg);
+}
+
+#sidebarGroups,
+#helpPopup .overflow-y-auto,
+#settingsPopup .overflow-y-auto,
+#groupsPopup .overflow-y-auto {
+  scrollbar-width: none;
+}
+
+#sidebarGroups::-webkit-scrollbar,
+#helpPopup .overflow-y-auto::-webkit-scrollbar,
+#settingsPopup .overflow-y-auto::-webkit-scrollbar,
+#groupsPopup .overflow-y-auto::-webkit-scrollbar {
+  display: none;
+}

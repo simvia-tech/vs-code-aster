@@ -1,6 +1,9 @@
 # Node modules
 node_modules/
 
+# Webview build output
+webviews/viewer/dist/
+
 # Build output
 dist/
 
@@ -47,6 +50,7 @@ yarn.lock
 vsc-extension-quickstart.md
 
 **/__pycache__/
+
 # Fichiers temporaires ou backup
 *.tmp
 *.swp
@@ -59,14 +63,7 @@ vsc-extension-quickstart.md
 
 *.js.map
 
-node_modules/
-dist/
-
-yarn.lock
 *.vsix
-
-# Exclude extension package
-vs-code-aster-*.vsix
 .vscode-test
 out/
 
