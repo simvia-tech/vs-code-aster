@@ -1,7 +1,5 @@
 export class AxesCreator {
-  private axisLength = 1.0;
   private axisRadius = 0.02;
-  private sphereRadius = 0.08;
 
   private colors = {
     x: [1, 0, 0],
@@ -36,32 +34,74 @@ export class AxesCreator {
     };
 
     const xAxisSource = vtk.Filters.General.vtkAppendPolyData.newInstance();
-    xAxisSource.setInputData(vtk.Filters.Sources.vtkCylinderSource.newInstance({
-      radius: axisRadius, resolution: 20, direction: [1, 0, 0], center: [0.5, 0, 0],
-    }).getOutputData());
-    xAxisSource.addInputData(vtk.Filters.Sources.vtkSphereSource.newInstance({
-      radius: sphereRadius, center: [1, 0, 0], thetaResolution: sphereTheta, phiResolution: spherePhi,
-    }).getOutputData());
+    xAxisSource.setInputData(
+      vtk.Filters.Sources.vtkCylinderSource
+        .newInstance({
+          radius: axisRadius,
+          resolution: 20,
+          direction: [1, 0, 0],
+          center: [0.5, 0, 0],
+        })
+        .getOutputData()
+    );
+    xAxisSource.addInputData(
+      vtk.Filters.Sources.vtkSphereSource
+        .newInstance({
+          radius: sphereRadius,
+          center: [1, 0, 0],
+          thetaResolution: sphereTheta,
+          phiResolution: spherePhi,
+        })
+        .getOutputData()
+    );
     const xAxis = xAxisSource.getOutputData();
     addColor(xAxis, instance.colors.x);
 
     const yAxisSource = vtk.Filters.General.vtkAppendPolyData.newInstance();
-    yAxisSource.setInputData(vtk.Filters.Sources.vtkCylinderSource.newInstance({
-      radius: axisRadius, resolution: 20, direction: [0, 1, 0], center: [0, 0.5, 0],
-    }).getOutputData());
-    yAxisSource.addInputData(vtk.Filters.Sources.vtkSphereSource.newInstance({
-      radius: sphereRadius, center: [0, 1, 0], thetaResolution: sphereTheta, phiResolution: spherePhi,
-    }).getOutputData());
+    yAxisSource.setInputData(
+      vtk.Filters.Sources.vtkCylinderSource
+        .newInstance({
+          radius: axisRadius,
+          resolution: 20,
+          direction: [0, 1, 0],
+          center: [0, 0.5, 0],
+        })
+        .getOutputData()
+    );
+    yAxisSource.addInputData(
+      vtk.Filters.Sources.vtkSphereSource
+        .newInstance({
+          radius: sphereRadius,
+          center: [0, 1, 0],
+          thetaResolution: sphereTheta,
+          phiResolution: spherePhi,
+        })
+        .getOutputData()
+    );
     const yAxis = yAxisSource.getOutputData();
     addColor(yAxis, instance.colors.y);
 
     const zAxisSource = vtk.Filters.General.vtkAppendPolyData.newInstance();
-    zAxisSource.setInputData(vtk.Filters.Sources.vtkCylinderSource.newInstance({
-      radius: axisRadius, resolution: 20, direction: [0, 0, 1], center: [0, 0, 0.5],
-    }).getOutputData());
-    zAxisSource.addInputData(vtk.Filters.Sources.vtkSphereSource.newInstance({
-      radius: sphereRadius, center: [0, 0, 1], thetaResolution: sphereTheta, phiResolution: spherePhi,
-    }).getOutputData());
+    zAxisSource.setInputData(
+      vtk.Filters.Sources.vtkCylinderSource
+        .newInstance({
+          radius: axisRadius,
+          resolution: 20,
+          direction: [0, 0, 1],
+          center: [0, 0, 0.5],
+        })
+        .getOutputData()
+    );
+    zAxisSource.addInputData(
+      vtk.Filters.Sources.vtkSphereSource
+        .newInstance({
+          radius: sphereRadius,
+          center: [0, 0, 1],
+          thetaResolution: sphereTheta,
+          phiResolution: spherePhi,
+        })
+        .getOutputData()
+    );
     const zAxis = zAxisSource.getOutputData();
     addColor(zAxis, instance.colors.z);
 

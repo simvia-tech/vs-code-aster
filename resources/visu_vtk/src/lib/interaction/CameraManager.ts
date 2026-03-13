@@ -11,7 +11,6 @@ export class CameraManager {
   nodesGroups: Record<string, Group> = {};
   faceGroups: Record<string, Group> = {};
   private orientationWidget: any;
-  private axesActor: any;
 
   static get Instance(): CameraManager {
     if (!this._i) {
@@ -40,7 +39,7 @@ export class CameraManager {
     }
 
     this._updateZoomIndicator(this.initialDistance);
-    this.axesActor = this.createAxisMarker();
+    this.createAxisMarker();
     this.activateSizeUpdate();
   }
 
@@ -86,11 +85,11 @@ export class CameraManager {
     const dy = position[1] - focalPoint[1];
     const dz = position[2] - focalPoint[2];
     const currentDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-    const scale = (this.initialDistance / ratio) / currentDist;
+    const scale = this.initialDistance / ratio / currentDist;
     this.camera.setPosition(
       focalPoint[0] + dx * scale,
       focalPoint[1] + dy * scale,
-      focalPoint[2] + dz * scale,
+      focalPoint[2] + dz * scale
     );
     VtkApp.Instance.getRenderer().resetCameraClippingRange();
     VtkApp.Instance.updateCameraOffset();
@@ -109,7 +108,9 @@ export class CameraManager {
   }
 
   setCameraAxis(axis: string): void {
-    if (!this.camera) { return; }
+    if (!this.camera) {
+      return;
+    }
 
     const focalPoint = this.camera.getFocalPoint();
     const distance = this.camera.getDistance();
@@ -146,7 +147,9 @@ export class CameraManager {
       interactor: VtkApp.Instance.getRenderWindow().getInteractor(),
     });
     widget.setEnabled(true);
-    widget.setViewportCorner(vtk.Interaction.Widgets.vtkOrientationMarkerWidget.Corners.BOTTOM_RIGHT);
+    widget.setViewportCorner(
+      vtk.Interaction.Widgets.vtkOrientationMarkerWidget.Corners.BOTTOM_RIGHT
+    );
     widget.setViewportSize(0.15);
 
     this.orientationWidget = widget;

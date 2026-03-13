@@ -19,7 +19,7 @@ export class Group {
     parentSize: number | null = null,
     colorIndex: number | null = null,
     isObjectActor = false,
-    cellCount: number | null = null,
+    cellCount: number | null = null
   ) {
     this.actor = actor;
     this.name = name;
@@ -56,7 +56,10 @@ export class Group {
       return;
     }
 
-    const threshold = initialDistance * Math.sqrt(15000 / this.cellCount) * GlobalSettings.Instance.edgeThresholdMultiplier;
+    const threshold =
+      initialDistance *
+      Math.sqrt(15000 / this.cellCount) *
+      GlobalSettings.Instance.edgeThresholdMultiplier;
 
     if (mode === 'threshold') {
       prop.setEdgeVisibility(currentDistance < threshold);
