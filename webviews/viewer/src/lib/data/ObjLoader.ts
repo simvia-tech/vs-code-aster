@@ -63,7 +63,7 @@ export class ObjLoader {
             case 'g': {
               groupId++;
               const faceGroupName = ss[1] || `group${groupId}`;
-              faceGroups.push(`${skinName}::${faceGroupName}`);
+              faceGroups.push(`${skinName}::${faceGroupName}::face`);
               groupHierarchy[skinName].faces.push(faceGroupName);
               break;
             }
@@ -71,7 +71,7 @@ export class ObjLoader {
             case 'ng': {
               nodeGroupId++;
               const nodeGroupName = ss[1] || `nodeGroup${nodeGroupId}`;
-              nodeGroups.push(`${skinName}::${nodeGroupName}`);
+              nodeGroups.push(`${skinName}::${nodeGroupName}::node`);
               groupHierarchy[skinName].nodes.push(nodeGroupName);
               break;
             }

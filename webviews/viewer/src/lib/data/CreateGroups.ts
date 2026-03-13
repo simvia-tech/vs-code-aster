@@ -69,7 +69,7 @@ export class CreateGroups {
       const size = this.computeSize(actor);
 
       for (const faceGroup of groupHierarchy[fileGroup].faces) {
-        const faceGroupId = faceGroups.indexOf(`${fileGroup}::${faceGroup}`);
+        const faceGroupId = faceGroups.indexOf(`${fileGroup}::${faceGroup}::face`);
         const {
           actor: faceActor,
           colorIndex: faceColorIndex,
@@ -86,11 +86,11 @@ export class CreateGroups {
           faceIsObj,
           faceCellCount
         );
-        this.groups[`${fileGroup}::${faceGroup}`] = subGroup;
+        this.groups[`${fileGroup}::${faceGroup}::face`] = subGroup;
       }
 
       for (const nodeGroup of groupHierarchy[fileGroup].nodes) {
-        const nodeGroupId = nodeGroups.indexOf(`${fileGroup}::${nodeGroup}`);
+        const nodeGroupId = nodeGroups.indexOf(`${fileGroup}::${nodeGroup}::node`);
         const { actor: nodeActor, colorIndex: nodeColorIndex } =
           nodeActorCreator.create(nodeGroupId);
         const subGroup = new Group(
@@ -102,7 +102,7 @@ export class CreateGroups {
           nodeColorIndex,
           false
         );
-        this.groups[`${fileGroup}::${nodeGroup}`] = subGroup;
+        this.groups[`${fileGroup}::${nodeGroup}::node`] = subGroup;
       }
     }
 

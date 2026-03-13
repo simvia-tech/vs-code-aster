@@ -14,7 +14,9 @@
     isFace: boolean;
   } = $props();
 
-  let highlight = $derived($highlightedGroups.get(`${objectKey}::${groupName}`));
+  let highlight = $derived(
+    $highlightedGroups.get(`${objectKey}::${groupName}::${isFace ? 'face' : 'node'}`)
+  );
   let isHidden = $derived($sidebarHiddenGroups.get(objectKey)?.has(groupName) ?? false);
 
   let bgStyle = $derived(
@@ -23,7 +25,9 @@
   let colorStyle = $derived(highlight ? 'var(--ui-highlight-text)' : 'var(--ui-text-primary)');
 
   function handleClick() {
-    VisibilityManager.Instance.setVisibility(`${objectKey}::${groupName}`);
+    VisibilityManager.Instance.setVisibility(
+      `${objectKey}::${groupName}::${isFace ? 'face' : 'node'}`
+    );
   }
 </script>
 
