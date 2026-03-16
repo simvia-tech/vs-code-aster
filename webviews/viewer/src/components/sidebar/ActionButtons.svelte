@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { VisibilityManager } from '../lib/commands/VisibilityManager';
-  import FilterIcon from '../icons/FilterIcon.svelte';
-  import ClearIcon from '../icons/ClearIcon.svelte';
+  import { VisibilityManager } from '../../lib/commands/VisibilityManager';
+  import FilterIcon from '../../icons/FilterIcon.svelte';
+  import ClearIcon from '../../icons/ClearIcon.svelte';
 
   let { onOpenGroups }: { onOpenGroups: () => void } = $props();
 

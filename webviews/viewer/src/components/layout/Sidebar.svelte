@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { groupHierarchy } from '../lib/state';
-  import { VtkApp } from '../lib/core/VtkApp';
-  import ObjectSection from './ObjectSection.svelte';
-  import ActionButtons from './ActionButtons.svelte';
-  import AxisButtons from './AxisButtons.svelte';
+  import { groupHierarchy } from '../../lib/state';
+  import { VtkApp } from '../../lib/core/VtkApp';
+  import ObjectSection from '../sidebar/ObjectSection.svelte';
+  import ActionButtons from '../sidebar/ActionButtons.svelte';
+  import AxisButtons from '../viewer/AxisButtons.svelte';
 
   let { onOpenGroups }: { onOpenGroups: () => void } = $props();
 

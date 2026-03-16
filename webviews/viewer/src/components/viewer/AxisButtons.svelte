@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CameraManager } from '../lib/interaction/CameraManager';
+  import { CameraManager } from '../../lib/interaction/CameraManager';
 </script>
 
 <div class="flex justify-center space-x-1">

@@ -1,5 +1,5 @@
 import { mount } from 'svelte';
-import App from './components/App.svelte';
+import App from './components/layout/App.svelte';
 import { Controller } from './lib/Controller';
 import { VisibilityManager } from './lib/commands/VisibilityManager';
 import { CameraManager } from './lib/interaction/CameraManager';

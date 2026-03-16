@@ -3,7 +3,7 @@
   import FaceIcon from '../../icons/FaceIcon.svelte';
   import NodeIcon from '../../icons/NodeIcon.svelte';
   import ObjectIcon from '../../icons/ObjectIcon.svelte';
-  import Toggle from '../Toggle.svelte';
+  import Toggle from '../ui/Toggle.svelte';
 
   let { onclose }: { onclose: () => void } = $props();
 

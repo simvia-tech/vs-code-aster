@@ -1,6 +1,6 @@
 <script lang="ts">
-  import SettingsIcon from '../icons/SettingsIcon.svelte';
-  import QuestionIcon from '../icons/QuestionIcon.svelte';
+  import SettingsIcon from '../../icons/SettingsIcon.svelte';
+  import QuestionIcon from '../../icons/QuestionIcon.svelte';
 
   let {
     onOpenSettings,

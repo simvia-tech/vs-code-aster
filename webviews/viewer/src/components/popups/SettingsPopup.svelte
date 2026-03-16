@@ -5,8 +5,8 @@
   import { VisibilityManager } from '../../lib/commands/VisibilityManager';
   import { Controller } from '../../lib/Controller';
   import ChevronIcon from '../../icons/ChevronIcon.svelte';
-  import Toggle from '../Toggle.svelte';
-  import Dropdown from '../Dropdown.svelte';
+  import Toggle from '../ui/Toggle.svelte';
+  import Dropdown from '../ui/Dropdown.svelte';
   import type { EdgeMode } from '../../lib/state';
 
   let { onclose }: { onclose: () => void } = $props();
