@@ -5,6 +5,16 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-03-16
+
+Various fixes and optimizations.
+
+### Added
+- Selecting object names in text editors hides all other objects (hence highlighting selected object)
+
+### Fixed
+- Text selection now highlights groups again
+
 ## [1.5.0] - 2026-03-13
 
 Rewrote the mesh viewer UI with Svelte, and added new viewer features.

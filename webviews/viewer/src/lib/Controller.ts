@@ -39,6 +39,7 @@ export class Controller {
     this._vsCodeApi.postMessage({
       type: 'groups',
       groupList: this.getGroupNames(),
+      objectList: this.getObjectNames(),
     });
   }
 
@@ -74,5 +75,12 @@ export class Controller {
       return [];
     }
     return Object.keys(this._groups).filter((key) => key.includes('::'));
+  }
+
+  getObjectNames(): string[] {
+    if (!this._groupHierarchy) {
+      return [];
+    }
+    return Object.keys(this._groupHierarchy);
   }
 }
