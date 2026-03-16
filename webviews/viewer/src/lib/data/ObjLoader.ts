@@ -11,8 +11,15 @@ export interface ObjLoaderResult {
   groupHierarchy: Record<string, { faces: string[]; nodes: string[] }>;
 }
 
+const YIELD_EVERY_LINES = 5_000;
+
 export class ObjLoader {
-  static loadFiles(fileContexts: string[], fileNames: string[]): ObjLoaderResult {
+  static async loadFiles(
+    fileContexts: string[],
+    fileNames: string[],
+    onProgress: (progress: number) => void,
+    onMessage: (message: string) => void
+  ): Promise<ObjLoaderResult> {
     const vertices: { x: number; y: number; z: number }[] = [];
     const cells: number[][] = [];
     const cellIndexToGroup: number[] = [];
@@ -26,6 +33,8 @@ export class ObjLoader {
     let groupId = -1;
     let nodeGroupId = -1;
 
+    const yield_ = () => new Promise<void>((r) => setTimeout(r, 0));
+
     for (let i = 0; i < fileContexts.length; i++) {
       try {
         groupId++;
@@ -35,9 +44,17 @@ export class ObjLoader {
         faceGroups.push(skinName);
         nbVertices = vertices.length;
 
+        onMessage(`Parsing ${fileNames[i]}...`);
         const lines = fileContexts[i].split('\n').map((l) => l.replace('\r', ''));
+        const totalLines = lines.length;
 
-        for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+        for (let lineIdx = 0; lineIdx < totalLines; lineIdx++) {
+          if (lineIdx % YIELD_EVERY_LINES === 0 && lineIdx > 0) {
+            const fileProgress = (i + lineIdx / totalLines) / fileContexts.length;
+            onProgress(fileProgress * 0.9);
+            await yield_();
+          }
+
           const line = lines[lineIdx];
           const ss = line.split(' ').filter((p) => p.length !== 0);
           if (ss.length === 0) {
@@ -84,6 +101,9 @@ export class ObjLoader {
             }
           }
         }
+
+        onProgress(((i + 1) / fileContexts.length) * 0.9);
+        await yield_();
       } catch (fileError: any) {
         Controller.Instance.getVSCodeAPI().postMessage({
           type: 'debugPanel',

@@ -1,4 +1,6 @@
 import { writable } from 'svelte/store';
+import { tweened } from 'svelte/motion';
+import { cubicOut } from 'svelte/easing';
 
 export type GroupHierarchy = Record<string, { faces: string[]; nodes: string[]; color?: number[] }>;
 export type HighlightedGroups = Map<string, number[]>;
@@ -29,3 +31,6 @@ export const settings = writable<Settings>({
 
 // Map<objectKey, Set<groupName>> — groups NOT shown in sidebar (hidden)
 export const sidebarHiddenGroups = writable<Map<string, Set<string>>>(new Map());
+
+export const loadingProgress = tweened<number>(0, { duration: 300, easing: cubicOut });
+export const loadingMessage = writable<string>('');
