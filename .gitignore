@@ -50,6 +50,8 @@ yarn.lock
 vsc-extension-quickstart.md
 
 **/__pycache__/
+.mypy_cache/
+.ruff_cache/
 
 # Fichiers temporaires ou backup
 *.tmp

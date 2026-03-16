@@ -6,6 +6,7 @@
   import { Controller } from '../../lib/Controller';
   import { CustomDropdown } from '../../lib/ui/CustomDropdown';
   import ChevronIcon from '../../icons/ChevronIcon.svelte';
+  import Toggle from '../Toggle.svelte';
   import type { EdgeMode } from '../../lib/state';
 
   let { onclose }: { onclose: () => void } = $props();
@@ -340,22 +341,11 @@
       {:else if activeTab === 'Display'}
         <div class="flex flex-col space-y-2">
           <div class="flex items-center gap-3">
-            <button
-              role="switch"
-              aria-label="Show orientation widget"
-              aria-checked={$settings.showOrientationWidget}
-              class="relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-150 focus:outline-none cursor-pointer {$settings.showOrientationWidget
-                ? 'bg-ui-link'
-                : 'bg-ui-border'}"
+            <Toggle
+              checked={$settings.showOrientationWidget}
               onclick={toggleOrientationWidget}
-            >
-              <span
-                class="inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-150 mt-0.75"
-                style={$settings.showOrientationWidget
-                  ? 'transform: translateX(19px)'
-                  : 'transform: translateX(3px)'}
-              ></span>
-            </button>
+              ariaLabel="Show orientation widget"
+            />
             <div class="flex flex-col gap-0.5">
               <div class="flex items-center gap-1.5">
                 <span class="text-xs font-medium">Orientation widget</span>
