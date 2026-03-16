@@ -3,6 +3,7 @@
   import FaceIcon from '../../icons/FaceIcon.svelte';
   import NodeIcon from '../../icons/NodeIcon.svelte';
   import ObjectIcon from '../../icons/ObjectIcon.svelte';
+  import Toggle from '../ui/Toggle.svelte';
 
   let { onclose }: { onclose: () => void } = $props();
 
@@ -107,25 +108,12 @@
               >{group.name}</span
             >
 
-            <button
-              role="switch"
-              aria-label="Show orientation widget"
-              aria-checked={isVisible(obj.key, group.name)}
-              class="relative inline-flex h-3 w-6 shrink-0 rounded-full transition-colors duration-150 focus:outline-none cursor-pointer {isVisible(
-                obj.key,
-                group.name
-              )
-                ? 'bg-ui-link'
-                : 'bg-ui-border'}"
+            <Toggle
+              checked={isVisible(obj.key, group.name)}
               onclick={() => toggleGroup(obj.key, group.name)}
-            >
-              <span
-                class="inline-block h-1.5 w-1.5 rounded-full bg-white shadow-sm transition-transform duration-150 mt-0.75"
-                style={isVisible(obj.key, group.name)
-                  ? 'transform: translateX(15px)'
-                  : 'transform: translateX(3px)'}
-              ></span>
-            </button>
+              ariaLabel="Toggle group visibility"
+              size="sm"
+            />
           </label>
         {/each}
       </div>

@@ -16,8 +16,16 @@ export class CreateGroups {
     this.fileNames = fileNames;
   }
 
-  do(): void {
-    const result = ObjLoader.loadFiles(this.fileContexts, this.fileNames);
+  async do(
+    onProgress: (progress: number) => void,
+    onMessage: (message: string) => void
+  ): Promise<void> {
+    const result = await ObjLoader.loadFiles(
+      this.fileContexts,
+      this.fileNames,
+      onProgress,
+      onMessage
+    );
     const post = (text: string) => {
       Controller.Instance.getVSCodeAPI().postMessage({ type: 'debugPanel', text });
     };
@@ -40,7 +48,12 @@ export class CreateGroups {
     const faceActorCreator = new FaceActorCreator(vertices, cells, cellIndexToGroup);
     const nodeActorCreator = new NodeActorCreator(vertices, nodes, nodeIndexToGroup);
 
-    for (const fileGroup in groupHierarchy) {
+    const groupKeys = Object.keys(groupHierarchy);
+    const yield_ = () => new Promise<void>((r) => setTimeout(r, 0));
+
+    onMessage('Building scene...');
+    for (let gi = 0; gi < groupKeys.length; gi++) {
+      const fileGroup = groupKeys[gi];
       const groupId = faceGroups.indexOf(fileGroup);
 
       const _oc = GlobalSettings.Instance.objectColors;
@@ -104,6 +117,9 @@ export class CreateGroups {
         );
         this.groups[`${fileGroup}::${nodeGroup}::node`] = subGroup;
       }
+
+      onProgress(0.9 + ((gi + 1) / groupKeys.length) * 0.1);
+      await yield_();
     }
 
     VtkApp.Instance.getRenderer().resetCamera();

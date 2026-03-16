@@ -4,8 +4,9 @@
   import { CameraManager } from '../../lib/interaction/CameraManager';
   import { VisibilityManager } from '../../lib/commands/VisibilityManager';
   import { Controller } from '../../lib/Controller';
-  import { CustomDropdown } from '../../lib/ui/CustomDropdown';
   import ChevronIcon from '../../icons/ChevronIcon.svelte';
+  import Toggle from '../ui/Toggle.svelte';
+  import Dropdown from '../ui/Dropdown.svelte';
   import type { EdgeMode } from '../../lib/state';
 
   let { onclose }: { onclose: () => void } = $props();
@@ -30,8 +31,6 @@
     hide: 'Edges are always hidden. All shapes will look slightly flat regardless of zoom level or mesh size.',
   };
 
-  let edgeModeSelectEl: HTMLElement | null = $state(null);
-
   let hiddenOpacityPct = $derived(Math.round($settings.hiddenObjectOpacity * 100));
   let edgeThresholdDisplay = $derived(parseFloat($settings.edgeThresholdMultiplier.toFixed(2)));
   let edgeModeLabel = $derived(
@@ -40,17 +39,6 @@
   let edgeModeDesc = $derived(edgeModeDescriptions[$settings.edgeMode] ?? '');
   let showThresholdSection = $derived($settings.edgeMode === 'threshold');
   let groupTransparencyPct = $derived(Math.round($settings.groupTransparency * 100));
-
-  $effect(() => {
-    if (!edgeModeSelectEl) return;
-    const dropdown = new CustomDropdown(
-      edgeModeSelectEl,
-      edgeModeOptions,
-      (value) => applyEdgeMode(value as EdgeMode),
-      () => GlobalSettings.Instance.edgeMode
-    );
-    return () => dropdown.close();
-  });
 
   function applyEdgeMode(mode: EdgeMode) {
     GlobalSettings.Instance.edgeMode = mode;
@@ -239,15 +227,20 @@
               'Choose when mesh edges are visible: always, never, or only when zooming in. Threshold mode shows edges abruptly at a zoom level; gradual mode fades them in (may impact performance on dense meshes).'
             )}
           </div>
-          <div
-            bind:this={edgeModeSelectEl}
-            class="w-full text-xs px-2 py-1.5 rounded-sm cursor-pointer flex items-center justify-between gap-2 select-none bg-ui-elem hover:bg-ui-elem-hover text-ui-fg border border-ui-border"
-            role="button"
-            tabindex="0"
+          <Dropdown
+            options={edgeModeOptions}
+            value={$settings.edgeMode}
+            onSelect={(v) => applyEdgeMode(v as EdgeMode)}
           >
-            <span class="truncate">{edgeModeLabel}</span>
-            <ChevronIcon class="size-3 shrink-0" />
-          </div>
+            <div
+              class="w-full text-xs px-2 py-1.5 rounded-sm cursor-pointer flex items-center justify-between gap-2 select-none bg-ui-elem hover:bg-ui-elem-hover text-ui-fg border border-ui-border"
+              role="button"
+              tabindex="0"
+            >
+              <span class="truncate">{edgeModeLabel}</span>
+              <ChevronIcon class="size-3 shrink-0" />
+            </div>
+          </Dropdown>
           <span class="text-xs text-ui-text-secondary">
             {edgeModeDesc}
           </span>
@@ -340,22 +333,11 @@
       {:else if activeTab === 'Display'}
         <div class="flex flex-col space-y-2">
           <div class="flex items-center gap-3">
-            <button
-              role="switch"
-              aria-label="Show orientation widget"
-              aria-checked={$settings.showOrientationWidget}
-              class="relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-150 focus:outline-none cursor-pointer {$settings.showOrientationWidget
-                ? 'bg-ui-link'
-                : 'bg-ui-border'}"
+            <Toggle
+              checked={$settings.showOrientationWidget}
               onclick={toggleOrientationWidget}
-            >
-              <span
-                class="inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-150 mt-0.75"
-                style={$settings.showOrientationWidget
-                  ? 'transform: translateX(19px)'
-                  : 'transform: translateX(3px)'}
-              ></span>
-            </button>
+              ariaLabel="Show orientation widget"
+            />
             <div class="flex flex-col gap-0.5">
               <div class="flex items-center gap-1.5">
                 <span class="text-xs font-medium">Orientation widget</span>

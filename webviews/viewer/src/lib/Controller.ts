@@ -2,7 +2,7 @@ import { VtkApp } from './core/VtkApp';
 import { CreateGroups } from './data/CreateGroups';
 import { VisibilityManager } from './commands/VisibilityManager';
 import { CameraManager } from './interaction/CameraManager';
-import { groupHierarchy as groupHierarchyStore } from './state';
+import { groupHierarchy as groupHierarchyStore, loadingProgress, loadingMessage } from './state';
 import type { Group } from './data/Group';
 
 export class Controller {
@@ -33,20 +33,41 @@ export class Controller {
     return this._vsCodeApi;
   }
 
-  loadFiles(fileContexts: string[], fileNames: string[]): void {
+  async loadFiles(fileContexts: string[], fileNames: string[]): Promise<void> {
+    if (this._groups) {
+      return;
+    }
+    loadingProgress.set(0);
+    loadingMessage.set('');
     const lfr = new CreateGroups(fileContexts, fileNames);
-    lfr.do();
+    await lfr.do(
+      (progress) => loadingProgress.set(progress),
+      (message) => loadingMessage.set(message)
+    );
     this._vsCodeApi.postMessage({
       type: 'groups',
       groupList: this.getGroupNames(),
+      objectList: this.getObjectNames(),
     });
   }
 
   saveGroups(groups: Record<string, Group>, groupHierarchy: Record<string, any>): void {
     this._groups = groups;
-    this._groupHierarchy = groupHierarchy;
 
-    groupHierarchyStore.set(groupHierarchy);
+    const naturalSort = (a: string, b: string) =>
+      a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+
+    const sortedHierarchy: Record<string, any> = {};
+    for (const key of Object.keys(groupHierarchy).sort(naturalSort)) {
+      sortedHierarchy[key] = {
+        ...groupHierarchy[key],
+        faces: [...groupHierarchy[key].faces].sort(naturalSort),
+        nodes: [...groupHierarchy[key].nodes].sort(naturalSort),
+      };
+    }
+
+    this._groupHierarchy = sortedHierarchy;
+    groupHierarchyStore.set(sortedHierarchy);
 
     this.initManagers();
 
@@ -74,5 +95,12 @@ export class Controller {
       return [];
     }
     return Object.keys(this._groups).filter((key) => key.includes('::'));
+  }
+
+  getObjectNames(): string[] {
+    if (!this._groupHierarchy) {
+      return [];
+    }
+    return Object.keys(this._groupHierarchy);
   }
 }

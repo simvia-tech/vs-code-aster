@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { highlightedGroups, sidebarHiddenGroups } from '../lib/state';
-  import { VisibilityManager } from '../lib/commands/VisibilityManager';
-  import FaceIcon from '../icons/FaceIcon.svelte';
-  import NodeIcon from '../icons/NodeIcon.svelte';
+  import { highlightedGroups, sidebarHiddenGroups } from '../../lib/state';
+  import { VisibilityManager } from '../../lib/commands/VisibilityManager';
+  import FaceIcon from '../../icons/FaceIcon.svelte';
+  import NodeIcon from '../../icons/NodeIcon.svelte';
 
   let {
     objectKey,
