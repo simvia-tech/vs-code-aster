@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { groupHierarchy } from '../lib/state';
+  import { groupHierarchy } from '../../lib/state';
   import Sidebar from './Sidebar.svelte';
   import TopActions from './TopActions.svelte';
-  import ZoomWidget from './ZoomWidget.svelte';
-  import Popup from './popups/Popup.svelte';
-  import HelpPopup from './popups/HelpPopup.svelte';
-  import SettingsPopup from './popups/SettingsPopup.svelte';
-  import GroupsPopup from './popups/GroupsPopup.svelte';
+  import ZoomWidget from '../viewer/ZoomWidget.svelte';
+  import Popup from '../popups/Popup.svelte';
+  import HelpPopup from '../popups/HelpPopup.svelte';
+  import SettingsPopup from '../popups/SettingsPopup.svelte';
+  import GroupsPopup from '../popups/GroupsPopup.svelte';
   import LoadingScreen from './LoadingScreen.svelte';
 
   type PopupType = 'help' | 'settings' | 'groups' | null;

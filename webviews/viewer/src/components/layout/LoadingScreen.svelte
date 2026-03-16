@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { loadingProgress, loadingMessage } from '../lib/state';
+  import { loadingProgress, loadingMessage } from '../../lib/state';
 </script>
 
 <div

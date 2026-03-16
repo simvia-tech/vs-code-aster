@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { hiddenObjects, sidebarHiddenGroups } from '../lib/state';
-  import { VisibilityManager } from '../lib/commands/VisibilityManager';
+  import { hiddenObjects, sidebarHiddenGroups } from '../../lib/state';
+  import { VisibilityManager } from '../../lib/commands/VisibilityManager';
   import GroupButton from './GroupButton.svelte';
-  import ObjectIcon from '../icons/ObjectIcon.svelte';
-  import EyeIcon from '../icons/EyeIcon.svelte';
-  import EyeOffIcon from '../icons/EyeOffIcon.svelte';
+  import ObjectIcon from '../../icons/ObjectIcon.svelte';
+  import EyeIcon from '../../icons/EyeIcon.svelte';
+  import EyeOffIcon from '../../icons/EyeOffIcon.svelte';
 
   let {
     objectKey,

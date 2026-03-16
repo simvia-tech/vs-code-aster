@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { zoomRatio, isAtDefaultZoom } from '../lib/state';
-  import { CameraManager } from '../lib/interaction/CameraManager';
-  import Dropdown from './Dropdown.svelte';
-  import ZoomIcon from '../icons/ZoomIcon.svelte';
-  import ResetIcon from '../icons/ResetIcon.svelte';
+  import { zoomRatio, isAtDefaultZoom } from '../../lib/state';
+  import { CameraManager } from '../../lib/interaction/CameraManager';
+  import Dropdown from '../ui/Dropdown.svelte';
+  import ZoomIcon from '../../icons/ZoomIcon.svelte';
+  import ResetIcon from '../../icons/ResetIcon.svelte';
 
   let zoomText = $derived.by(() => {
     const ratio = $zoomRatio;
