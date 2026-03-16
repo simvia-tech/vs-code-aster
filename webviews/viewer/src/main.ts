@@ -57,6 +57,10 @@ window.addEventListener('message', async (e) => {
     case 'displayGroup':
       VisibilityManager.Instance.setVisibility(body.group, body.visible);
       break;
+
+    case 'showOnlyObjects':
+      VisibilityManager.Instance.showOnlyObjects(body.objects);
+      break;
   }
 });
 

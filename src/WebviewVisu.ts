@@ -9,6 +9,7 @@ export class WebviewVisu implements vscode.Disposable {
   public readonly panel: vscode.WebviewPanel;
 
   private groups?: string[];
+  private objects?: string[];
   private selectedGroups: string[];
 
   public get webview(): vscode.Webview {
@@ -120,6 +121,7 @@ export class WebviewVisu implements vscode.Disposable {
           let groupList = e.groupList;
           console.log('Group list : ', groupList);
           this.groups = groupList;
+          this.objects = e.objectList;
           this.panel.webview.postMessage({
             type: 'addGroupButtons',
             body: { groupList },
@@ -144,6 +146,11 @@ export class WebviewVisu implements vscode.Disposable {
    * Groups present in the text will be displayed; others will be hidden.
    * @param text The text to check for group names.
    */
+  private makeWholeTokenRegex(name: string): RegExp {
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(?<![a-zA-Z0-9_-])${escaped}(?![a-zA-Z0-9_-])`);
+  }
+
   public showGroupsFromTextSelection(text: string) {
     if (!this.panel) {
       return;
@@ -153,15 +160,13 @@ export class WebviewVisu implements vscode.Disposable {
     // Group keys are like "all_mesh.obj::SURFACE_1::type"; match against the short name only
     const readGroups =
       this.groups?.filter((groupName) => {
-        const shortName = groupName.includes('::') ? groupName.split('::')[2]! : groupName;
-        const regex = new RegExp(`\\b${shortName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
-        return regex.test(text);
+        const shortName = groupName.includes('::') ? groupName.split('::')[1]! : groupName;
+        return this.makeWholeTokenRegex(shortName).test(text);
       }) || [];
 
     // Hide groups that are no longer in the text
     this.selectedGroups = this.selectedGroups.filter((oldGroup) => {
       if (!readGroups.includes(oldGroup)) {
-        console.log('Hide group:', oldGroup);
         this.panel.webview.postMessage({
           type: 'displayGroup',
           body: { group: oldGroup, visible: false },
@@ -174,13 +179,26 @@ export class WebviewVisu implements vscode.Disposable {
     // Show groups that are new to the text
     readGroups.forEach((group) => {
       if (!this.selectedGroups.includes(group)) {
-        console.log('Display group:', group);
         this.panel.webview.postMessage({
           type: 'displayGroup',
           body: { group, visible: true },
         });
         this.selectedGroups.push(group);
       }
+    });
+
+    // Parse the text to find object names
+    // Object keys are like "all_mesh.obj"; match against the stem (no "all_" prefix, no extension)
+    const selectedObjects =
+      this.objects?.filter((objectKey) => {
+        const withoutPrefix = objectKey.startsWith('all_') ? objectKey.slice(4) : objectKey;
+        const shortName = withoutPrefix.replace(/\.[^.]+$/, '');
+        return this.makeWholeTokenRegex(shortName).test(text);
+      }) || [];
+
+    this.panel.webview.postMessage({
+      type: 'showOnlyObjects',
+      body: { objects: selectedObjects },
     });
   }
 
@@ -206,11 +224,14 @@ export class WebviewVisu implements vscode.Disposable {
     const htmlDir = path.dirname(htmlFilePath);
 
     // Replace relative paths (href/src/img) with valid URIs for the webview
-    html = html.replace(/(<link.+?href="|<script.+?src="|<img.+?src=")(.+?)"/g, (match, p1, p2) => {
-      const resourceFullPath = path.join(htmlDir, p2);
-      const uri = panel.webview.asWebviewUri(vscode.Uri.file(resourceFullPath));
-      return `${p1}${uri.toString()}"`;
-    });
+    html = html.replace(
+      /(<link.+?href="|<script.+?src="|<img.+?src=")(.+?)"/g,
+      (_match, p1, p2) => {
+        const resourceFullPath = path.join(htmlDir, p2);
+        const uri = panel.webview.asWebviewUri(vscode.Uri.file(resourceFullPath));
+        return `${p1}${uri.toString()}"`;
+      }
+    );
 
     html = html.replace(/\${webview.cspSource}/g, panel.webview.cspSource);
 

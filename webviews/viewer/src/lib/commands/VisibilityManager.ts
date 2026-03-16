@@ -156,6 +156,19 @@ export class VisibilityManager {
     VtkApp.Instance.getRenderWindow().render();
   }
 
+  showOnlyObjects(objects: string[]): void {
+    const objectSet = new Set(objects);
+    for (const key in this.hiddenObjects) {
+      const shouldBeVisible = objects.length === 0 || objectSet.has(key);
+      const isCurrentlyHidden = this.hiddenObjects[key];
+      if (shouldBeVisible && isCurrentlyHidden) {
+        this.toggleObjectVisibility(key);
+      } else if (!shouldBeVisible && !isCurrentlyHidden) {
+        this.toggleObjectVisibility(key);
+      }
+    }
+  }
+
   hideAllOthers(object: string): void {
     for (const key in this.hiddenObjects) {
       if (key === object) continue;
