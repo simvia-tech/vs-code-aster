@@ -11,9 +11,11 @@ Various fixes and optimizations.
 
 ### Added
 - Selecting object names in text editors hides all other objects (hence highlighting selected object)
+- Progress bar for mesh loading
 
 ### Fixed
 - Text selection now highlights groups again
+- Group sorting order now handles alphanumerical sorting
 
 ## [1.5.0] - 2026-03-13
 
