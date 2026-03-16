@@ -45,9 +45,21 @@ export class Controller {
 
   saveGroups(groups: Record<string, Group>, groupHierarchy: Record<string, any>): void {
     this._groups = groups;
-    this._groupHierarchy = groupHierarchy;
 
-    groupHierarchyStore.set(groupHierarchy);
+    const naturalSort = (a: string, b: string) =>
+      a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+
+    const sortedHierarchy: Record<string, any> = {};
+    for (const key of Object.keys(groupHierarchy).sort(naturalSort)) {
+      sortedHierarchy[key] = {
+        ...groupHierarchy[key],
+        faces: [...groupHierarchy[key].faces].sort(naturalSort),
+        nodes: [...groupHierarchy[key].nodes].sort(naturalSort),
+      };
+    }
+
+    this._groupHierarchy = sortedHierarchy;
+    groupHierarchyStore.set(sortedHierarchy);
 
     this.initManagers();
 
