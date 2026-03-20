@@ -5,6 +5,21 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.2] - 2026-03-23
+
+Various fixes and improvements.
+
+### Added
+- Export form now auto-increments unit numbers to avoid duplicates when adding new files
+- Files named `export` (without extension) are now detected as export files
+
+### Fixed
+- Mesh viewer now correctly resolves .med file paths containing subdirectories (e.g. `Mesh/mesh.med`) relative to the .export file location ([#13](https://github.com/simvia-tech/vs-code-aster/issues/13))
+- Selecting text no longer resets manually hidden objects in the mesh viewer ([#14](https://github.com/simvia-tech/vs-code-aster/issues/14))
+- Fixed issues when two meshes share groups with the same name ([#15](https://github.com/simvia-tech/vs-code-aster/issues/15))
+- Fixed error in mesh viewer ([#16](https://github.com/simvia-tech/vs-code-aster/issues/16))
+- Reduced extension package size by excluding unnecessary files
+
 ## [1.5.1] - 2026-03-16
 
 Various fixes and optimizations.

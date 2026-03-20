@@ -30,6 +30,24 @@ const defaultUnits = {
   libr: '16',
 };
 
+function getNextAvailableUnit(defaultUnit) {
+  const usedUnits = new Set();
+  for (const f of formData.inputFiles) {
+    usedUnits.add(String(f.unit));
+  }
+  for (const f of formData.outputFiles) {
+    usedUnits.add(String(f.unit));
+  }
+  let unit = Number(defaultUnit);
+  if (unit === 0) {
+    return String(unit);
+  }
+  while (usedUnits.has(String(unit))) {
+    unit++;
+  }
+  return String(unit);
+}
+
 const formData = {
   name: '',
   parameters: {
@@ -179,14 +197,15 @@ function addFileRow(container, targetArray, fileObj) {
     inputName.value = fileObj.name;
     inputUnit.value = fileObj.unit;
   } else {
-    fileObj = { type: 'nom', name: '', unit: '0' };
+    const unit = getNextAvailableUnit('0');
+    fileObj = { type: 'nom', name: '', unit: unit };
     inputName.placeholder = 'File Name : ';
-    inputUnit.value = '0';
+    inputUnit.value = unit;
   }
 
   select.addEventListener('input', () => {
     fileObj.type = select.value.trim();
-    const unit = defaultUnits[fileObj.type];
+    const unit = getNextAvailableUnit(defaultUnits[fileObj.type]);
     inputUnit.value = unit;
     fileObj.unit = unit;
   });
