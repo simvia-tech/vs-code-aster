@@ -63,6 +63,11 @@ export class VisibilityManager {
     const wasHighlighted = this.highlightedGroupsSet.has(groupName);
     const isHighlighted = typeof visible === 'boolean' ? visible : !wasHighlighted;
 
+    // Don't highlight groups on hidden objects
+    if (isHighlighted && this.hiddenObjects[object]) {
+      return;
+    }
+
     if (isHighlighted) {
       this.highlightedGroupsSet.add(groupName);
       highlightedGroups.update((map) => {

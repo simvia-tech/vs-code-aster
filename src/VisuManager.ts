@@ -208,7 +208,7 @@ export function findMedFiles(commFilePath: string): string[] {
   try {
     const dir = path.dirname(commFilePath);
     const commFileName = path.basename(commFilePath);
-    const exportFiles = fs.readdirSync(dir).filter((f) => f.endsWith('.export'));
+    const exportFiles = fs.readdirSync(dir).filter((f) => f === 'export' || f.endsWith('.export'));
 
     if (exportFiles.length === 0) {
       vscode.window.showErrorMessage(`No .export file found in directory: ${dir}`);
@@ -240,15 +240,15 @@ export function findMedFiles(commFilePath: string): string[] {
           continue;
         }
 
+        const medPath = path.isAbsolute(name) ? name : path.join(dir, name);
         const medFileName = path.basename(name);
-        const medPath = path.join(dir, medFileName);
 
         if (fs.existsSync(medPath)) {
           console.log(`[findMedFiles] found med file: ${medFileName}`);
           foundMedFiles.push(medPath);
         } else {
           vscode.window.showErrorMessage(
-            `The file "${medFileName}" mentioned in "${exportFile}" does not exist in the current directory (${path.basename(dir)}/).`
+            `The file "${name}" mentioned in "${exportFile}" does not exist.`
           );
         }
       }

@@ -189,6 +189,8 @@ export class WebviewVisu implements vscode.Disposable {
 
     // Parse the text to find object names
     // Object keys are like "all_mesh.obj"; match against the stem (no "all_" prefix, no extension)
+    // Only send showOnlyObjects when a mesh name is explicitly selected, to avoid
+    // resetting user-hidden meshes on every text selection change.
     const selectedObjects =
       this.objects?.filter((objectKey) => {
         const withoutPrefix = objectKey.startsWith('all_') ? objectKey.slice(4) : objectKey;
@@ -196,10 +198,12 @@ export class WebviewVisu implements vscode.Disposable {
         return this.makeWholeTokenRegex(shortName).test(text);
       }) || [];
 
-    this.panel.webview.postMessage({
-      type: 'showOnlyObjects',
-      body: { objects: selectedObjects },
-    });
+    if (selectedObjects.length > 0) {
+      this.panel.webview.postMessage({
+        type: 'showOnlyObjects',
+        body: { objects: selectedObjects },
+      });
+    }
   }
 
   /**

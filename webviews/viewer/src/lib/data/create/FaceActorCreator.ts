@@ -26,6 +26,10 @@ export class FaceActorCreator {
     const mapper = vtk.Rendering.Core.vtkMapper.newInstance();
 
     mapper.setInputData(polyData);
+    if (!groupName.includes('all_')) {
+      mapper.setResolveCoincidentTopology(true);
+      mapper.setRelativeCoincidentTopologyPolygonOffsetParameters(-2, -2);
+    }
     actor.setMapper(mapper);
 
     const { colorIndex, isObjectActor } = this.setProperty(actor, groupName, cellCount);
