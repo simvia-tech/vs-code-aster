@@ -5,9 +5,8 @@
 
 
 import argparse
-import pathlib as pl
-
 import os
+import pathlib as pl
 import sys
 
 python_version = sys.version_info
@@ -18,25 +17,25 @@ if sys.platform == "win32" and python_version >= (3, 8):
     # Add the directory of the current script to the DLL search path
     # This is necessary for Python 3.8+ on Windows to find the DLLs.
     # To simplify we use the LD_LIBRARY_PATH environment variable like on Unix systems.
-    #ld_library_path = os.getenv("LD_LIBRARY_PATH", "")
-    
+    # ld_library_path = os.getenv("LD_LIBRARY_PATH", "")
 
     appdata = os.environ["LOCALAPPDATA"]
 
-    if (pl.Path(appdata)/"code_aster").exists():
+    if (pl.Path(appdata) / "code_aster").exists():
         ### Attach to code_aster windows install
-        python_path = fr"{appdata}\code_aster\external\medcoupling-9.11.0\lib\python3.10\site-packages"
+        python_path = (
+            rf"{appdata}\code_aster\external\medcoupling-9.11.0\lib\python3.10\site-packages"
+        )
         sys.path.append(python_path)
 
-
         ld_library_path = [
-            fr"{appdata}\code_aster\Python3.10",
-            fr"{appdata}\code_aster\external\hdf51.10.5\bin",
-            fr"{appdata}\code_aster\external\hdf51.10.5\lib",
-            fr"{appdata}\code_aster\external\MED-4.4.1\lib",
-            fr"{appdata}\code_aster\external\medcoupling-9.11.0\lib",
-            fr"{appdata}\code_aster\external\medcoupling-9.11.0\libpython3.10\site-packages",
-            fr"{appdata}\code_aster\external",
+            rf"{appdata}\code_aster\Python3.10",
+            rf"{appdata}\code_aster\external\hdf51.10.5\bin",
+            rf"{appdata}\code_aster\external\hdf51.10.5\lib",
+            rf"{appdata}\code_aster\external\MED-4.4.1\lib",
+            rf"{appdata}\code_aster\external\medcoupling-9.11.0\lib",
+            rf"{appdata}\code_aster\external\medcoupling-9.11.0\libpython3.10\site-packages",
+            rf"{appdata}\code_aster\external",
         ]
 
         if ld_library_path:
@@ -47,7 +46,7 @@ if sys.platform == "win32" and python_version >= (3, 8):
                     print(os.add_dll_directory(os.path.abspath(path)))
                     sys.path.append(path)
 
-import medcoupling as mc
+import medcoupling as mc  # noqa E402
 
 
 def parse_args():
