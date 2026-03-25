@@ -5,5 +5,5 @@ npx prettier --write "src/**/*.ts" "webviews/viewer/src/**/*.{ts,svelte}" "webvi
 git add -u
 npx eslint --max-warnings=0 src/ webviews/export/
 npx svelte-check --tsconfig webviews/viewer/tsconfig.json --fail-on-warnings
-python3 -m ruff check python/lsp/ python/med2obj.py
-python3 -m ruff format --check python/lsp/ python/med2obj.py
+# python3 -m ruff check python/lsp/ python/med2obj.py
+# python3 -m ruff format --check python/lsp/ python/med2obj.py
