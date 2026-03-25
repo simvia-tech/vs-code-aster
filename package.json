@@ -91,6 +91,13 @@
         "path": "./syntaxes/comm.tmLanguage.json"
       }
     ],
+    "keybindings": [
+      {
+        "command": "editor.action.commentLine",
+        "key": "ctrl+shift+;",
+        "when": "editorTextFocus && editorLangId == comm"
+      }
+    ],
     "menus": {
       "editor/title": [
         {

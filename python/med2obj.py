@@ -5,9 +5,48 @@
 
 
 import argparse
+import os
 import pathlib as pl
+import sys
 
-import medcoupling as mc
+python_version = sys.version_info
+
+if sys.platform == "win32" and python_version >= (3, 8):
+    # On Windows, we need to ensure that the DLLs are found, from Python 3.8 we need to
+    # use os.add_dll_directory to add the directory containing the DLLs.
+    # Add the directory of the current script to the DLL search path
+    # This is necessary for Python 3.8+ on Windows to find the DLLs.
+    # To simplify we use the LD_LIBRARY_PATH environment variable like on Unix systems.
+    # ld_library_path = os.getenv("LD_LIBRARY_PATH", "")
+
+    appdata = os.environ["LOCALAPPDATA"]
+
+    if (pl.Path(appdata) / "code_aster").exists():
+        ### Attach to code_aster windows install
+        python_path = (
+            rf"{appdata}\code_aster\external\medcoupling-9.11.0\lib\python3.10\site-packages"
+        )
+        sys.path.append(python_path)
+
+        ld_library_path = [
+            rf"{appdata}\code_aster\Python3.10",
+            rf"{appdata}\code_aster\external\hdf51.10.5\bin",
+            rf"{appdata}\code_aster\external\hdf51.10.5\lib",
+            rf"{appdata}\code_aster\external\MED-4.4.1\lib",
+            rf"{appdata}\code_aster\external\medcoupling-9.11.0\lib",
+            rf"{appdata}\code_aster\external\medcoupling-9.11.0\libpython3.10\site-packages",
+            rf"{appdata}\code_aster\external",
+        ]
+
+        if ld_library_path:
+            # Split the LD_LIBRARY_PATH and add each directory
+            for path in ld_library_path:
+                print("Adding directory:", path)
+                if os.path.isdir(path):
+                    print(os.add_dll_directory(os.path.abspath(path)))
+                    sys.path.append(path)
+
+import medcoupling as mc  # noqa E402
 
 
 def parse_args():
