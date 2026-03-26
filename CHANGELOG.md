@@ -5,6 +5,14 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.3] - 2026-03-26
+
+Comment toggle support and Windows debugging improvements.
+
+### Added
+- Language configuration and keybindings for toggling line comments in `.comm` files
+- Support for attaching to code_aster embedded Python on Windows installations
+
 ## [1.5.2] - 2026-03-23
 
 Various fixes and improvements.
