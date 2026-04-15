@@ -5,6 +5,18 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-04-15
+
+Standalone mesh visualization: click any `.med` file to open the viewer directly, even without a `.comm`/`.export` pair.
+
+### Added
+- Click a `.med` / `.mmed` / `.rmed` file in the explorer to open it straight in the mesh viewer, via a custom editor registered with `priority: "default"` that bypasses the "file is binary" warning
+- Automatic MED detection: when a tab opens a file whose first bytes match the HDF5 signature, a notification offers to register the extension (e.g. `.71`) and open it in the viewer in one click
+- "Open as MED mesh" action exposed as an editor-title button (on auto-detected MED files) and as a right-click entry in the explorer
+- Tabs for files whose extensions are in `vs-code-aster.medFileExtensions` are auto-rerouted to the mesh viewer, no window reload required after registering a new extension
+- The mesh viewer tab now carries the shared orange cube icon (same as `.med` files in the file tree)
+- Inline error state in the viewer: when `.med`→`.obj` conversion fails (e.g. `medcoupling` not installed), the reason is shown in the tab instead of an indefinite loading screen
+
 ## [1.6.0] - 2026-04-15
 
 Run workflow overhaul: terminal reuse, automatic diagnostics in the Problems panel, and refreshed toolbar icons.
