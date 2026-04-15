@@ -79,8 +79,8 @@ export class WebviewVisu implements vscode.Disposable {
       this.panel = vscode.window.createWebviewPanel(viewType, title, viewColumn, options);
     }
     this.panel.iconPath = {
-      light: vscode.Uri.file(path.join(resourceRootDir, 'media', 'icons', '3d.svg')),
-      dark: vscode.Uri.file(path.join(resourceRootDir, 'media', 'icons', '3d_light.svg')),
+      light: vscode.Uri.file(path.join(resourceRootDir, 'media', 'images', 'icone-med.svg')),
+      dark: vscode.Uri.file(path.join(resourceRootDir, 'media', 'images', 'icone-med.svg')),
     };
     console.log('[WebviewVisu] Webview panel created');
 
