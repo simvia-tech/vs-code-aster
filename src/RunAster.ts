@@ -3,13 +3,15 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { parseMessFile } from './MessFileParser';
+import { parseRunOutput } from './OutputParser';
 
 const execAsync = promisify(exec);
 
+const LOG_FILENAME = '.vscode-aster-run.log';
+
 export class RunAster {
   private static diagnosticCollection: vscode.DiagnosticCollection | undefined;
-  private static messWatcher: vscode.FileSystemWatcher | undefined;
+  private static logWatcher: vscode.FileSystemWatcher | undefined;
 
   /**
    * Initialize the diagnostic collection (called from extension.ts)
@@ -46,26 +48,21 @@ export class RunAster {
     //     return;
     // }
 
-    // Parse .export file to find mess and comm file paths
-    let messPath: string | undefined;
-    let commPath: string | undefined;
+    // Parse .export to find all `F comm` entries so we can map traceback
+    // paths (which reference `<basename>.changed.py` in a temp dir) back to
+    // the user's original files.
+    const commFiles = new Map<string, vscode.Uri>();
     try {
       const exportContent = fs.readFileSync(filePath, 'utf-8');
       for (const line of exportContent.split('\n')) {
         const parts = line.trim().split(/\s+/);
-        if (parts[0] === 'F' && parts[1] === 'mess') {
-          messPath = parts[2];
+        if (parts[0] === 'F' && parts[1] === 'comm' && parts[2]) {
+          let commPath = parts[2];
+          if (!path.isAbsolute(commPath)) {
+            commPath = path.join(fileDir, commPath);
+          }
+          commFiles.set(path.basename(commPath), vscode.Uri.file(commPath));
         }
-        if (parts[0] === 'F' && parts[1] === 'comm') {
-          commPath = parts[2];
-        }
-      }
-      // Resolve relative paths against the export file directory
-      if (messPath && !path.isAbsolute(messPath)) {
-        messPath = path.join(fileDir, messPath);
-      }
-      if (commPath && !path.isAbsolute(commPath)) {
-        commPath = path.join(fileDir, commPath);
       }
     } catch (error) {
       console.error('Failed to parse .export file:', error);
@@ -75,16 +72,26 @@ export class RunAster {
     if (RunAster.diagnosticCollection) {
       RunAster.diagnosticCollection.clear();
     }
-    if (RunAster.messWatcher) {
-      RunAster.messWatcher.dispose();
-      RunAster.messWatcher = undefined;
+    if (RunAster.logWatcher) {
+      RunAster.logWatcher.dispose();
+      RunAster.logWatcher = undefined;
     }
 
-    // Find existing terminal or create a new one
+    // Capture all stdout/stderr via `tee` to a known log file so we can
+    // parse the full run output regardless of whether `F mess` is set in
+    // the `.export`. The user still sees live output in the terminal.
+    const logPath = path.join(fileDir, LOG_FILENAME);
+    try {
+      if (fs.existsSync(logPath)) {
+        fs.unlinkSync(logPath);
+      }
+    } catch (error) {
+      console.error('Failed to remove old log file:', error);
+    }
+
+    const cmd = `${alias} ${fileName} 2>&1 | tee "${logPath}"`;
+
     let simulationTerminal = vscode.window.terminals.find((t) => t.name === 'code-aster runner');
-
-    const cmd = `${alias} ${fileName}`;
-
     if (simulationTerminal) {
       simulationTerminal.show();
       simulationTerminal.sendText(`cd "${fileDir}" && ${cmd}`);
@@ -97,28 +104,27 @@ export class RunAster {
       simulationTerminal.sendText(cmd);
     }
 
-    // Set up file watcher for .mess output file
-    if (messPath && RunAster.diagnosticCollection) {
+    // Set up file watcher for the log file
+    if (RunAster.diagnosticCollection) {
+      const exportUri = editor.document.uri;
       const updateDiagnostics = () => {
         try {
-          const messContent = fs.readFileSync(messPath!, 'utf-8');
-          const commUri = commPath ? vscode.Uri.file(commPath) : undefined;
-          const diagnosticsMap = parseMessFile(messContent, editor.document.uri, commUri);
+          const logContent = fs.readFileSync(logPath, 'utf-8');
+          const diagnosticsMap = parseRunOutput(logContent, exportUri, commFiles);
 
-          // Clear and repopulate diagnostics
           RunAster.diagnosticCollection!.clear();
           for (const [uriKey, diags] of diagnosticsMap) {
             const uri = vscode.Uri.parse(uriKey);
             RunAster.diagnosticCollection!.set(uri, diags);
           }
         } catch (error) {
-          console.error('Failed to parse .mess file:', error);
+          console.error('Failed to parse run output:', error);
         }
       };
 
-      RunAster.messWatcher = vscode.workspace.createFileSystemWatcher(messPath);
-      RunAster.messWatcher.onDidCreate(updateDiagnostics);
-      RunAster.messWatcher.onDidChange(updateDiagnostics);
+      RunAster.logWatcher = vscode.workspace.createFileSystemWatcher(logPath);
+      RunAster.logWatcher.onDidCreate(updateDiagnostics);
+      RunAster.logWatcher.onDidChange(updateDiagnostics);
     }
   }
 
