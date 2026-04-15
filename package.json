@@ -44,7 +44,10 @@
       {
         "command": "vs-code-aster.run-aster",
         "title": "Run with code_aster",
-        "icon": "$(rocket)"
+        "icon": {
+          "light": "./media/images/icone-rocket.svg",
+          "dark": "./media/images/icone-rocket.svg"
+        }
       },
       {
         "command": "vs-code-aster.meshViewer",
@@ -92,8 +95,8 @@
           ".export"
         ],
         "icon": {
-          "light": "./media/images/icone-export-light.svg",
-          "dark": "./media/images/icone-export-dark.svg"
+          "light": "./media/images/icone-rocket.svg",
+          "dark": "./media/images/icone-rocket.svg"
         }
       },
       {
