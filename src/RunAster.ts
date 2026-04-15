@@ -1,11 +1,23 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { parseMessFile } from './MessFileParser';
 
 const execAsync = promisify(exec);
 
 export class RunAster {
+  private static diagnosticCollection: vscode.DiagnosticCollection | undefined;
+  private static messWatcher: vscode.FileSystemWatcher | undefined;
+
+  /**
+   * Initialize the diagnostic collection (called from extension.ts)
+   */
+  public static init(collection: vscode.DiagnosticCollection) {
+    RunAster.diagnosticCollection = collection;
+  }
+
   /**
    * Runs code_aster on the selected .export file in the workspace.
    */
@@ -34,6 +46,40 @@ export class RunAster {
     //     return;
     // }
 
+    // Parse .export file to find mess and comm file paths
+    let messPath: string | undefined;
+    let commPath: string | undefined;
+    try {
+      const exportContent = fs.readFileSync(filePath, 'utf-8');
+      for (const line of exportContent.split('\n')) {
+        const parts = line.trim().split(/\s+/);
+        if (parts[0] === 'F' && parts[1] === 'mess') {
+          messPath = parts[2];
+        }
+        if (parts[0] === 'F' && parts[1] === 'comm') {
+          commPath = parts[2];
+        }
+      }
+      // Resolve relative paths against the export file directory
+      if (messPath && !path.isAbsolute(messPath)) {
+        messPath = path.join(fileDir, messPath);
+      }
+      if (commPath && !path.isAbsolute(commPath)) {
+        commPath = path.join(fileDir, commPath);
+      }
+    } catch (error) {
+      console.error('Failed to parse .export file:', error);
+    }
+
+    // Clear previous diagnostics and dispose old watcher
+    if (RunAster.diagnosticCollection) {
+      RunAster.diagnosticCollection.clear();
+    }
+    if (RunAster.messWatcher) {
+      RunAster.messWatcher.dispose();
+      RunAster.messWatcher = undefined;
+    }
+
     // Find existing terminal or create a new one
     let simulationTerminal = vscode.window.terminals.find((t) => t.name === 'code-aster runner');
 
@@ -49,6 +95,30 @@ export class RunAster {
       });
       simulationTerminal.show();
       simulationTerminal.sendText(cmd);
+    }
+
+    // Set up file watcher for .mess output file
+    if (messPath && RunAster.diagnosticCollection) {
+      const updateDiagnostics = () => {
+        try {
+          const messContent = fs.readFileSync(messPath!, 'utf-8');
+          const commUri = commPath ? vscode.Uri.file(commPath) : undefined;
+          const diagnosticsMap = parseMessFile(messContent, editor.document.uri, commUri);
+
+          // Clear and repopulate diagnostics
+          RunAster.diagnosticCollection!.clear();
+          for (const [uriKey, diags] of diagnosticsMap) {
+            const uri = vscode.Uri.parse(uriKey);
+            RunAster.diagnosticCollection!.set(uri, diags);
+          }
+        } catch (error) {
+          console.error('Failed to parse .mess file:', error);
+        }
+      };
+
+      RunAster.messWatcher = vscode.workspace.createFileSystemWatcher(messPath);
+      RunAster.messWatcher.onDidCreate(updateDiagnostics);
+      RunAster.messWatcher.onDidChange(updateDiagnostics);
     }
   }
 

@@ -21,6 +21,11 @@ export async function activate(context: vscode.ExtensionContext) {
   // Set up telemetry context
   setTelemetryContext(context);
 
+  // Set up diagnostics collection for code-aster output parsing
+  const diagnosticCollection = vscode.languages.createDiagnosticCollection('code-aster');
+  RunAster.init(diagnosticCollection);
+  context.subscriptions.push(diagnosticCollection);
+
   const runaster = vscode.commands.registerCommand('vs-code-aster.run-aster', () => {
     RunAster.runCodeAster();
   });
