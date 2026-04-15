@@ -9,6 +9,7 @@ import { ExportEditor } from './ExportEditor';
 import { RunAster } from './RunAster';
 import { LspServer } from './LspServer';
 import { StatusBar } from './StatusBar';
+import { activateMedLanguageSync } from './MedLanguageSync';
 import { setTelemetryContext } from './telemetry';
 
 /**
@@ -38,6 +39,8 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   StatusBar.instance.activate(context);
+
+  activateMedLanguageSync(context);
 
   context.subscriptions.push(runaster);
   context.subscriptions.push(createExportDoc);
