@@ -61,6 +61,14 @@
         "command": "vs-code-aster.restartLSPServer",
         "title": "Restart the LSP server for code_aster",
         "icon": "$(sync~spin)"
+      },
+      {
+        "command": "vs-code-aster.addToMedExtensions",
+        "title": "Open as MED mesh",
+        "icon": {
+          "light": "./media/images/icone-med.svg",
+          "dark": "./media/images/icone-med.svg"
+        }
       }
     ],
     "languages": [
@@ -160,6 +168,18 @@
           "command": "vs-code-aster.meshViewer",
           "when": "resourceFilename =~ /\\.(comm|com[0-9])$/",
           "group": "navigation"
+        },
+        {
+          "command": "vs-code-aster.addToMedExtensions",
+          "when": "vs-code-aster.canConvertActiveToMed",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "vs-code-aster.addToMedExtensions",
+          "when": "!explorerResourceIsFolder && resourceLangId != med && resourceLangId != comm && resourceLangId != export",
+          "group": "navigation@99"
         }
       ]
     },
