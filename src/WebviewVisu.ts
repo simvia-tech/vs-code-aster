@@ -12,6 +12,9 @@ export class WebviewVisu implements vscode.Disposable {
   private objects?: string[];
   private selectedGroups: string[];
 
+  private readyReceived = false;
+  private deferredInit?: { fileContexts: string[]; objFilenames: string[] };
+
   public get webview(): vscode.Webview {
     return this.panel.webview;
   }
@@ -32,6 +35,9 @@ export class WebviewVisu implements vscode.Disposable {
    * @param fileContexts The file contexts to send to the webview.
    * @param objFilenames File names for mesh data.
    * @param viewColumn The column in which to show the webview.
+   * @param title Optional tab title.
+   * @param existingPanel Optional pre-existing panel (e.g. provided by a CustomEditorProvider).
+   *   If provided, `viewColumn` is ignored and the panel is reused instead of creating a new one.
    */
   public constructor(
     viewType: string,
@@ -40,7 +46,8 @@ export class WebviewVisu implements vscode.Disposable {
     fileContexts: string[],
     objFilenames: string[],
     viewColumn?: vscode.ViewColumn,
-    title?: string
+    title?: string,
+    existingPanel?: vscode.WebviewPanel
   ) {
     viewColumn = viewColumn || vscode.ViewColumn.Beside;
 
@@ -60,8 +67,17 @@ export class WebviewVisu implements vscode.Disposable {
       title = this.extractHtmlTitle(htmlFileContent, 'Visualizer');
     }
 
-    // Create webview panel with icon
-    this.panel = vscode.window.createWebviewPanel(viewType, title, viewColumn, options);
+    if (existingPanel) {
+      // Reuse a panel supplied by VS Code (CustomEditorProvider flow)
+      this.panel = existingPanel;
+      this.panel.webview.options = {
+        enableScripts: true,
+        localResourceRoots: [vscode.Uri.file(resourceRootDir)],
+      };
+      this.panel.title = title;
+    } else {
+      this.panel = vscode.window.createWebviewPanel(viewType, title, viewColumn, options);
+    }
     this.panel.iconPath = {
       light: vscode.Uri.file(path.join(resourceRootDir, 'media', 'icons', '3d.svg')),
       dark: vscode.Uri.file(path.join(resourceRootDir, 'media', 'icons', '3d_light.svg')),
@@ -82,19 +98,17 @@ export class WebviewVisu implements vscode.Disposable {
         case 'ready':
           // Webview is ready, send initialization message
           console.log('[WebviewVisu] Webview ready signal received');
-          if (objFilenames) {
+          this.readyReceived = true;
+          if (objFilenames && objFilenames.length > 0) {
             console.log('[WebviewVisu] Sending init with files:', objFilenames);
-            const config = vscode.workspace.getConfiguration('vs-code-aster');
-            const settings = {
-              hiddenObjectOpacity: config.get<number>('viewer.hiddenObjectOpacity', 0),
-              edgeMode: config.get<string>('viewer.edgeMode', 'threshold'),
-              groupTransparency: config.get<number>('viewer.groupTransparency', 0.2),
-              showOrientationWidget: config.get<boolean>('viewer.showOrientationWidget', true),
-            };
-            this.panel.webview.postMessage({
-              type: 'init',
-              body: { fileContexts, objFilenames, settings },
-            });
+            this.doSendInit(fileContexts, objFilenames);
+          } else if (this.deferredInit) {
+            console.log(
+              '[WebviewVisu] Flushing deferred init with files:',
+              this.deferredInit.objFilenames
+            );
+            this.doSendInit(this.deferredInit.fileContexts, this.deferredInit.objFilenames);
+            this.deferredInit = undefined;
           }
           break;
         case 'saveSettings':
@@ -139,6 +153,36 @@ export class WebviewVisu implements vscode.Disposable {
     }, null);
 
     console.log('[WebviewVisu] Constructor finished');
+  }
+
+  /**
+   * Send init data to the webview. If the webview has already signalled `ready`,
+   * posts the message immediately; otherwise buffers the data so it is sent
+   * when `ready` fires.
+   *
+   * Used by the standalone .med editor provider, which only has obj data
+   * available after running conversion asynchronously.
+   */
+  public sendInit(fileContexts: string[], objFilenames: string[]): void {
+    if (this.readyReceived) {
+      this.doSendInit(fileContexts, objFilenames);
+    } else {
+      this.deferredInit = { fileContexts, objFilenames };
+    }
+  }
+
+  private doSendInit(fileContexts: string[], objFilenames: string[]): void {
+    const config = vscode.workspace.getConfiguration('vs-code-aster');
+    const settings = {
+      hiddenObjectOpacity: config.get<number>('viewer.hiddenObjectOpacity', 0),
+      edgeMode: config.get<string>('viewer.edgeMode', 'threshold'),
+      groupTransparency: config.get<number>('viewer.groupTransparency', 0.2),
+      showOrientationWidget: config.get<boolean>('viewer.showOrientationWidget', true),
+    };
+    this.panel.webview.postMessage({
+      type: 'init',
+      body: { fileContexts, objFilenames, settings },
+    });
   }
 
   /**
