@@ -34,14 +34,22 @@ export class RunAster {
     //     return;
     // }
 
-    const simulationTerminal = vscode.window.createTerminal({
-      name: 'code-aster runner',
-      cwd: fileDir,
-    });
+    // Find existing terminal or create a new one
+    let simulationTerminal = vscode.window.terminals.find((t) => t.name === 'code-aster runner');
 
     const cmd = `${alias} ${fileName}`;
-    simulationTerminal.show();
-    simulationTerminal.sendText(cmd);
+
+    if (simulationTerminal) {
+      simulationTerminal.show();
+      simulationTerminal.sendText(`cd "${fileDir}" && ${cmd}`);
+    } else {
+      simulationTerminal = vscode.window.createTerminal({
+        name: 'code-aster runner',
+        cwd: fileDir,
+      });
+      simulationTerminal.show();
+      simulationTerminal.sendText(cmd);
+    }
   }
 
   /**
