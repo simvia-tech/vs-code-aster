@@ -44,7 +44,7 @@
       {
         "command": "vs-code-aster.run-aster",
         "title": "Run with code_aster",
-        "icon": "$(run)"
+        "icon": "$(rocket)"
       },
       {
         "command": "vs-code-aster.meshViewer",
