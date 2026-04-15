@@ -78,10 +78,38 @@
           ".com9"
         ],
         "icon": {
-          "light": "./media/images/icone-code-aster.png",
-          "dark": "./media/images/icone-code-aster.png"
+          "light": "./media/images/icone-code-aster.svg",
+          "dark": "./media/images/icone-code-aster.svg"
         },
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "export",
+        "aliases": [
+          "Aster Export"
+        ],
+        "extensions": [
+          ".export"
+        ],
+        "icon": {
+          "light": "./media/images/icone-export-light.svg",
+          "dark": "./media/images/icone-export-dark.svg"
+        }
+      },
+      {
+        "id": "med",
+        "aliases": [
+          "MED"
+        ],
+        "extensions": [
+          ".med",
+          ".mmed",
+          ".rmed"
+        ],
+        "icon": {
+          "light": "./media/images/icone-med-light.svg",
+          "dark": "./media/images/icone-med-dark.svg"
+        }
       }
     ],
     "grammars": [
@@ -142,6 +170,19 @@
             ".com9"
           ],
           "markdownDescription": "Specifies the file extensions to be recognized as Code Aster command files. Default includes `.comm`, `.com`, and `.com0`-`.com9`. You can customize this list as needed."
+        },
+        "vs-code-aster.medFileExtensions": {
+          "order": 0,
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            ".med",
+            ".mmed",
+            ".rmed"
+          ],
+          "markdownDescription": "Specifies the file extensions to be recognized as MED mesh/result files. code_aster may also write MED data under numeric extensions matching the I/O unit (e.g. `.21`, `.71`). Add such extensions here to apply the MED icon and language association. Extensions listed here are automatically written to `files.associations`."
         },
         "vs-code-aster.aliasForRun": {
           "order": 1,
