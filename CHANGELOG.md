@@ -5,6 +5,15 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.4] - 2026-04-15
+
+File icon improvements and language support for `.export` and MED files.
+
+### Added
+- Dedicated file icons for `.export` files (blue rocket) and `.med` / `.mmed` / `.rmed` files (orange cube)
+- Refreshed code_aster logo, now bundled with its SVG source
+- `vs-code-aster.medFileExtensions` setting to register arbitrary extensions (e.g. `.21`, `.71`) as MED files, which code_aster writes under the I/O unit number
+
 ## [1.5.3] - 2026-03-26
 
 Comment toggle support and Windows debugging improvements.
