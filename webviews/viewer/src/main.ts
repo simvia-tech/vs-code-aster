@@ -4,7 +4,7 @@ import { Controller } from './lib/Controller';
 import { VisibilityManager } from './lib/commands/VisibilityManager';
 import { CameraManager } from './lib/interaction/CameraManager';
 import { GlobalSettings } from './lib/settings/GlobalSettings';
-import { settings } from './lib/state';
+import { settings, errorMessage } from './lib/state';
 import type { EdgeMode } from './lib/state';
 import './app.css';
 
@@ -60,6 +60,10 @@ window.addEventListener('message', async (e) => {
 
     case 'showOnlyObjects':
       VisibilityManager.Instance.showOnlyObjects(body.objects);
+      break;
+
+    case 'error':
+      errorMessage.set(body?.message || 'An error occurred.');
       break;
   }
 });

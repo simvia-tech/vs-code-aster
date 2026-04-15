@@ -34,3 +34,4 @@ export const sidebarHiddenGroups = writable<Map<string, Set<string>>>(new Map())
 
 export const loadingProgress = tweened<number>(0, { duration: 300, easing: cubicOut });
 export const loadingMessage = writable<string>('');
+export const errorMessage = writable<string>('');

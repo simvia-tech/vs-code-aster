@@ -10,6 +10,7 @@ import { RunAster } from './RunAster';
 import { LspServer } from './LspServer';
 import { StatusBar } from './StatusBar';
 import { activateMedLanguageSync } from './MedLanguageSync';
+import { MedEditorProvider } from './MedEditorProvider';
 import { setTelemetryContext } from './telemetry';
 
 /**
@@ -46,6 +47,10 @@ export async function activate(context: vscode.ExtensionContext) {
   StatusBar.instance.activate(context);
 
   activateMedLanguageSync(context);
+
+  // Register the custom editor for .med/.mmed/.rmed files so they open
+  // directly in the mesh viewer instead of the binary text editor.
+  context.subscriptions.push(MedEditorProvider.register(context));
 
   context.subscriptions.push(runaster);
   context.subscriptions.push(createExportDoc);

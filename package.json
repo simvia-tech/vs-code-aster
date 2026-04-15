@@ -125,6 +125,18 @@
         "path": "./syntaxes/comm.tmLanguage.json"
       }
     ],
+    "customEditors": [
+      {
+        "viewType": "vs-code-aster.medViewer",
+        "displayName": "MED Mesh Viewer",
+        "selector": [
+          { "filenamePattern": "*.med" },
+          { "filenamePattern": "*.mmed" },
+          { "filenamePattern": "*.rmed" }
+        ],
+        "priority": "default"
+      }
+    ],
     "keybindings": [
       {
         "command": "editor.action.commentLine",
