@@ -52,7 +52,10 @@
       {
         "command": "vs-code-aster.meshViewer",
         "title": "Open visualizer",
-        "icon": "$(eye)"
+        "icon": {
+          "light": "./media/images/icone-eye.svg",
+          "dark": "./media/images/icone-eye.svg"
+        }
       },
       {
         "command": "vs-code-aster.restartLSPServer",
@@ -110,8 +113,8 @@
           ".rmed"
         ],
         "icon": {
-          "light": "./media/images/icone-med-light.svg",
-          "dark": "./media/images/icone-med-dark.svg"
+          "light": "./media/images/icone-med.svg",
+          "dark": "./media/images/icone-med.svg"
         }
       }
     ],
