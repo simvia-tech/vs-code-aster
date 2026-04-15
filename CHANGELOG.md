@@ -5,6 +5,16 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-04-15
+
+Run workflow overhaul: terminal reuse, automatic diagnostics in the Problems panel, and refreshed toolbar icons.
+
+### Added
+- Run diagnostics: `<A>` warnings and `<E>`/`<F>` errors from code_aster, Python tracebacks, `SyntaxError`s, fatal errors (e.g. segfaults), and MED/Fortran errors now surface automatically in the VS Code Problems panel — no `F mess` entry required in the `.export`
+- Diagnostics attached to the originating `.comm`/`.com1` line when possible (via CMDTAG markers and Python tracebacks), and cleared between runs
+- The existing `code-aster runner` terminal is now reused across runs instead of spawning a new one each time
+- Colored toolbar icons: blue rocket for the run button (shared with the `.export` file icon) and orange eye for the mesh viewer button (matches the `.med` palette)
+
 ## [1.5.4] - 2026-04-15
 
 File icon improvements and language support for `.export` and MED files.
