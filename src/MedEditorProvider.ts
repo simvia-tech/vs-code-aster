@@ -76,6 +76,7 @@ export class MedEditorProvider implements vscode.CustomReadonlyEditorProvider<vs
       webviewPanel
     );
 
+    visu.sourceDir = path.dirname(medPath);
     this.activeViewers.set(medPath, visu);
     webviewPanel.onDidDispose(() => {
       this.activeViewers.delete(medPath);

@@ -138,9 +138,15 @@
         "viewType": "vs-code-aster.medViewer",
         "displayName": "MED Mesh Viewer",
         "selector": [
-          { "filenamePattern": "*.med" },
-          { "filenamePattern": "*.mmed" },
-          { "filenamePattern": "*.rmed" }
+          {
+            "filenamePattern": "*.med"
+          },
+          {
+            "filenamePattern": "*.mmed"
+          },
+          {
+            "filenamePattern": "*.rmed"
+          }
         ],
         "priority": "default"
       }
@@ -318,6 +324,7 @@
     "@vscode/test-electron": "^2.5.2",
     "esbuild": "^0.25.5",
     "eslint": "^9.25.1",
+    "html-to-image": "^1.11.13",
     "husky": "^9.1.7",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.8.1",

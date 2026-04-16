@@ -128,6 +128,7 @@ export class VisuManager {
       commName
     );
 
+    visu.sourceDir = path.dirname(commUri.fsPath);
     this.views.set(key, { commUri, objUris, visu });
 
     // Send telemetry once per opening of this .comm (non-blocking).
