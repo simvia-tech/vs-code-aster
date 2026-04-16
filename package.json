@@ -280,6 +280,12 @@
           "default": false,
           "markdownDescription": "Show a bounding box with X/Y/Z tick marks and values around the loaded meshes in the viewer."
         },
+        "vs-code-aster.viewer.showWireframe": {
+          "order": 18,
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Render meshes in wireframe mode instead of solid surfaces."
+        },
         "vs-code-aster.enableTelemetry": {
           "order": 100,
           "type": "boolean",

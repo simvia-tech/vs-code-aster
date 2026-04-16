@@ -45,6 +45,10 @@ export class CameraManager {
     this.createAxisMarker();
     this.createBoundingBox(groups);
     this.activateSizeUpdate();
+
+    if (GlobalSettings.Instance.showWireframe) {
+      this.setWireframeMode(true);
+    }
   }
 
   private activateSizeUpdate(): void {
@@ -120,6 +124,14 @@ export class CameraManager {
     if (!this.boundingBoxDotsActor) return;
     const c = VtkApp.Instance.readEditorForeground();
     this.boundingBoxDotsActor.getProperty().setColor(c[0], c[1], c[2]);
+  }
+
+  setWireframeMode(wireframe: boolean): void {
+    const rep = wireframe ? 1 : 2;
+    for (const group of Object.values(this.faceGroups)) {
+      group.actor.getProperty().setRepresentation(rep);
+    }
+    VtkApp.Instance.getRenderWindow().render();
   }
 
   setCameraAxis(axis: string): void {

@@ -120,6 +120,7 @@ export class WebviewVisu implements vscode.Disposable {
             'groupTransparency',
             'showOrientationWidget',
             'showBoundingBox',
+            'showWireframe',
           ];
           for (const key of settingKeys) {
             if (e.settings[key] !== undefined) {
@@ -180,6 +181,7 @@ export class WebviewVisu implements vscode.Disposable {
       groupTransparency: config.get<number>('viewer.groupTransparency', 0.2),
       showOrientationWidget: config.get<boolean>('viewer.showOrientationWidget', true),
       showBoundingBox: config.get<boolean>('viewer.showBoundingBox', false),
+      showWireframe: config.get<boolean>('viewer.showWireframe', false),
     };
     this.panel.webview.postMessage({
       type: 'init',
