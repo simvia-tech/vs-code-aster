@@ -9,7 +9,7 @@
 </script>
 
 <div
-  class="fixed inset-0 z-10 bg-black/20 backdrop-blur-xs"
+  class="fixed inset-0 z-30 bg-black/20 backdrop-blur-xs"
   role="dialog"
   aria-modal="true"
   tabindex="0"
