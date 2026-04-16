@@ -2,7 +2,9 @@
   import { groupHierarchy } from '../../lib/state';
   import Sidebar from './Sidebar.svelte';
   import TopActions from './TopActions.svelte';
+  import TopToolbar from './TopToolbar.svelte';
   import ZoomWidget from '../viewer/ZoomWidget.svelte';
+  import BoundingBoxLabels from '../viewer/BoundingBoxLabels.svelte';
   import Popup from '../popups/Popup.svelte';
   import HelpPopup from '../popups/HelpPopup.svelte';
   import SettingsPopup from '../popups/SettingsPopup.svelte';
@@ -35,7 +37,11 @@
     }}
   />
 
+  <TopToolbar />
+
   <ZoomWidget />
+
+  <BoundingBoxLabels />
 {/if}
 
 {#if openPopup}

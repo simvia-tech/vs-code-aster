@@ -14,9 +14,15 @@ export class VtkApp {
   }
 
   private _readEditorBackground(): number[] {
-    const raw = getComputedStyle(document.body)
-      .getPropertyValue('--vscode-editor-background')
-      .trim();
+    return this._readVscodeColor('--vscode-editor-background', [0.4, 0.6, 1.0]);
+  }
+
+  readEditorForeground(): number[] {
+    return this._readVscodeColor('--vscode-editor-foreground', [0.85, 0.85, 0.85]);
+  }
+
+  private _readVscodeColor(variable: string, fallback: number[]): number[] {
+    const raw = getComputedStyle(document.body).getPropertyValue(variable).trim();
     const match = raw.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
     if (match) {
       return [
@@ -25,7 +31,7 @@ export class VtkApp {
         parseInt(match[3], 16) / 255,
       ];
     }
-    return [0.4, 0.6, 1.0];
+    return fallback;
   }
 
   updateBackground(): void {
@@ -74,9 +80,16 @@ export class VtkApp {
     this.renderer.getActiveCamera().setWindowCenter(-offset, 0);
     this.renderWindow.render();
 
+    const centerX = sidebarWidth + (window.innerWidth - sidebarWidth) / 2;
+
     const zoomWidget = document.getElementById('zoomWidget');
     if (zoomWidget) {
-      zoomWidget.style.left = `${sidebarWidth + (window.innerWidth - sidebarWidth) / 2}px`;
+      zoomWidget.style.left = `${centerX}px`;
+    }
+
+    const topToolbar = document.getElementById('topToolbar');
+    if (topToolbar) {
+      topToolbar.style.left = `${centerX}px`;
     }
   }
 

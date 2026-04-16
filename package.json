@@ -274,6 +274,12 @@
           "default": true,
           "markdownDescription": "Show the orientation axes widget in the bottom-right corner of the viewer."
         },
+        "vs-code-aster.viewer.showBoundingBox": {
+          "order": 17,
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Show a bounding box with X/Y/Z tick marks and values around the loaded meshes in the viewer."
+        },
         "vs-code-aster.enableTelemetry": {
           "order": 100,
           "type": "boolean",

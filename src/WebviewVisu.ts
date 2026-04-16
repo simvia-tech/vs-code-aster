@@ -119,6 +119,7 @@ export class WebviewVisu implements vscode.Disposable {
             'edgeMode',
             'groupTransparency',
             'showOrientationWidget',
+            'showBoundingBox',
           ];
           for (const key of settingKeys) {
             if (e.settings[key] !== undefined) {
@@ -178,6 +179,7 @@ export class WebviewVisu implements vscode.Disposable {
       edgeMode: config.get<string>('viewer.edgeMode', 'threshold'),
       groupTransparency: config.get<number>('viewer.groupTransparency', 0.2),
       showOrientationWidget: config.get<boolean>('viewer.showOrientationWidget', true),
+      showBoundingBox: config.get<boolean>('viewer.showBoundingBox', false),
     };
     this.panel.webview.postMessage({
       type: 'init',

@@ -14,6 +14,7 @@ export interface Settings {
   edgeThresholdMultiplier: number;
   groupTransparency: number;
   showOrientationWidget: boolean;
+  showBoundingBox: boolean;
 }
 
 export const groupHierarchy = writable<GroupHierarchy>({});
@@ -27,6 +28,7 @@ export const settings = writable<Settings>({
   edgeThresholdMultiplier: 1,
   groupTransparency: 0.2,
   showOrientationWidget: true,
+  showBoundingBox: false,
 });
 
 // Map<objectKey, Set<groupName>> — groups NOT shown in sidebar (hidden)
@@ -35,3 +37,6 @@ export const sidebarHiddenGroups = writable<Map<string, Set<string>>>(new Map())
 export const loadingProgress = tweened<number>(0, { duration: 300, easing: cubicOut });
 export const loadingMessage = writable<string>('');
 export const errorMessage = writable<string>('');
+
+export type BoundingBoxDimensions = { x: number; y: number; z: number } | null;
+export const boundingBoxDimensions = writable<BoundingBoxDimensions>(null);
