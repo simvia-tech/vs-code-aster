@@ -40,6 +40,7 @@ window.addEventListener('message', async (e) => {
           GlobalSettings.Instance.showOrientationWidget = s.showOrientationWidget;
         if (s.showBoundingBox !== undefined)
           GlobalSettings.Instance.showBoundingBox = s.showBoundingBox;
+        if (s.showWireframe !== undefined) GlobalSettings.Instance.showWireframe = s.showWireframe;
         settings.update((cur) => ({
           hiddenObjectOpacity: s.hiddenObjectOpacity ?? cur.hiddenObjectOpacity,
           edgeMode: (s.edgeMode ?? cur.edgeMode) as EdgeMode,
@@ -47,6 +48,7 @@ window.addEventListener('message', async (e) => {
           groupTransparency: s.groupTransparency ?? cur.groupTransparency,
           showOrientationWidget: s.showOrientationWidget ?? cur.showOrientationWidget,
           showBoundingBox: s.showBoundingBox ?? cur.showBoundingBox,
+          showWireframe: s.showWireframe ?? cur.showWireframe,
         }));
         VisibilityManager.Instance.applyHiddenObjectOpacity();
         CameraManager.Instance.refreshEdgeVisibility();
@@ -55,6 +57,9 @@ window.addEventListener('message', async (e) => {
         }
         if (s.showBoundingBox === true) {
           CameraManager.Instance.setBoundingBoxVisible(true);
+        }
+        if (s.showWireframe === true) {
+          CameraManager.Instance.setWireframeMode(true);
         }
       }
       break;

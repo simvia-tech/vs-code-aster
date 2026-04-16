@@ -15,6 +15,7 @@ export interface Settings {
   groupTransparency: number;
   showOrientationWidget: boolean;
   showBoundingBox: boolean;
+  showWireframe: boolean;
 }
 
 export const groupHierarchy = writable<GroupHierarchy>({});
@@ -29,6 +30,7 @@ export const settings = writable<Settings>({
   groupTransparency: 0.2,
   showOrientationWidget: true,
   showBoundingBox: false,
+  showWireframe: false,
 });
 
 // Map<objectKey, Set<groupName>> — groups NOT shown in sidebar (hidden)
