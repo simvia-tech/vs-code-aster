@@ -14,6 +14,7 @@ export class WebviewVisu implements vscode.Disposable {
 
   private readyReceived = false;
   private deferredInit?: { fileContexts: string[]; objFilenames: string[] };
+  public sourceDir?: string;
 
   public get webview(): vscode.Webview {
     return this.panel.webview;
@@ -128,6 +129,15 @@ export class WebviewVisu implements vscode.Disposable {
             }
           }
           break;
+        case 'saveScreenshot': {
+          if (this.sourceDir) {
+            const base64 = (e.dataUrl as string).replace(/^data:image\/png;base64,/, '');
+            const buffer = Buffer.from(base64, 'base64');
+            const filePath = path.join(this.sourceDir, e.filename as string);
+            fs.writeFileSync(filePath, buffer);
+          }
+          break;
+        }
         case 'debugPanel':
           // Log debug messages from the webview
           console.log('[WebviewVisu] Message received from webview:', e.text);
