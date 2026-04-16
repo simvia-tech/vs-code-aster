@@ -5,6 +5,23 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-04-16
+
+New viewer toolbar with bounding box, wireframe, and screenshot tools.
+
+### Added
+- Top toolbar in the mesh viewer with three new tools:
+  - **Bounding box**: toggleable wireframe cube with colored axes (X red, Y green, Z blue), corner dots, a "0" origin marker, and dimension labels anchored in 3D
+  - **Wireframe mode**: toggle between solid surface and wireframe rendering to inspect mesh density
+  - **Screenshot**: left click saves the 3D view as PNG next to the source file and copies to clipboard; right click captures the full viewer including the sidebar
+- Toolbar button tooltips using the same inline hover pattern as the rest of the UI
+- Toolbar tab in the viewer help popup documenting the three new tools
+- Updated README with diagnostics, terminal reuse, direct `.med` opening, and toolbar features
+
+### Fixed
+- Popup z-order: help and settings popups no longer render behind the sidebar
+- Sidebar tooltip z-order: filter/clear tooltips no longer hidden behind the top toolbar
+
 ## [1.6.1] - 2026-04-15
 
 Standalone mesh visualization: click any `.med` file to open the viewer directly, even without a `.comm`/`.export` pair.
