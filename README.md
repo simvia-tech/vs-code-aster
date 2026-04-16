@@ -135,7 +135,11 @@ There are two ways to open the form :
 1. Open a `.export` file.
 2. Click on the "play" icon `Run with code_aster` in the top-right corner of the file.
 
-It will open a terminal and execute the following command : `cave run [file].export`.
+It will open a terminal and execute the following command : `cave run [file].export`. Subsequent runs reuse the same terminal.
+
+**Diagnostics**
+
+Warnings (`<A>`), errors (`<E>`, `<F>`), Python tracebacks, and fatal errors from code_aster automatically appear in the VS Code **Problems panel** after a run — no `F mess` entry required in the `.export` file. Diagnostics are attached to the originating `.comm` line when possible and cleared between runs.
 
 **Personnalize alias to run code-aster**
 
@@ -184,19 +188,20 @@ It’s powered by **VTK.js**, and supports both mesh visualization and node-base
 
 #### Opening the visualizer
 
-The visualizer is very easy to open :
+There are two ways to open the visualizer :
 
-1. Open a `.comm` file.
-2. Click on the "eye" icon `Open visualizer` in the top-right corner of the file.
-
-The visualizer is now open !
+- **From a `.comm` file** : click on the "eye" icon `Open visualizer` in the top-right corner of the file.
+- **From a `.med` file** : click any `.med`, `.mmed`, or `.rmed` file in the explorer — it opens directly in the viewer, no `.comm` file needed. Files with non-standard MED extensions (e.g. `.71`) are auto-detected and can be registered in one click.
 
 #### Features
 
 - Load geometry files (`.med`) directly into the viewer
 - Highlight face and node groups using the sidebar
 - Highlight groups quickly by selecting their names from your command file (`.comm`)
-- Control the camera with by rotating or panning it
+- Control the camera by rotating or panning it
+- **Bounding box** : toggle a wireframe cube with colored axes (X red, Y green, Z blue), corner dots, and dimension labels to quickly read the characteristic size of the structure
+- **Wireframe mode** : switch between solid surface and wireframe rendering to inspect mesh density
+- **Screenshot** : save the current 3D view as a PNG file next to your mesh and copy it to the clipboard
 
 #### Usage tips
 
@@ -211,6 +216,9 @@ The visualizer is now open !
   - Hold `Shift` + `Left click` and move your mouse to pan the camera
   - Use the `Mouse wheel` to zoom in and out
   - Click on the `X`, `Y`, and `Z` buttons at the bottom of the sidebar to quickly align the camera along an axis
+- Toolbar :
+  - The top toolbar provides quick access to the bounding box, wireframe, and screenshot features
+  - Right-click the screenshot button to capture the full viewer including the sidebar
 - File management :
   - Mesh files (`.*med` files) are converted to `.obj` files, which are stored in a hidden folder called `.visu_data/` in your workspace
 

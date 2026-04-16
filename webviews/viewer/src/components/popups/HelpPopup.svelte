@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+  import BoundingBoxIcon from '../../icons/BoundingBoxIcon.svelte';
   import ClearIcon from '../../icons/ClearIcon.svelte';
   import EyeIcon from '../../icons/EyeIcon.svelte';
   import FaceIcon from '../../icons/FaceIcon.svelte';
@@ -11,11 +12,13 @@
   import ObjectIcon from '../../icons/ObjectIcon.svelte';
   import MouseScrollIcon from '../../icons/MouseScrollIcon.svelte';
   import ResetIcon from '../../icons/ResetIcon.svelte';
+  import ScreenshotIcon from '../../icons/ScreenshotIcon.svelte';
+  import WireframeIcon from '../../icons/WireframeIcon.svelte';
   import ZoomIcon from '../../icons/ZoomIcon.svelte';
 
   let { onclose }: { onclose: () => void } = $props();
 
-  const mainTabs = ['Camera', 'Objects', 'Groups', 'Files'] as const;
+  const mainTabs = ['Camera', 'Toolbar', 'Objects', 'Groups', 'Files'] as const;
   const tabs = [...mainTabs, 'About'] as const;
   type Tab = (typeof tabs)[number];
   let activeTab = $state<Tab>('Camera');
@@ -99,6 +102,42 @@
             <kbd class="text-blue-500! font-bold">Z</kbd>
           </span>
           <span>Align camera along that axis — buttons at the bottom of the sidebar</span>
+        </div>
+      {:else if activeTab === 'Toolbar'}
+        <div class="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3 items-center">
+          <span
+            class="inline-flex items-center justify-center size-6 rounded-sm bg-ui-muted border border-ui-border text-ui-text-secondary stroke-[1.75]"
+          >
+            <BoundingBoxIcon class="size-3.5" />
+          </span>
+          <span
+            >Toggle a <strong>bounding box</strong> with colored axes (<span
+              class="text-red-500 font-bold">X</span
+            >
+            <span class="text-green-500 font-bold">Y</span>
+            <span class="text-blue-500 font-bold">Z</span>), corner dots, and dimension labels to
+            quickly read the characteristic size of the structure</span
+          >
+
+          <span
+            class="inline-flex items-center justify-center size-6 rounded-sm bg-ui-muted border border-ui-border text-ui-text-secondary stroke-[1.75]"
+          >
+            <WireframeIcon class="size-3.5" />
+          </span>
+          <span
+            >Switch between <strong>solid surface</strong> and <strong>wireframe</strong> rendering to
+            inspect mesh density</span
+          >
+
+          <span
+            class="inline-flex items-center justify-center size-6 rounded-sm bg-ui-muted border border-ui-border text-ui-text-secondary stroke-[1.75]"
+          >
+            <ScreenshotIcon class="size-3.5" />
+          </span>
+          <span
+            ><strong>Left click</strong> — save the 3D view as PNG next to your file &amp; copy to
+            clipboard. <strong>Right click</strong> — capture the full viewer including the sidebar.</span
+          >
         </div>
       {:else if activeTab === 'Objects'}
         <div class="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3 items-center">
