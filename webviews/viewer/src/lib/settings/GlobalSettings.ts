@@ -41,6 +41,7 @@ export class GlobalSettings {
   edgeOpacity = 0.7;
   groupTransparency = 0.2;
   showOrientationWidget = true;
+  showBoundingBox = false;
 
   get isDark(): boolean {
     return (

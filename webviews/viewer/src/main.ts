@@ -38,17 +38,23 @@ window.addEventListener('message', async (e) => {
           GlobalSettings.Instance.groupTransparency = s.groupTransparency;
         if (s.showOrientationWidget !== undefined)
           GlobalSettings.Instance.showOrientationWidget = s.showOrientationWidget;
+        if (s.showBoundingBox !== undefined)
+          GlobalSettings.Instance.showBoundingBox = s.showBoundingBox;
         settings.update((cur) => ({
           hiddenObjectOpacity: s.hiddenObjectOpacity ?? cur.hiddenObjectOpacity,
           edgeMode: (s.edgeMode ?? cur.edgeMode) as EdgeMode,
           edgeThresholdMultiplier: s.edgeThresholdMultiplier ?? cur.edgeThresholdMultiplier,
           groupTransparency: s.groupTransparency ?? cur.groupTransparency,
           showOrientationWidget: s.showOrientationWidget ?? cur.showOrientationWidget,
+          showBoundingBox: s.showBoundingBox ?? cur.showBoundingBox,
         }));
         VisibilityManager.Instance.applyHiddenObjectOpacity();
         CameraManager.Instance.refreshEdgeVisibility();
         if (s.showOrientationWidget === false) {
           CameraManager.Instance.setOrientationWidgetVisible(false);
+        }
+        if (s.showBoundingBox === true) {
+          CameraManager.Instance.setBoundingBoxVisible(true);
         }
       }
       break;

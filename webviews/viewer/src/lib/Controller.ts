@@ -88,6 +88,7 @@ export class Controller {
     for (const group of Object.values(this._groups)) {
       group.applyThemeColor();
     }
+    CameraManager.Instance.refreshBoundingBoxTheme();
   }
 
   getGroupNames(): string[] {
