@@ -22,7 +22,7 @@
       <FilterIcon class="size-3.5" />
     </button>
     <span
-      class="absolute left-full pl-1.5 hidden group-hover:inline whitespace-nowrap text-ui-text-secondary"
+      class="absolute left-full pl-1.5 hidden group-hover:inline whitespace-nowrap text-ui-text-secondary text-xs"
     >
       Select groups to show in sidebar
     </span>
@@ -36,7 +36,7 @@
       <ClearIcon class="size-3.5" />
     </button>
     <span
-      class="absolute left-full pl-1.5 hidden group-hover:inline whitespace-nowrap text-ui-text-secondary"
+      class="absolute left-full pl-1.5 hidden group-hover:inline whitespace-nowrap text-ui-text-secondary text-xs"
     >
       Clear highlighted groups
     </span>
