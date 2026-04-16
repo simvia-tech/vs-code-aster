@@ -1,7 +1,7 @@
 <p align="center"><img src="https://raw.githubusercontent.com/simvia-tech/vs-code-aster/main/media/images/simvia.png" alt="Simvia Logo" width="50%" /></p>
 
 <p align="center">
-  <a href="/"><img src="https://img.shields.io/badge/version-1.6.1-blue" alt="Version" /></a>
+  <a href="/"><img src="https://img.shields.io/badge/version-1.7.0-blue" alt="Version" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL%203.0-green" alt="License" /></a>
 </p>
 
@@ -185,6 +185,8 @@ If you want to use a custom alias, you can :
 The visualizer is an integrated 3D viewer that lets you display and explore your simulation geometry and results directly in VS Code — without leaving your workspace.
 
 It’s powered by **VTK.js**, and supports both mesh visualization and node-based groups.
+
+![Mesh viewer screenshot](media/images/viewer-screenshot.png)
 
 #### Opening the visualizer
 
