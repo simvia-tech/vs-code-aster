@@ -40,3 +40,8 @@ webviews/viewer/tsconfig.json
 webviews/viewer/tailwind.css
 webviews/viewer/styles.css
 webviews/viewer/index.js
+webviews/export/src/**
+webviews/export/index.html
+webviews/export/vite.config.ts
+webviews/export/svelte.config.js
+webviews/export/tsconfig.json

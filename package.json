@@ -39,7 +39,10 @@
       {
         "command": "vs-code-aster.exportDoc",
         "title": "Edit export file",
-        "icon": "$(book)"
+        "icon": {
+          "light": "./media/images/icone-edit.svg",
+          "dark": "./media/images/icone-edit.svg"
+        }
       },
       {
         "command": "vs-code-aster.run-aster",
@@ -311,11 +314,15 @@
   "scripts": {
     "vscode:prepublish": "npm run build:webview && npm run package",
     "compile": "npm run check-types && npm run lint && node esbuild.js",
-    "watch": "npm-run-all -p watch:*",
+    "watch": "npm-run-all -p watch:esbuild watch:tsc watch:webview",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "watch:webview": "vite build --config webviews/viewer/vite.config.ts --watch",
-    "build:webview": "vite build --config webviews/viewer/vite.config.ts",
+    "watch:webview:viewer": "vite build --config webviews/viewer/vite.config.ts --watch",
+    "watch:webview:export": "vite build --config webviews/export/vite.config.ts --watch",
+    "watch:webview": "npm-run-all -p watch:webview:viewer watch:webview:export",
+    "build:webview:viewer": "vite build --config webviews/viewer/vite.config.ts",
+    "build:webview:export": "vite build --config webviews/export/vite.config.ts",
+    "build:webview": "npm-run-all build:webview:viewer build:webview:export",
     "package": "npm run check-types && npm run lint && node esbuild.js --production",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",

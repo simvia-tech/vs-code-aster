@@ -5,14 +5,15 @@ set -e
 # A blanket `git add -u` would otherwise sweep unrelated tracked
 # modifications into the commit.
 staged_files=$(git diff --cached --name-only --diff-filter=ACMR | \
-  grep -E '^(src/.*\.ts|webviews/viewer/src/.*\.(ts|svelte)|webviews/export/.*\.(js|css|html))$' || true)
+  grep -E '^(src/.*\.ts|webviews/(viewer|export)/src/.*\.(ts|svelte|css))$' || true)
 
 if [ -n "$staged_files" ]; then
   echo "$staged_files" | tr '\n' '\0' | xargs -0 npx prettier --write
   echo "$staged_files" | tr '\n' '\0' | xargs -0 git add
 fi
 
-npx eslint --max-warnings=0 src/ webviews/export/
+npx eslint --max-warnings=0 src/ webviews/export/src/
 npx svelte-check --tsconfig webviews/viewer/tsconfig.json --fail-on-warnings
+npx svelte-check --tsconfig webviews/export/tsconfig.json --fail-on-warnings
 python3 -m ruff check python/lsp/ python/med2obj.py
 python3 -m ruff format --check python/lsp/ python/med2obj.py

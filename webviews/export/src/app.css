@@ -1,0 +1,44 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-ui-bg: var(--ui-bg);
+  --color-ui-fg: var(--ui-fg);
+  --color-ui-btn: var(--ui-btn-bg);
+  --color-ui-btn-hover: var(--ui-btn-hover-bg);
+  --color-ui-btn-fg: var(--ui-btn-fg);
+  --color-ui-popup-bg: var(--ui-popup-bg);
+  --color-ui-border: var(--ui-border);
+  --color-ui-text-primary: var(--ui-text-primary);
+  --color-ui-text-secondary: var(--ui-text-secondary);
+  --color-ui-text-muted: var(--ui-text-muted);
+  --color-ui-elem: var(--ui-element-bg);
+  --color-ui-elem-hover: var(--ui-element-bg-hover);
+  --color-ui-muted: var(--ui-bg-translucent);
+  --color-ui-link: var(--vscode-textLink-foreground, #0078d4);
+}
+
+:root {
+  --ui-bg: var(--vscode-editor-background, #e8eaf0);
+  --ui-fg: var(--vscode-editor-foreground, #1f1f1f);
+  --ui-btn-bg: var(--vscode-button-background, #0078d4);
+  --ui-btn-fg: var(--vscode-button-foreground, #ffffff);
+  --ui-btn-hover-bg: var(--vscode-button-hoverBackground, #005fa3);
+  --ui-popup-bg: var(--vscode-editorWidget-background, var(--vscode-editor-background, #f3f3f3));
+  --ui-border: var(--vscode-widget-border, var(--vscode-editorWidget-border, rgba(0, 0, 0, 0.1)));
+
+  --ui-text-primary: color-mix(in srgb, var(--ui-fg) 90%, transparent);
+  --ui-text-secondary: color-mix(in srgb, var(--ui-fg) 70%, transparent);
+  --ui-text-muted: color-mix(in srgb, var(--ui-fg) 55%, transparent);
+  --ui-element-bg: color-mix(in srgb, var(--ui-fg) 10%, transparent);
+  --ui-element-bg-hover: color-mix(in srgb, var(--ui-fg) 18%, transparent);
+  --ui-bg-translucent: color-mix(in srgb, var(--ui-bg) 85%, transparent);
+}
+
+input.input-warning,
+select.input-warning {
+  border-color: var(--vscode-inputValidation-errorBorder, #d45858) !important;
+  background-color: var(
+    --vscode-inputValidation-errorBackground,
+    color-mix(in srgb, var(--vscode-inputValidation-errorBorder, #d45858) 15%, transparent)
+  ) !important;
+}
