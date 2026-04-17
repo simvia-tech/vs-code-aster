@@ -32,7 +32,9 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:export"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
