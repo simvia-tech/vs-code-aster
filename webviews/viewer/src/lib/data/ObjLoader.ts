@@ -56,6 +56,9 @@ export class ObjLoader {
           }
 
           const line = lines[lineIdx];
+          if (line.startsWith('#')) {
+            continue;
+          }
           const ss = line.split(' ').filter((p) => p.length !== 0);
           if (ss.length === 0) {
             continue;

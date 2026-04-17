@@ -240,6 +240,13 @@
           "default": "python3",
           "markdownDescription": "Specifies the python executable used to run the language server."
         },
+        "vs-code-aster.maxRunLogs": {
+          "order": 3,
+          "type": "integer",
+          "default": 10,
+          "minimum": 1,
+          "markdownDescription": "Number of run logs to keep per project in `.vs-code-aster/run_logs/`. Older logs are deleted when a new run starts."
+        },
         "vs-code-aster.viewer.hiddenObjectOpacity": {
           "order": 10,
           "type": "number",

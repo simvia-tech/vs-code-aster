@@ -5,6 +5,27 @@ import { spawn } from 'child_process';
 import { sendTelemetry, TelemetryType } from './telemetry';
 import { WebviewVisu } from './WebviewVisu';
 import { TextDecoder } from 'util';
+import { getMeshCacheDir } from './projectPaths';
+
+const EXPECTED_MED2OBJ_VERSION = 1;
+
+function readObjVersion(objFilePath: string): number | null {
+  try {
+    const fd = fs.openSync(objFilePath, 'r');
+    try {
+      const buf = Buffer.alloc(128);
+      const bytesRead = fs.readSync(fd, buf, 0, buf.length, 0);
+      const head = buf.slice(0, bytesRead).toString('utf-8');
+      const firstLine = head.split('\n', 1)[0];
+      const m = firstLine.match(/^#\s*med2obj-version:\s*(\d+)/);
+      return m ? parseInt(m[1], 10) : null;
+    } finally {
+      fs.closeSync(fd);
+    }
+  } catch {
+    return null;
+  }
+}
 
 /**
  * List of supported Code Aster command file extensions.
@@ -279,36 +300,42 @@ export async function getObjFiles(medFiles: string[]): Promise<vscode.Uri[]> {
   const objUris: vscode.Uri[] = [];
   for (const mmedFilePath of medFiles) {
     try {
-      const mmedDir = path.dirname(mmedFilePath);
       const ext = path.extname(mmedFilePath);
       const mmedBase = path.basename(mmedFilePath, ext);
-      const visuDataDir = path.join(mmedDir, '.visu_data');
-      if (!fs.existsSync(visuDataDir)) {
-        fs.mkdirSync(visuDataDir, { recursive: true });
-        console.log(`[getObjFiles] Created directory: ${visuDataDir}`);
-      }
-      const objFilePath = path.join(visuDataDir, `${mmedBase}.obj`);
-      if (fs.existsSync(objFilePath)) {
+      const cacheDir = getMeshCacheDir(path.dirname(mmedFilePath));
+      const objFilePath = path.join(cacheDir, `${mmedBase}.obj`);
+
+      let needsGenerate = !fs.existsSync(objFilePath);
+      let reason = '';
+
+      if (!needsGenerate) {
         const mmedStat = fs.statSync(mmedFilePath);
         const objStat = fs.statSync(objFilePath);
         if (objStat.mtime < mmedStat.mtime) {
-          vscode.window.showInformationMessage(
-            `.obj file is outdated and being regenerated: ${path.basename(objFilePath)}`
-          );
-          console.log(`[getObjFiles] .obj file is outdated: ${objFilePath}`);
-          await generateObjFromMed(mmedFilePath, objFilePath);
+          needsGenerate = true;
+          reason = 'outdated';
+        } else {
+          const version = readObjVersion(objFilePath);
+          if (version !== EXPECTED_MED2OBJ_VERSION) {
+            needsGenerate = true;
+            reason = `converter version ${version ?? 'missing'} → ${EXPECTED_MED2OBJ_VERSION}`;
+          }
         }
-        console.log(`[getObjFiles] .obj file found: ${objFilePath}`);
-        objUris.push(vscode.Uri.file(objFilePath));
-      } else {
-        console.log(`[getObjFiles] .obj file not found for ${mmedBase}.`);
-        vscode.window.showInformationMessage(
-          `Creating .obj file for: ${path.basename(mmedFilePath)}`
-        );
+      }
+
+      if (needsGenerate) {
+        const msg = reason
+          ? `Regenerating .obj (${reason}): ${path.basename(objFilePath)}`
+          : `Creating .obj file for: ${path.basename(mmedFilePath)}`;
+        vscode.window.showInformationMessage(msg);
+        console.log(`[getObjFiles] ${msg}`);
         await generateObjFromMed(mmedFilePath, objFilePath);
-        if (fs.existsSync(objFilePath)) {
-          objUris.push(vscode.Uri.file(objFilePath));
-        }
+      } else {
+        console.log(`[getObjFiles] .obj file found: ${objFilePath}`);
+      }
+
+      if (fs.existsSync(objFilePath)) {
+        objUris.push(vscode.Uri.file(objFilePath));
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

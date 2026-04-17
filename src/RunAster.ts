@@ -4,10 +4,9 @@ import * as fs from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { parseRunOutput } from './OutputParser';
+import { getRunLogsDir, makeRunLogFilename, pruneRunLogs } from './projectPaths';
 
 const execAsync = promisify(exec);
-
-const LOG_FILENAME = '.vscode-aster-run.log';
 
 export class RunAster {
   private static diagnosticCollection: vscode.DiagnosticCollection | undefined;
@@ -77,17 +76,13 @@ export class RunAster {
       RunAster.logWatcher = undefined;
     }
 
-    // Capture all stdout/stderr via `tee` to a known log file so we can
-    // parse the full run output regardless of whether `F mess` is set in
+    // Capture all stdout/stderr via `tee` to a timestamped log file so we
+    // can parse the full run output regardless of whether `F mess` is set in
     // the `.export`. The user still sees live output in the terminal.
-    const logPath = path.join(fileDir, LOG_FILENAME);
-    try {
-      if (fs.existsSync(logPath)) {
-        fs.unlinkSync(logPath);
-      }
-    } catch (error) {
-      console.error('Failed to remove old log file:', error);
-    }
+    const runLogsDir = getRunLogsDir(fileDir);
+    const maxRunLogs = config.get<number>('maxRunLogs', 10);
+    pruneRunLogs(runLogsDir, Math.max(0, maxRunLogs - 1));
+    const logPath = path.join(runLogsDir, makeRunLogFilename());
 
     const cmd = `${alias} ${fileName} 2>&1 | tee "${logPath}"`;
 

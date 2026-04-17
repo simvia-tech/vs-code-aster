@@ -223,8 +223,11 @@
             <code>.med</code> mesh files are automatically converted to <code>.obj</code> when opened.
           </p>
           <p>
-            Converted files are cached in a hidden <code>.visu_data/</code> folder in your workspace and
-            reused on subsequent opens.
+            Extension-generated files live in a hidden <code>.vs-code-aster/</code> folder next to
+            your project:
+            <code>mesh_cache/</code> for converted meshes,
+            <code>screenshots/</code> for viewer captures,
+            <code>run_logs/</code> for code_aster run output.
           </p>
         </div>
       {:else if activeTab === 'About'}
