@@ -5,6 +5,19 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.1] - 2026-04-17
+
+Centralize extension-generated files under a single `.vs-code-aster/` folder per project, with timestamped run logs and automatic migration from legacy locations.
+
+### Added
+- Project-local `.vs-code-aster/` folder grouping all extension-generated files:
+  - `mesh_cache/` — converted `.obj` files (previously `.visu_data/`)
+  - `screenshots/` — PNGs saved from the viewer's screenshot button (previously next to source files)
+  - `run_logs/` — one timestamped log per code_aster run (previously a single overwritten `.vscode-aster-run.log`)
+- New `vs-code-aster.maxRunLogs` setting (default `10`) to cap run-log retention; oldest logs are pruned when a new run starts
+- `med2obj-version` header in generated `.obj` files: the extension now detects stale caches from older converter versions and regenerates them automatically
+- Automatic migration of legacy `.visu_data/` and `.vscode-aster-run.log` on first use, with info notifications so users know where files moved
+
 ## [1.7.0] - 2026-04-16
 
 New viewer toolbar with bounding box, wireframe, and screenshot tools.
