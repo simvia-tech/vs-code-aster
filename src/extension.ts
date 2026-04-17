@@ -7,6 +7,7 @@ import * as path from 'path';
 
 import { VisuManager } from './VisuManager';
 import { ExportEditor } from './ExportEditor';
+import { ExportFormatter } from './ExportFormatter';
 import { RunAster } from './RunAster';
 import { LspServer } from './LspServer';
 import { StatusBar } from './StatusBar';
@@ -36,6 +37,13 @@ export async function activate(context: vscode.ExtensionContext) {
   const createExportDoc = vscode.commands.registerCommand('vs-code-aster.exportDoc', () => {
     ExportEditor.initExportEditor();
   });
+
+  context.subscriptions.push(
+    vscode.languages.registerDocumentFormattingEditProvider(
+      { language: 'export' },
+      new ExportFormatter()
+    )
+  );
 
   const createMesh = vscode.commands.registerCommand('vs-code-aster.meshViewer', () => {
     VisuManager.instance.createOrShowMeshViewer();
