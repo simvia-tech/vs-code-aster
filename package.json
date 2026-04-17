@@ -134,6 +134,11 @@
         "language": "comm",
         "scopeName": "source.comm",
         "path": "./syntaxes/comm.tmLanguage.json"
+      },
+      {
+        "language": "export",
+        "scopeName": "source.export",
+        "path": "./syntaxes/export.tmLanguage.json"
       }
     ],
     "customEditors": [
