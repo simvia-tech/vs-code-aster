@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { getScreenshotsDir } from './projectPaths';
 
 /**
  * Provides basic dialog semantics over a VS Code webview panel for mesh visualization.
@@ -133,7 +134,8 @@ export class WebviewVisu implements vscode.Disposable {
           if (this.sourceDir) {
             const base64 = (e.dataUrl as string).replace(/^data:image\/png;base64,/, '');
             const buffer = Buffer.from(base64, 'base64');
-            const filePath = path.join(this.sourceDir, e.filename as string);
+            const screenshotsDir = getScreenshotsDir(this.sourceDir);
+            const filePath = path.join(screenshotsDir, e.filename as string);
             fs.writeFileSync(filePath, buffer);
           }
           break;

@@ -48,6 +48,10 @@ if sys.platform == "win32" and python_version >= (3, 8):
 
 import medcoupling as mc  # noqa E402
 
+# Bump when the .obj output format changes in a breaking way. The extension
+# reads the `# med2obj-version:` header and regenerates on mismatch.
+MED2OBJ_VERSION = 1
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -79,6 +83,7 @@ def write_obj(
     node_level=1,
 ):
     with open(output_path, "w") as f:
+        f.write(f"# med2obj-version: {MED2OBJ_VERSION}\n")
         coords = skin_mesh.getCoords().toNumPyArray()
         for coord in coords:
             # Ensure 2D coordinates are converted to 3D by adding z=0 if missing
