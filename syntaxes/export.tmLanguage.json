@@ -1,0 +1,49 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Aster Export",
+  "scopeName": "source.export",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#parameter-line" },
+    { "include": "#file-line" }
+  ],
+  "repository": {
+    "comment": {
+      "match": "#.*$",
+      "name": "comment.line.number-sign.export"
+    },
+    "extra-token": {
+      "match": "\\S+",
+      "name": "constant.numeric.export"
+    },
+    "parameter-line": {
+      "begin": "^\\s*(P)\\s+(\\S+)\\s+(\\S+)",
+      "end": "$",
+      "beginCaptures": {
+        "1": { "name": "keyword.control.parameter.export" },
+        "2": { "name": "variable.parameter.export" },
+        "3": { "name": "constant.numeric.export" }
+      },
+      "patterns": [
+        { "include": "#comment" },
+        { "include": "#extra-token" }
+      ]
+    },
+    "file-line": {
+      "begin": "^\\s*(F)\\s+(\\S+)\\s+(\\S+)\\s+(?:(D)|(RC?))\\s+(\\S+)",
+      "end": "$",
+      "beginCaptures": {
+        "1": { "name": "keyword.control.file.export" },
+        "2": { "name": "storage.type.export" },
+        "3": { "name": "string.unquoted.filename.export" },
+        "4": { "name": "markup.inserted.input.export" },
+        "5": { "name": "markup.changed.output.export" },
+        "6": { "name": "constant.numeric.export" }
+      },
+      "patterns": [
+        { "include": "#comment" },
+        { "include": "#extra-token" }
+      ]
+    }
+  }
+}
