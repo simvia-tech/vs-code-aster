@@ -43,6 +43,8 @@ export interface ExportEditorResult {
 export class ExportEditor<TResult> implements vscode.Disposable {
   private result?: TResult;
   private destinationFolder: string;
+  private deferredMessages: unknown[] = [];
+  private resourceRootDir: string;
 
   public static async initExportEditor() {
     let exportDescriptor: ExportDescriptor = {
@@ -68,7 +70,7 @@ export class ExportEditor<TResult> implements vscode.Disposable {
     const d = new ExportEditor<ExportEditorResult>(
       'export-editor-webview',
       testDir,
-      'webviews/export/export.html',
+      'webviews/export/dist/index.html',
       exportDescriptor,
       destinationFolder,
       undefined
@@ -90,16 +92,6 @@ export class ExportEditor<TResult> implements vscode.Disposable {
     return this.panel.webview;
   }
 
-  /**
-   * Initializes the export webview, loads HTML, sets up resource references, and handles export file logic.
-   * The panel is shown immediately and can only be used once.
-   *
-   * @param viewType The type of the webview.
-   * @param resourceRootDir The root directory for resources.
-   * @param htmlFileName The HTML file for the UI.
-   * @param viewColumn The column in which to show the webview.
-   * @param exportFilename Optional export file to pre-fill the webview.
-   */
   public constructor(
     viewType: string,
     resourceRootDir: string,
@@ -109,6 +101,7 @@ export class ExportEditor<TResult> implements vscode.Disposable {
     viewColumn?: vscode.ViewColumn
   ) {
     viewColumn = viewColumn || vscode.ViewColumn.Beside;
+    this.resourceRootDir = resourceRootDir;
     const options: vscode.WebviewOptions | vscode.WebviewPanelOptions = {
       enableScripts: true,
       localResourceRoots: [vscode.Uri.file(resourceRootDir)],
@@ -120,19 +113,27 @@ export class ExportEditor<TResult> implements vscode.Disposable {
       this.destinationFolder = vscode.workspace.workspaceFolders?.[0].uri.fsPath || __dirname;
     }
 
-    const htmlFile = path.join(resourceRootDir, htmlFileName);
-    let html = fs.readFileSync(htmlFile, { encoding: 'utf8' });
+    const htmlFilePath = path.join(resourceRootDir, htmlFileName);
+    let html = fs.readFileSync(htmlFilePath, { encoding: 'utf8' });
 
     const title = this.extractHtmlTitle(html, 'Export Editor');
 
     this.panel = vscode.window.createWebviewPanel(viewType, title, viewColumn, options);
 
-    html = this.fixResourceReferences(html, resourceRootDir);
-    html = this.fixCspSourceReferences(html);
+    html = this.preprocessWebviewHtml(html, path.dirname(htmlFilePath));
     this.panel.webview.html = html;
 
-    // If an export file is found, parse and fill the form in the webview
-    // const exportData = this.exportFile();
+    // Defer initial messages until the webview signals it is ready.
+    // Without this, messages posted during construction race the webview's
+    // async module load and get dropped.
+    this.deferredMessages.push({
+      command: 'assets',
+      simviaLogoUrl: this.resourceUri('media/images/simvia.svg'),
+      simviaLogoDarkUrl: this.resourceUri('media/images/simvia-white.svg'),
+      asterLogoUrl: this.resourceUri('media/images/code-aster.svg'),
+      asterLogoDarkUrl: this.resourceUri('media/images/code-aster-white.svg'),
+    });
+
     if (exportData.filename && exportData.content) {
       const formData = this.parseExportFile(exportData);
 
@@ -145,18 +146,20 @@ export class ExportEditor<TResult> implements vscode.Disposable {
         inputFiles.length > 0 ||
         outputFiles.length > 0
       ) {
-        this.panel.webview.postMessage({
+        this.deferredMessages.push({
           command: 'exportFileAlreadyDefined',
           formData,
         });
       }
     }
 
-    const files = this.getMatchingFiles('', '');
-    this.panel.webview.postMessage({ command: 'verifyFileNames', files });
-
     this.panel.webview.onDidReceiveMessage((message) => {
-      if (message.command === 'cancel') {
+      if (message.command === 'ready') {
+        for (const msg of this.deferredMessages) {
+          void this.panel.webview.postMessage(msg);
+        }
+        this.deferredMessages = [];
+      } else if (message.command === 'cancel') {
         this.panel.dispose();
       } else if (message.command === 'wrongCreation') {
         vscode.window.showInformationMessage(`${message.value}`);
@@ -168,19 +171,18 @@ export class ExportEditor<TResult> implements vscode.Disposable {
         const fullPath = path.join(this.destinationFolder, filename);
         fs.writeFileSync(fullPath, content, 'utf8');
 
-        // Report telemetry that an export file was created/saved
         void sendTelemetry(TelemetryType.EXPORT_SAVED);
 
         this.panel.dispose();
       } else if (message.command === 'autocomplete') {
         const suggestions = this.getMatchingFiles(message.value, message.type);
         if (suggestions.length !== 0) {
-          this.panel.webview.postMessage({
+          void this.panel.webview.postMessage({
             command: 'autocompleteResult',
             suggestions,
           });
         } else {
-          this.panel.webview.postMessage({
+          void this.panel.webview.postMessage({
             command: 'autocompleteFailed',
             suggestions,
           });
@@ -189,7 +191,12 @@ export class ExportEditor<TResult> implements vscode.Disposable {
     });
   }
 
-  private getMatchingFiles(partial: string, type: string): string[] {
+  private resourceUri(relativePath: string): string {
+    const fullPath = path.join(this.resourceRootDir, relativePath);
+    return this.webview.asWebviewUri(vscode.Uri.file(fullPath)).toString();
+  }
+
+  private getMatchingFiles(partial: string, _type: string): string[] {
     if (!this.destinationFolder) {
       return [];
     }
@@ -197,10 +204,7 @@ export class ExportEditor<TResult> implements vscode.Disposable {
     return allFiles.filter((name) => name.toLowerCase().includes(partial.toLowerCase()));
   }
 
-  /** * Parse the content of an export file into structured form data.
-   * @param exportDescriptor The export file descriptor containing filename and content.
-   * @returns The parsed form data including parameters and file descriptors.
-   */
+  /** Parse the content of an export file into structured form data. */
   private parseExportFile(exportDescriptor: ExportDescriptor): FormData {
     let formData: FormData = {
       name: '',
@@ -227,14 +231,14 @@ export class ExportEditor<TResult> implements vscode.Disposable {
       const tokens = cleanLine.split(/\s+/);
 
       if (tokens[0] === 'P' && tokens.length === 3) {
-        const [_, key, value] = tokens;
+        const [, key, value] = tokens;
         if (key in formData.parameters) {
           formData.parameters[key as keyof Parameters] = value;
         }
       }
 
       if (tokens[0] === 'F' && tokens.length === 5) {
-        const [_, type, name, ioFlag, unit] = tokens;
+        const [, type, name, ioFlag, unit] = tokens;
         const fileObj: FileDescriptor = {
           type: type,
           name: name,
@@ -251,58 +255,34 @@ export class ExportEditor<TResult> implements vscode.Disposable {
     return formData;
   }
 
-  /**
-   * Extract the dialog title from the <title> tag of the HTML.
-   */
   private extractHtmlTitle(html: string, defaultTitle: string): string {
-    const titleMatch = /\<title\>([^<]*)\<\/title\>/.exec(html);
+    const titleMatch = /<title>([^<]*)<\/title>/.exec(html);
     const title = (titleMatch && titleMatch[1]) || defaultTitle;
     return title;
   }
 
   /**
-   * Replace references to href="./file" or src="./file" with VS Code resource URIs.
+   * Rewrites href/src attributes relative to the HTML file so that Vite-built
+   * assets (emitted as `./assets/...`) and other local resources resolve to
+   * valid webview URIs. Also replaces `${webview.cspSource}` placeholders.
    */
-  private fixResourceReferences(html: string, resourceRootDir: string): string {
-    const refRegex = /((href)|(src))="(\.\/[^"]+)"/g;
-    let refMatch;
-    while ((refMatch = refRegex.exec(html)) !== null) {
-      const offset = refMatch.index;
-      const length = refMatch[0].length;
-      const refAttr = refMatch[1];
-      const refName = refMatch[4];
-      const refPath = path.join(resourceRootDir, refName);
-      const refUri = this.webview.asWebviewUri(vscode.Uri.file(refPath));
-      const refReplace = refAttr + '="' + refUri + '"';
-      html = html.slice(0, offset) + refReplace + html.slice(offset + length);
-    }
-    return html;
-  }
+  private preprocessWebviewHtml(html: string, htmlDir: string): string {
+    html = html.replace(
+      /(<link[^>]+?href="|<script[^>]+?src="|<img[^>]+?src=")([^"]+?)"/g,
+      (_match, p1, p2) => {
+        const resourceFullPath = path.join(htmlDir, p2);
+        const uri = this.webview.asWebviewUri(vscode.Uri.file(resourceFullPath));
+        return `${p1}${uri.toString()}"`;
+      }
+    );
 
-  /**
-   * Replace references to ${webview.cspSource} with the actual value.
-   */
-  private fixCspSourceReferences(html: string): string {
-    const cspSourceRegex = /\${webview.cspSource}/g;
-    let cspSourceMatch;
-    while ((cspSourceMatch = cspSourceRegex.exec(html)) !== null) {
-      html =
-        html.slice(0, cspSourceMatch.index) +
-        this.webview.cspSource +
-        html.slice(cspSourceMatch.index + cspSourceMatch[0].length);
-    }
+    html = html.replace(/\${webview.cspSource}/g, this.webview.cspSource);
 
     return html;
   }
 
-  /**
-   * Waits for the dialog to close, then gets the result, or `null`
-   * if the dialog was cancelled.
-   * @param cancellation Optional cancellation token that can be used to
-   * cancel waiting on a result. Cancelling the token also closes the dialog.
-   */
   public async getResult(cancellation?: vscode.CancellationToken): Promise<TResult | null> {
-    const disposePromise = new Promise<void>((resolve, reject) => {
+    const disposePromise = new Promise<void>((resolve) => {
       this.panel.onDidDispose(resolve);
     });
 
