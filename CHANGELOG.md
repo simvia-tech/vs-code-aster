@@ -5,6 +5,22 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.1] - 2026-04-20
+
+Follow-up polish on the `.export` editor form: smarter autocomplete suggestions and the saved file now opens automatically after create/save.
+
+### Added
+- **Type-aware autocomplete** — file name suggestions in the export form are now filtered by the selected F-line type so irrelevant files are hidden:
+  - `mmed` / `rmed` rows accept `.med`, `.mmed`, `.rmed`, and any custom extension registered in `vs-code-aster.medFileExtensions` (so user-added MED extensions like `.71` show up).
+  - `comm` rows accept `.com*` (covers `.comm`, `.com0`, `.com1`, ...).
+  - `mess`, `msh`, and `dat` rows require a literal extension match.
+  - Types without a conventional extension (`mail`, `base`, `libr`, `tab`, `nom`) still accept any file.
+- **Autocomplete on output rows** — output file name fields now use the same autocomplete dropdown as inputs, making it easy to reuse existing file names for outputs.
+- **Reveal on save** — creating or saving an `.export` file from the form now opens the file in a text editor (or focuses the existing tab if it's already open), so you immediately see the formatted result. Stale tabs left over from a rename are closed automatically.
+
+### Fixed
+- The hidden `.vs-code-aster/` folder no longer appears in the export form's autocomplete suggestions.
+
 ## [1.8.0] - 2026-04-20
 
 Full rewrite of the `.export` form in Svelte + Tailwind, first-class language support for `.export` files (syntax highlighting, formatter, format-on-save), and a batch of UX upgrades.
