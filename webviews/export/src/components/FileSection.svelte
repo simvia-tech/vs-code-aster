@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { dndzone, type DndEvent } from 'svelte-dnd-action';
+  import { flip } from 'svelte/animate';
   import FileRow from './FileRow.svelte';
   import type { FileDescriptor } from '../lib/types';
 
@@ -9,11 +11,11 @@
     inputs: FileDescriptor[];
     outputs: FileDescriptor[];
     suggestionsFor: Record<string, string[]>;
-    warningFor: Record<string, boolean>;
+    errorFor: Record<string, string>;
     onAdd: () => void;
-    onRemove: () => void;
     onAutocompleteQuery: (id: string, value: string, type: string) => void;
     onAutocompleteFocus: (id: string | null) => void;
+    onRemove: (id: string) => void;
   }
 
   let {
@@ -23,44 +25,78 @@
     inputs,
     outputs,
     suggestionsFor,
-    warningFor,
+    errorFor,
     onAdd,
-    onRemove,
     onAutocompleteQuery,
     onAutocompleteFocus,
+    onRemove,
   }: Props = $props();
+
+  const FLIP_MS = 180;
+
+  function handleConsider(e: CustomEvent<DndEvent<FileDescriptor>>) {
+    files = e.detail.items;
+  }
+
+  function handleFinalize(e: CustomEvent<DndEvent<FileDescriptor>>) {
+    files = e.detail.items;
+  }
 </script>
 
 <section class="mt-6">
-  <div class="flex items-center gap-2 mb-2">
-    <h2 class="text-base font-semibold text-ui-text-primary">{title}</h2>
-    <button
-      type="button"
-      class="w-7 h-7 flex items-center justify-center rounded bg-ui-elem hover:bg-ui-elem-hover text-ui-fg text-base leading-none"
-      aria-label={`Add ${title.toLowerCase()}`}
-      onclick={onAdd}>+</button
-    >
-    <button
-      type="button"
-      class="w-7 h-7 flex items-center justify-center rounded bg-ui-elem hover:bg-ui-elem-hover text-ui-fg text-base leading-none disabled:opacity-40 disabled:cursor-not-allowed"
-      aria-label={`Remove ${title.toLowerCase()}`}
-      disabled={files.length === 0}
-      onclick={onRemove}>−</button
-    >
-  </div>
+  <h2 class="text-base font-semibold text-ui-text-primary mb-2">{title}</h2>
 
-  <div class="flex flex-col gap-2">
+  <div
+    class="flex flex-col gap-2"
+    use:dndzone={{
+      items: files,
+      flipDurationMs: FLIP_MS,
+      dropTargetStyle: {
+        outline: '2px dashed var(--ui-focus)',
+        outlineOffset: '2px',
+        borderRadius: '4px',
+      },
+      type: `file-${kind}`,
+      dragDisabled: false,
+    }}
+    onconsider={handleConsider}
+    onfinalize={handleFinalize}
+  >
     {#each files as _file, i (files[i].id)}
-      <FileRow
-        bind:file={files[i]}
-        {kind}
-        {inputs}
-        {outputs}
-        {suggestionsFor}
-        {warningFor}
-        {onAutocompleteQuery}
-        {onAutocompleteFocus}
-      />
+      <div animate:flip={{ duration: FLIP_MS }}>
+        <FileRow
+          bind:file={files[i]}
+          {kind}
+          {inputs}
+          {outputs}
+          {suggestionsFor}
+          {errorFor}
+          {onAutocompleteQuery}
+          {onAutocompleteFocus}
+          {onRemove}
+        />
+      </div>
     {/each}
   </div>
+
+  <button
+    type="button"
+    class="w-full mt-3 flex items-center justify-center gap-1.5 py-1.5 rounded border border-dashed border-ui-border text-xs font-medium text-ui-text-secondary hover:text-ui-fg hover:bg-ui-elem hover:border-ui-text-muted cursor-pointer transition-colors"
+    aria-label={`Add ${kind} file`}
+    onclick={onAdd}
+  >
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.6"
+      stroke-linecap="round"
+      aria-hidden="true"
+    >
+      <path d="M6 1.5 V10.5 M1.5 6 H10.5" />
+    </svg>
+    Add {kind} file
+  </button>
 </section>
