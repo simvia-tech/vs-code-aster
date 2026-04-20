@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { sendTelemetry, TelemetryType } from './telemetry';
 import { formatExportContent } from './ExportFormatter';
+import { STATIC_MED_EXTS } from './MedEditorProvider';
 
 interface ExportDescriptor {
   filename: string;
@@ -35,6 +36,36 @@ interface FormData {
  */
 export interface ExportEditorResult {
   name: string;
+}
+
+/**
+ * Returns true if `filename` is a plausible match for an .export F-line
+ * `type`. Types without a conventional extension (mail, base, libr, tab, nom)
+ * match anything so the user can still pick arbitrary files.
+ */
+function matchesExportType(filename: string, type: string): boolean {
+  const lower = filename.toLowerCase();
+  const ext = path.extname(lower);
+
+  if (type === 'mmed' || type === 'rmed') {
+    if (STATIC_MED_EXTS.has(ext)) {
+      return true;
+    }
+    const configured = vscode.workspace
+      .getConfiguration('vs-code-aster')
+      .get<string[]>('medFileExtensions', ['.med', '.mmed', '.rmed']);
+    return configured.some((e) => e.toLowerCase() === ext);
+  }
+
+  if (type === 'comm') {
+    return /\.com[a-z0-9]*$/.test(lower);
+  }
+
+  if (type === 'mess' || type === 'msh' || type === 'dat') {
+    return ext === `.${type}`;
+  }
+
+  return true;
 }
 
 /**
@@ -224,12 +255,16 @@ export class ExportEditor<TResult> implements vscode.Disposable {
     return this.webview.asWebviewUri(vscode.Uri.file(fullPath)).toString();
   }
 
-  private getMatchingFiles(partial: string, _type: string): string[] {
+  private getMatchingFiles(partial: string, type: string): string[] {
     if (!this.destinationFolder) {
       return [];
     }
     const allFiles = fs.readdirSync(this.destinationFolder);
-    return allFiles.filter((name) => name.toLowerCase().includes(partial.toLowerCase()));
+    const needle = partial.toLowerCase();
+    return allFiles
+      .filter((name) => name !== '.vs-code-aster')
+      .filter((name) => matchesExportType(name, type))
+      .filter((name) => name.toLowerCase().includes(needle));
   }
 
   /** Parse the content of an export file into structured form data. */

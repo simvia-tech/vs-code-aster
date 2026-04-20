@@ -111,27 +111,15 @@
       </button>
     </Dropdown>
 
-    {#if kind === 'input'}
-      <AutocompleteInput
-        id={`name-${file.id}`}
-        bind:value={file.name}
-        placeholder="File name"
-        invalid={!!nameError}
-        suggestions={suggestionsFor[file.id] ?? []}
-        onQuery={handleNameQuery}
-        onFocusChange={(focused) => onAutocompleteFocus(focused ? file.id : null)}
-      />
-    {:else}
-      <input
-        id={`name-${file.id}`}
-        type="text"
-        aria-label="File name"
-        class="flex-1 min-w-0 bg-ui-input-bg text-ui-input-fg border border-ui-input-border rounded-sm px-2 py-1 text-sm focus:border-ui-focus focus:outline-none"
-        class:input-warning={!!nameError}
-        placeholder="File name"
-        bind:value={file.name}
-      />
-    {/if}
+    <AutocompleteInput
+      id={`name-${file.id}`}
+      bind:value={file.name}
+      placeholder="File name"
+      invalid={!!nameError}
+      suggestions={suggestionsFor[file.id] ?? []}
+      onQuery={handleNameQuery}
+      onFocusChange={(focused) => onAutocompleteFocus(focused ? file.id : null)}
+    />
 
     <input
       id={`unit-${file.id}`}
