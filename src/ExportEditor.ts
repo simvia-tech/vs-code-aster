@@ -221,8 +221,10 @@ export class ExportEditor<TResult> implements vscode.Disposable {
         const fullPath = path.join(this.destinationFolder, filename);
         fs.mkdirSync(path.dirname(fullPath), { recursive: true });
         fs.writeFileSync(fullPath, content, 'utf8');
+        let renamedFrom: string | undefined;
         if (this.originalFilename && this.originalFilename !== filename) {
           const oldPath = path.join(this.destinationFolder, this.originalFilename);
+          renamedFrom = oldPath;
           try {
             fs.unlinkSync(oldPath);
           } catch {
@@ -232,6 +234,7 @@ export class ExportEditor<TResult> implements vscode.Disposable {
 
         void sendTelemetry(TelemetryType.EXPORT_SAVED);
 
+        void this.revealExportFile(fullPath, renamedFrom);
         this.panel.dispose();
       } else if (message.command === 'autocomplete') {
         const suggestions = this.getMatchingFiles(message.value, message.type);
@@ -253,6 +256,28 @@ export class ExportEditor<TResult> implements vscode.Disposable {
   private resourceUri(relativePath: string): string {
     const fullPath = path.join(this.resourceRootDir, relativePath);
     return this.webview.asWebviewUri(vscode.Uri.file(fullPath)).toString();
+  }
+
+  /**
+   * Open the saved `.export` file in a text editor, reusing an existing tab
+   * when the file is already open. If the file was renamed, the stale tab
+   * for the old path is closed first so we don't leave a dangling editor.
+   */
+  private async revealExportFile(newPath: string, renamedFrom?: string): Promise<void> {
+    if (renamedFrom) {
+      const staleTabs: vscode.Tab[] = [];
+      for (const group of vscode.window.tabGroups.all) {
+        for (const tab of group.tabs) {
+          if (tab.input instanceof vscode.TabInputText && tab.input.uri.fsPath === renamedFrom) {
+            staleTabs.push(tab);
+          }
+        }
+      }
+      if (staleTabs.length > 0) {
+        await vscode.window.tabGroups.close(staleTabs);
+      }
+    }
+    await vscode.window.showTextDocument(vscode.Uri.file(newPath));
   }
 
   private getMatchingFiles(partial: string, type: string): string[] {
