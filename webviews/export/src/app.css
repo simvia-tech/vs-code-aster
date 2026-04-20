@@ -8,6 +8,11 @@
   --color-ui-btn-fg: var(--ui-btn-fg);
   --color-ui-popup-bg: var(--ui-popup-bg);
   --color-ui-border: var(--ui-border);
+  --color-ui-focus: var(--ui-focus);
+  --color-ui-input-bg: var(--ui-input-bg);
+  --color-ui-input-fg: var(--ui-input-fg);
+  --color-ui-input-border: var(--ui-input-border);
+  --color-ui-input-placeholder: var(--ui-input-placeholder);
   --color-ui-text-primary: var(--ui-text-primary);
   --color-ui-text-secondary: var(--ui-text-secondary);
   --color-ui-text-muted: var(--ui-text-muted);
@@ -23,8 +28,22 @@
   --ui-btn-bg: var(--vscode-button-background, #0078d4);
   --ui-btn-fg: var(--vscode-button-foreground, #ffffff);
   --ui-btn-hover-bg: var(--vscode-button-hoverBackground, #005fa3);
+  --ui-focus: var(--vscode-focusBorder, var(--vscode-button-background, #0078d4));
+  --ui-input-bg: var(--vscode-input-background, #ffffff);
+  --ui-input-fg: var(--vscode-input-foreground, var(--ui-fg));
+  --ui-input-border: var(--vscode-input-border, var(--ui-border));
+  --ui-input-placeholder: var(
+    --vscode-input-placeholderForeground,
+    color-mix(in srgb, var(--ui-fg) 45%, transparent)
+  );
   --ui-popup-bg: var(--vscode-editorWidget-background, var(--vscode-editor-background, #f3f3f3));
-  --ui-border: var(--vscode-widget-border, var(--vscode-editorWidget-border, rgba(0, 0, 0, 0.1)));
+  --ui-border: var(
+    --vscode-input-border,
+    var(
+      --vscode-widget-border,
+      var(--vscode-editorWidget-border, color-mix(in srgb, var(--ui-fg) 35%, transparent))
+    )
+  );
 
   --ui-text-primary: color-mix(in srgb, var(--ui-fg) 90%, transparent);
   --ui-text-secondary: color-mix(in srgb, var(--ui-fg) 70%, transparent);
@@ -32,6 +51,29 @@
   --ui-element-bg: color-mix(in srgb, var(--ui-fg) 10%, transparent);
   --ui-element-bg-hover: color-mix(in srgb, var(--ui-fg) 18%, transparent);
   --ui-bg-translucent: color-mix(in srgb, var(--ui-bg) 85%, transparent);
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Strip outlines from the svelte-dnd-action placeholder and the floating
+   clone. The drop-zone outline (on the target section) is enough feedback. */
+[data-is-dnd-shadow-item-internal='true'],
+#dnd-action-dragged-el,
+#dnd-action-dragged-el:focus,
+#dnd-action-dragged-el:focus-visible {
+  outline: none !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--ui-input-placeholder);
+  opacity: 1;
 }
 
 input.input-warning,

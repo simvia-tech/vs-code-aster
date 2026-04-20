@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { sendTelemetry, TelemetryType } from './telemetry';
+import { formatExportContent } from './ExportFormatter';
 
 interface ExportDescriptor {
   filename: string;
@@ -45,6 +46,7 @@ export class ExportEditor<TResult> implements vscode.Disposable {
   private destinationFolder: string;
   private deferredMessages: unknown[] = [];
   private resourceRootDir: string;
+  private originalFilename?: string;
 
   public static async initExportEditor() {
     let exportDescriptor: ExportDescriptor = {
@@ -104,6 +106,7 @@ export class ExportEditor<TResult> implements vscode.Disposable {
     this.resourceRootDir = resourceRootDir;
     const options: vscode.WebviewOptions | vscode.WebviewPanelOptions = {
       enableScripts: true,
+      retainContextWhenHidden: true,
       localResourceRoots: [vscode.Uri.file(resourceRootDir)],
     };
 
@@ -116,9 +119,19 @@ export class ExportEditor<TResult> implements vscode.Disposable {
     const htmlFilePath = path.join(resourceRootDir, htmlFileName);
     let html = fs.readFileSync(htmlFilePath, { encoding: 'utf8' });
 
-    const title = this.extractHtmlTitle(html, 'Export Editor');
+    const isEditing = Boolean(exportData.filename);
+    const baseName = isEditing ? exportData.filename.replace(/\.export$/i, '') : '';
+    const title = isEditing ? baseName : 'untitled';
+    if (isEditing) {
+      this.originalFilename = exportData.filename;
+    }
 
     this.panel = vscode.window.createWebviewPanel(viewType, title, viewColumn, options);
+
+    const editIcon = vscode.Uri.file(
+      path.join(resourceRootDir, 'media', 'images', 'icone-edit.svg')
+    );
+    this.panel.iconPath = { light: editIcon, dark: editIcon };
 
     html = this.preprocessWebviewHtml(html, path.dirname(htmlFilePath));
     this.panel.webview.html = html;
@@ -128,6 +141,8 @@ export class ExportEditor<TResult> implements vscode.Disposable {
     // async module load and get dropped.
     this.deferredMessages.push({
       command: 'assets',
+      mode: isEditing ? 'edit' : 'create',
+      originalName: baseName,
       simviaLogoUrl: this.resourceUri('media/images/simvia.svg'),
       simviaLogoDarkUrl: this.resourceUri('media/images/simvia-white.svg'),
       asterLogoUrl: this.resourceUri('media/images/code-aster.svg'),
@@ -159,6 +174,9 @@ export class ExportEditor<TResult> implements vscode.Disposable {
           void this.panel.webview.postMessage(msg);
         }
         this.deferredMessages = [];
+      } else if (message.command === 'titleChange') {
+        const name = String(message.name ?? '').trim();
+        this.panel.title = name || 'untitled';
       } else if (message.command === 'cancel') {
         this.panel.dispose();
       } else if (message.command === 'wrongCreation') {
@@ -167,9 +185,19 @@ export class ExportEditor<TResult> implements vscode.Disposable {
         this.result = message.value as TResult;
         const lines = message.value.split('\n');
         const filename = lines[0];
-        const content = lines.slice(1).join('\n');
+        const rawContent = lines.slice(1).join('\n');
+        const content = formatExportContent(rawContent, path.basename(filename));
         const fullPath = path.join(this.destinationFolder, filename);
+        fs.mkdirSync(path.dirname(fullPath), { recursive: true });
         fs.writeFileSync(fullPath, content, 'utf8');
+        if (this.originalFilename && this.originalFilename !== filename) {
+          const oldPath = path.join(this.destinationFolder, this.originalFilename);
+          try {
+            fs.unlinkSync(oldPath);
+          } catch {
+            // old file may have been deleted externally; ignore
+          }
+        }
 
         void sendTelemetry(TelemetryType.EXPORT_SAVED);
 

@@ -27,7 +27,7 @@
   }
 
   let formData = $state<FormData>({
-    name: 'simvia.export',
+    name: 'simvia',
     parameters: {
       time_limit: '300',
       memory_limit: '1024',
@@ -39,9 +39,7 @@
     outputFiles: [],
   });
 
-  // per-row autocomplete state
   let suggestionsFor = $state<Record<string, string[]>>({});
-  let warningFor = $state<Record<string, boolean>>({});
   let lastQueriedId: string | null = null;
 
   // resources resolved by the extension (injected via message)
@@ -49,42 +47,136 @@
   let simviaLogoDarkUrl = $state('');
   let asterLogoUrl = $state('');
   let asterLogoDarkUrl = $state('');
+  let mode = $state<'create' | 'edit'>('create');
+  let originalName = $state('');
 
-  let isValid = $derived(
-    formData.name.trim().length > 0 &&
-      Object.values(formData.parameters).every((v) => isInteger(v)) &&
-      formData.inputFiles.every((f) => f.name.trim() !== '' && isInteger(f.unit)) &&
-      formData.outputFiles.every((f) => f.name.trim() !== '' && isInteger(f.unit))
-  );
+  function isEmptyFile(f: FileDescriptor): boolean {
+    return f.type.trim() === '' && f.name.trim() === '';
+  }
 
-  function makeFile(type = 'nom'): FileDescriptor {
-    const unit = getNextAvailableUnit(
-      DEFAULT_UNITS[type as keyof typeof DEFAULT_UNITS] ?? '0',
-      formData.inputFiles,
-      formData.outputFiles
+  let errorFor = $derived.by(() => {
+    const errors: Record<string, string> = {};
+
+    if (formData.name.trim() === '') {
+      errors['envName'] = 'File name is required.';
+    }
+
+    for (const [key, value] of Object.entries(formData.parameters)) {
+      if (!isInteger(value)) {
+        errors[key] = `"${key}" must be an integer.`;
+      }
+    }
+
+    const checkFiles = (files: FileDescriptor[], label: 'Input' | 'Output') => {
+      files.forEach((f) => {
+        if (isEmptyFile(f)) {
+          return;
+        }
+        if (!f.name.trim()) {
+          errors[`name-${f.id}`] = `${label} file: missing file name.`;
+        }
+        if (!f.type.trim()) {
+          errors[`type-${f.id}`] = `${label} file: missing type.`;
+        }
+        if (!isInteger(f.unit)) {
+          errors[`unit-${f.id}`] = 'Unit must be an integer.';
+        }
+      });
+    };
+    checkFiles(formData.inputFiles, 'Input');
+    checkFiles(formData.outputFiles, 'Output');
+
+    return errors;
+  });
+
+  let formErrors = $derived.by(() => {
+    const out: string[] = [];
+    const hasComm = formData.inputFiles.some((f) => !isEmptyFile(f) && f.type === 'comm');
+    if (!hasComm) {
+      out.push('At least one comm input file is required.');
+    }
+    return out;
+  });
+
+  let warnings = $derived.by(() => {
+    const out: string[] = [];
+
+    if (
+      mode === 'edit' &&
+      originalName &&
+      formData.name.trim() &&
+      formData.name.trim() !== originalName
+    ) {
+      out.push(
+        `Saving will rename ${originalName}.export to ${formData.name.trim()}.export. The original file will be deleted.`
+      );
+    }
+
+    const meshTypes = new Set(['mmed', 'mail', 'msh']);
+    const hasMesh = [...formData.inputFiles, ...formData.outputFiles].some(
+      (f) => !isEmptyFile(f) && meshTypes.has(f.type)
     );
+    if (!hasMesh) {
+      out.push('No mesh file is set (mmed, mail, or msh).');
+    }
+
+    const hasRmed = formData.outputFiles.some((f) => !isEmptyFile(f) && f.type === 'rmed');
+    if (!hasRmed) {
+      out.push('No rmed output file is set.');
+    }
+
+    const byUnit = new Map<string, string[]>();
+    for (const f of [...formData.inputFiles, ...formData.outputFiles]) {
+      if (isEmptyFile(f)) {
+        continue;
+      }
+      if (!isInteger(f.unit)) {
+        continue;
+      }
+      const unitStr = String(f.unit).trim();
+      if (unitStr === '0') {
+        continue;
+      }
+      const label = f.name.trim() || `(unnamed ${f.type || 'file'})`;
+      const existing = byUnit.get(unitStr) ?? [];
+      existing.push(label);
+      byUnit.set(unitStr, existing);
+    }
+    for (const [unit, names] of byUnit) {
+      if (names.length > 1) {
+        out.push(`Multiple files share unit ${unit}: ${names.join(', ')}`);
+      }
+    }
+    return out;
+  });
+
+  let isValid = $derived(Object.keys(errorFor).length === 0 && formErrors.length === 0);
+
+  function makeFile(type = ''): FileDescriptor {
+    const unit = type
+      ? getNextAvailableUnit(type, [...formData.inputFiles, ...formData.outputFiles])
+      : '0';
     return { id: newRowId(), type, name: '', unit };
   }
 
   function addInput() {
     formData.inputFiles.push(makeFile());
   }
-  function removeInput() {
-    const last = formData.inputFiles.pop();
-    if (last) {
-      delete suggestionsFor[last.id];
-      delete warningFor[last.id];
-    }
-  }
   function addOutput() {
     formData.outputFiles.push(makeFile());
   }
-  function removeOutput() {
-    const last = formData.outputFiles.pop();
-    if (last) {
-      delete suggestionsFor[last.id];
-      delete warningFor[last.id];
+
+  function removeFile(id: string) {
+    let idx = formData.inputFiles.findIndex((f) => f.id === id);
+    if (idx >= 0) {
+      formData.inputFiles.splice(idx, 1);
+    } else {
+      idx = formData.outputFiles.findIndex((f) => f.id === id);
+      if (idx >= 0) {
+        formData.outputFiles.splice(idx, 1);
+      }
     }
+    delete suggestionsFor[id];
   }
 
   function handleAutocompleteQuery(id: string, value: string, type: string) {
@@ -93,73 +185,32 @@
   }
 
   function handleAutocompleteFocus(id: string | null) {
-    if (id === null) {
-      // closing suggestions for the focused row
-      if (lastQueriedId) {
-        suggestionsFor[lastQueriedId] = [];
-      }
+    if (id === null && lastQueriedId) {
+      suggestionsFor[lastQueriedId] = [];
     }
-  }
-
-  function validate(): string {
-    for (const [key, value] of Object.entries(formData.parameters)) {
-      if (!isInteger(value)) {
-        return `The parameter "${key}" must be an integer.`;
-      }
-    }
-
-    const collectUnits = (files: FileDescriptor[]) => files.map((f) => String(f.unit));
-    const inputUnits = collectUnits(formData.inputFiles);
-    const outputUnits = collectUnits(formData.outputFiles);
-
-    const checkFiles = (
-      files: FileDescriptor[],
-      label: 'Input' | 'Output',
-      own: string[],
-      other: string[]
-    ): string => {
-      for (let i = 0; i < files.length; i++) {
-        const f = files[i];
-        if (!f.name.trim()) {
-          return `${label} file #${i + 1} is invalid: missing file name.`;
-        }
-        if (!isInteger(f.unit)) {
-          return `${label} file #${i + 1} is invalid: unit must be an integer.`;
-        }
-        const unitStr = String(f.unit).trim();
-        if (unitStr === '0') continue;
-        const dupInOwn = own.filter((u, j) => j !== i && u === unitStr).length > 0;
-        const dupInOther = other.includes(unitStr);
-        if (dupInOwn || dupInOther) {
-          return `${label} file #${i + 1} is invalid: ${unitStr} is already used as a unit value.`;
-        }
-      }
-      return '';
-    };
-
-    const inputError = checkFiles(formData.inputFiles, 'Input', inputUnits, outputUnits);
-    if (inputError) return inputError;
-    const outputError = checkFiles(formData.outputFiles, 'Output', outputUnits, inputUnits);
-    if (outputError) return outputError;
-
-    return '';
   }
 
   function submit() {
-    const error = validate();
-    if (error) {
-      vscode?.postMessage({ command: 'wrongCreation', value: error });
+    if (!isValid) {
+      const first = Object.keys(errorFor)[0];
+      document.getElementById(first)?.focus();
       return;
     }
     const lines: string[] = [];
-    lines.push(formData.name.trim());
+    lines.push(`${formData.name.trim()}.export`);
     for (const [key, value] of Object.entries(formData.parameters)) {
       lines.push(`P ${key} ${value.trim()}`);
     }
     for (const f of formData.inputFiles) {
+      if (isEmptyFile(f)) {
+        continue;
+      }
       lines.push(`F ${f.type} ${f.name.trim()} D ${f.unit.trim()}`);
     }
     for (const f of formData.outputFiles) {
+      if (isEmptyFile(f)) {
+        continue;
+      }
       lines.push(`F ${f.type} ${f.name.trim()} R ${f.unit.trim()}`);
     }
     vscode?.postMessage({ command: 'result', value: lines.join('\n') });
@@ -169,21 +220,69 @@
     vscode?.postMessage({ command: 'cancel' });
   }
 
+  function scrollTo(id: string) {
+    const el = document.getElementById(id);
+    if (!el) {
+      return;
+    }
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  let initialized = false;
+  let loadedFromState = false;
+
   onMount(() => {
-    // seed with the same initial rows as the vanilla form (2 inputs + 1 output)
-    formData.inputFiles.push(makeFile());
-    formData.inputFiles.push(makeFile());
-    formData.outputFiles.push(makeFile());
+    const saved = vscode?.getState() as { formData?: FormData } | undefined;
+    if (saved?.formData) {
+      Object.assign(formData, saved.formData);
+      loadedFromState = true;
+    } else {
+      formData.inputFiles.push({
+        id: newRowId(),
+        type: 'comm',
+        name: 'simvia.comm',
+        unit: DEFAULT_UNITS.comm,
+      });
+      formData.inputFiles.push({
+        id: newRowId(),
+        type: 'mmed',
+        name: 'simvia.mmed',
+        unit: DEFAULT_UNITS.mmed,
+      });
+      formData.outputFiles.push({
+        id: newRowId(),
+        type: 'rmed',
+        name: 'simvia.rmed',
+        unit: DEFAULT_UNITS.rmed,
+      });
+    }
 
     window.addEventListener('message', handleMessage);
     vscode?.postMessage({ command: 'ready' });
+    initialized = true;
 
     return () => window.removeEventListener('message', handleMessage);
   });
 
+  $effect(() => {
+    if (!initialized) {
+      return;
+    }
+    vscode?.setState({ formData: $state.snapshot(formData) });
+  });
+
+  $effect(() => {
+    if (!initialized) {
+      return;
+    }
+    vscode?.postMessage({ command: 'titleChange', name: formData.name.trim() });
+  });
+
   function handleMessage(event: MessageEvent) {
     const message = event.data;
-    if (!message || typeof message !== 'object') return;
+    if (!message || typeof message !== 'object') {
+      return;
+    }
 
     switch (message.command) {
       case 'assets': {
@@ -191,23 +290,29 @@
         simviaLogoDarkUrl = message.simviaLogoDarkUrl ?? '';
         asterLogoUrl = message.asterLogoUrl ?? '';
         asterLogoDarkUrl = message.asterLogoDarkUrl ?? '';
+        if (message.mode === 'edit' || message.mode === 'create') {
+          mode = message.mode;
+        }
+        if (typeof message.originalName === 'string') {
+          originalName = message.originalName;
+        }
         break;
       }
       case 'exportFileAlreadyDefined': {
-        applyExportFile(message.formData);
+        if (!loadedFromState) {
+          applyExportFile(message.formData);
+        }
         break;
       }
       case 'autocompleteResult': {
         if (lastQueriedId) {
           suggestionsFor[lastQueriedId] = message.suggestions ?? [];
-          warningFor[lastQueriedId] = false;
         }
         break;
       }
       case 'autocompleteFailed': {
         if (lastQueriedId) {
           suggestionsFor[lastQueriedId] = [];
-          warningFor[lastQueriedId] = true;
         }
         break;
       }
@@ -220,7 +325,9 @@
     inputFiles: Array<{ type: string; name: string; unit: string }>;
     outputFiles: Array<{ type: string; name: string; unit: string }>;
   }) {
-    if (data.name) formData.name = data.name;
+    if (data.name) {
+      formData.name = data.name.replace(/\.export$/i, '');
+    }
     if (data.parameters) {
       const params = formData.parameters as unknown as Record<string, string>;
       for (const key of Object.keys(params)) {
@@ -250,36 +357,64 @@
   }
 </script>
 
-<main class="max-w-3xl mx-auto p-8 bg-ui-bg text-ui-fg">
-  <Header {simviaLogoUrl} {simviaLogoDarkUrl} {asterLogoUrl} {asterLogoDarkUrl} />
+<main class="max-w-3xl mx-auto p-8 bg-ui-bg text-ui-fg min-h-screen flex flex-col">
+  <Header
+    title={mode === 'edit' ? 'Edit an export file' : 'Create a new export file'}
+    {simviaLogoUrl}
+    {simviaLogoDarkUrl}
+    {asterLogoUrl}
+    {asterLogoDarkUrl}
+  />
 
-  <div class="flex flex-col gap-2">
-    <FieldRow id="envName" label="File name" bind:value={formData.name} />
+  <div class="mb-6">
+    <FieldRow
+      id="envName"
+      label="File name"
+      accent
+      suffix=".export"
+      bind:value={formData.name}
+      error={errorFor['envName']}
+    />
+  </div>
+
+  <div class="grid grid-cols-2 gap-x-6 gap-y-2 mt-2">
     <FieldRow
       id="time_limit"
       label="Time Limit"
       kind="int"
       bind:value={formData.parameters.time_limit}
+      error={errorFor['time_limit']}
+    />
+    <FieldRow
+      id="ncpus"
+      label="NCPUs"
+      kind="int"
+      bind:value={formData.parameters.ncpus}
+      error={errorFor['ncpus']}
     />
     <FieldRow
       id="memory_limit"
       label="Memory Limit"
       kind="int"
       bind:value={formData.parameters.memory_limit}
+      error={errorFor['memory_limit']}
     />
-    <FieldRow id="ncpus" label="NCPUs" kind="int" bind:value={formData.parameters.ncpus} />
     <FieldRow
       id="mpi_nbcpu"
       label="MPI NBCPU"
       kind="int"
       bind:value={formData.parameters.mpi_nbcpu}
+      error={errorFor['mpi_nbcpu']}
     />
-    <FieldRow
-      id="mpi_nbnoeud"
-      label="MPI NBNOEUD"
-      kind="int"
-      bind:value={formData.parameters.mpi_nbnoeud}
-    />
+    <div class="col-start-2">
+      <FieldRow
+        id="mpi_nbnoeud"
+        label="MPI NBNOEUD"
+        kind="int"
+        bind:value={formData.parameters.mpi_nbnoeud}
+        error={errorFor['mpi_nbnoeud']}
+      />
+    </div>
   </div>
 
   <FileSection
@@ -289,11 +424,11 @@
     inputs={formData.inputFiles}
     outputs={formData.outputFiles}
     {suggestionsFor}
-    {warningFor}
+    {errorFor}
     onAdd={addInput}
-    onRemove={removeInput}
     onAutocompleteQuery={handleAutocompleteQuery}
     onAutocompleteFocus={handleAutocompleteFocus}
+    onRemove={removeFile}
   />
 
   <FileSection
@@ -303,12 +438,91 @@
     inputs={formData.inputFiles}
     outputs={formData.outputFiles}
     {suggestionsFor}
-    {warningFor}
+    {errorFor}
     onAdd={addOutput}
-    onRemove={removeOutput}
     onAutocompleteQuery={handleAutocompleteQuery}
     onAutocompleteFocus={handleAutocompleteFocus}
+    onRemove={removeFile}
   />
 
-  <SubmitBar canSubmit={isValid} onSubmit={submit} onCancel={cancel} />
+  {#if formErrors.length > 0}
+    <div
+      id="panel-errors"
+      class="mt-6 p-4 rounded border text-sm scroll-mt-8 scroll-mb-20"
+      style="border-color: var(--vscode-inputValidation-errorBorder, #d45858); background: color-mix(in srgb, var(--vscode-inputValidation-errorBorder, #d45858) 12%, transparent); color: var(--vscode-inputValidation-errorBorder, #d45858)"
+      role="alert"
+    >
+      <div class="font-semibold mb-3">Cannot save</div>
+      <ul class="flex flex-col gap-2.5">
+        {#each formErrors as e}
+          <li class="flex items-start gap-2">
+            <svg
+              class="shrink-0 mt-0.5"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{e}</span>
+          </li>
+        {/each}
+      </ul>
+    </div>
+  {/if}
+
+  {#if warnings.length > 0}
+    <div
+      id="panel-warnings"
+      class="mt-6 p-4 rounded border text-sm scroll-mt-8 scroll-mb-20"
+      style="border-color: var(--vscode-editorWarning-foreground, #cca700); background: color-mix(in srgb, var(--vscode-editorWarning-foreground, #cca700) 10%, transparent); color: var(--vscode-editorWarning-foreground, #cca700)"
+      role="alert"
+    >
+      <div class="font-semibold mb-3">Warning</div>
+      <ul class="flex flex-col gap-2.5">
+        {#each warnings as w}
+          <li class="flex items-start gap-2">
+            <svg
+              class="shrink-0 mt-0.5"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+              <path d="M12 9v4" />
+              <path d="M12 17h.01" />
+            </svg>
+            <span>{w}</span>
+          </li>
+        {/each}
+      </ul>
+    </div>
+  {/if}
+
+  <div class="pb-8"></div>
+
+  <SubmitBar
+    canSubmit={isValid}
+    submitLabel={mode === 'edit' ? 'Save' : 'Create'}
+    errorCount={Object.keys(errorFor).length + formErrors.length}
+    warningCount={warnings.length}
+    onSubmit={submit}
+    onCancel={cancel}
+    onScrollToErrors={() => scrollTo('panel-errors')}
+    onScrollToWarnings={() => scrollTo('panel-warnings')}
+  />
 </main>

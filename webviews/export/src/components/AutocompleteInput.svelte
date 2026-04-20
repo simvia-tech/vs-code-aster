@@ -83,7 +83,7 @@
     bind:this={inputEl}
     {id}
     type="text"
-    class="w-full bg-ui-popup-bg text-ui-fg border border-ui-border rounded px-2 py-1 text-sm focus:border-ui-btn focus:outline-none"
+    class="w-full bg-ui-input-bg text-ui-input-fg border border-ui-input-border rounded-sm px-2 py-1 text-sm focus:border-ui-focus focus:outline-none"
     class:input-warning={invalid}
     {placeholder}
     bind:value
@@ -94,14 +94,15 @@
   />
   {#if showBox}
     <ul
-      class="absolute left-0 right-0 top-full mt-0.5 z-20 bg-ui-popup-bg border border-ui-border rounded shadow-md max-h-48 overflow-y-auto"
+      class="absolute left-0 right-0 top-full mt-1 z-20 bg-ui-popup-bg border border-ui-border rounded py-[3px] shadow-[0_4px_16px_rgba(0,0,0,0.25)] max-h-48 overflow-y-auto no-scrollbar"
       role="listbox"
     >
       {#each suggestions as s, i}
         <li
-          class="px-2 py-1 text-sm cursor-pointer text-ui-fg {i === selectedIndex
+          class="px-2.5 py-[5px] text-xs cursor-pointer text-ui-fg whitespace-nowrap {i ===
+          selectedIndex
             ? 'bg-ui-elem-hover font-semibold'
-            : 'hover:bg-ui-elem'}"
+            : 'hover:bg-ui-elem-hover'}"
           role="option"
           aria-selected={i === selectedIndex}
           onmousedown={(e) => {
