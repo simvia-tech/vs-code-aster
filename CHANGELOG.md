@@ -5,6 +5,48 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-04-20
+
+Full rewrite of the `.export` form in Svelte + Tailwind, first-class language support for `.export` files (syntax highlighting, formatter, format-on-save), and a batch of UX upgrades.
+
+### Added
+- **Redesigned export form** — rewritten in Svelte 5 + Tailwind 4, styled with VS Code theme tokens (`--vscode-input-*`, `--vscode-focusBorder`, `--vscode-editorWarning-foreground`, ...), so it looks native in every theme.
+  - Tab icon is a blue pencil; tab title lives-updates to match the filename (falls back to `untitled`).
+  - Titles inside the form adapt to mode: "Create a new export file" vs "Edit an export file".
+  - New export files are pre-seeded with a sensible default: `comm` + `mmed` inputs and an `rmed` output, filenames `simvia.comm / simvia.mmed / simvia.rmed`.
+  - `.export` extension locked as a visual suffix on the filename field — it can't be edited away.
+  - Nested paths supported in the filename (`subdir/file.export`); missing folders are created on save.
+  - Unsaved drafts persist via `vscode.setState` + `retainContextWhenHidden`, so switching tabs or reloading the panel no longer clears the form.
+- **File rows** — drag-to-reorder (powered by [`svelte-dnd-action`](https://github.com/isaacHagoel/svelte-dnd-action), theme-colored drop zones, keyboard-accessible); per-row × delete; full-width "Add input/output file" button at the end of each section.
+  - Type dropdown is filtered by direction (inputs vs outputs) and shows a `Type` placeholder on new rows; the file-type list is the full code_aster set (`comm, mmed, rmed, mess, nom, base, mail, libr, tab, msh, dat`).
+  - Unit auto-increment scoped to the same type and max+1 (so `med: 20, 50` → next is `51`, not `21`), idempotent when re-picking the same type; `nom` rows are locked to unit 0; ArrowUp/Down steps integer inputs.
+  - Name autocomplete list matches the type dropdown styling; empty rows (no type and no name) are ignored by validation and on save.
+- **Validation** — per-field inline error messages, a sticky footer with clickable error / warning counts that smooth-scroll to the corresponding panel.
+  - Blocking errors: filename required, parameters must be integers, at least one `comm` input file required.
+  - Non-blocking warnings: duplicate unit across files (listing the file names), no mesh file set, no `rmed` output set, rename-in-edit-mode (tells the user the original file will be deleted).
+- **`.export` language support** — new TextMate grammar (`source.export`) colors `P`/`F` directives, parameter names, file types, direction flags (`D` vs `R`/`RC`), unit numbers, and `#` comments.
+- **Document formatter for `.export`** — available via Format Document. On save/create the form applies the same formatter automatically:
+  - Groups lines into `# Simulation parameters`, `# Input files`, `# Output files` sections separated by blank lines.
+  - Sorts F lines within each direction by a canonical type priority (`comm, mmed, rmed, mess, nom, base, mail, libr, tab, msh, dat`).
+  - Keeps standalone `#` comments attached to the line they precede.
+  - Emits a three-line header at the top crediting VS Code Aster and Simvia; re-saving is idempotent (no stacked headers).
+- Dedicated pencil icon (`media/images/icone-edit.svg`) for the "Edit export file" command, replacing the plain `$(book)` codicon.
+- Extension now activates on `onLanguage:export`, so opening a `.export` file registers the formatter without any prior command run.
+- Refreshed Simvia logo (new SVG), separate light/dark variants for both Simvia and code_aster logos in the form header.
+
+### Changed
+- Editing a file and changing its name now _renames_ the file on disk (old file is deleted after the new one is written). A warning panel previews the rename before the user saves.
+- When writing a file, the output is always formatted (P/F grouping, section headers, shoutout) — so files stay clean across multiple save cycles.
+
+### Fixed
+- Loading an existing `.export` into the form (e.g. after a tab switch) no longer clobbers the pre-filled data with the seeded default.
+- Removing the last row no longer leaves stale autocomplete suggestions keyed to the dead row.
+- Missing parent directories no longer cause save to fail silently when the filename contains a path separator.
+
+### Removed
+- The legacy vanilla HTML/CSS/JS export form (`webviews/export/export.{html,css,js}`) and its hardcoded blue-on-light styling.
+- Unused media assets: `media/images/aster.png`, `media/icons/3d.svg`, `media/icons/3d_light.svg`.
+
 ## [1.7.1] - 2026-04-17
 
 Centralize extension-generated files under a single `.vs-code-aster/` folder per project, with timestamped run logs and automatic migration from legacy locations.
