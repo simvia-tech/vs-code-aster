@@ -1,7 +1,7 @@
 <p align="center"><img src="https://raw.githubusercontent.com/simvia-tech/vs-code-aster/main/media/images/simvia.png" alt="Simvia Logo" width="50%" /></p>
 
 <p align="center">
-  <a href="/"><img src="https://img.shields.io/badge/version-1.7.1-blue" alt="Version" /></a>
+  <a href="/"><img src="https://img.shields.io/badge/version-1.8.0-blue" alt="Version" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL%203.0-green" alt="License" /></a>
 </p>
 
@@ -106,25 +106,29 @@ You're now ready to use **VS Code Aster** !
 
 ### 1. Creating and managing .export files
 
-The extension provides an interface to create and manage `.export` files more easily, through a web form.
+The extension provides a native-looking Svelte form to create and edit `.export` files, plus first-class language support (syntax highlighting and a document formatter).
 
 #### Opening the form
 
-There are two ways to open the form :
+- **New file** — open the Command Palette (`Ctrl + Shift + P` / `Cmd + Shift + P`) and run `Edit export file`. The tab title defaults to `untitled` and the form is pre-filled with a standard starter: a `comm` + `mmed` input and an `rmed` output (`simvia.comm`, `simvia.mmed`, `simvia.rmed`).
+- **Existing file** — open a `.export` file and click the blue pencil `Edit export file` in the editor title bar. The form is pre-filled from the file and the Save button replaces Create.
 
-- Option 1 - recommended when creating a new file :
-  - Open the Command Palette (`Ctrl + Shift + P` / `Cmd + Shift + P`)
-  - Search for `Edit export file` then click on it.
-  - The form will be pre-filled with placeholder data that should be modified to your desires.
-- Option 2 - recommended when editing an existing file :
-  1. Open an `.export` file.
-  2. Click the book icon `Edit export file` in the top-right corner of the file.
-  3. The form will be pre-filled with existing data, ready to be modified.
+#### Form behavior
 
-#### Key points
+- The file name field lives-updates the tab title; the `.export` extension is shown as a non-editable suffix. Path separators are supported (`subdir/run.export` creates `subdir/` if it doesn't exist).
+- The file type dropdown is filtered by direction: inputs accept `comm, mmed, nom, base, mail, libr, msh, dat`; outputs accept `mmed, rmed, mess, base, mail, tab, msh, dat`. `nom` rows are locked to unit 0 (can be repeated).
+- Units auto-increment within the same type family (`med: 20, 50` → next `med` lands at `51`), ArrowUp / ArrowDown on any integer input steps the value.
+- Rows can be **dragged to reorder** (drag handle at the left) and deleted individually with the × button. Empty rows are ignored on save.
+- Inline validation shows per-field error messages; a sticky footer reports error and warning counts with click-to-scroll links:
+  - **Blocking** errors: missing filename, non-integer parameters, no `comm` input (code_aster needs one).
+  - **Warnings**: duplicate units across files, no mesh (`mmed`/`mail`/`msh`) set, no `rmed` output set, rename preview (shows the old file will be deleted).
+- The panel is tab-switch safe: the in-progress form is preserved via webview state, so you can glance at another file and come back without losing your changes.
 
-- Any field highlighted in red will block the creation of the export file.
-- Once the `Create` button is clicked and the form is valid, a `.export` file will be created at the place it has been opened (replacing the previous file if it existed).
+#### Syntax highlighting and formatting
+
+- `.export` files now have their own TextMate grammar: `P`/`F` directives, parameter names, file types, `D` vs `R`/`RC` direction flags, unit numbers and `#` comments each get their own theme scope.
+- `Format Document` (Shift+Alt+F) reorders the file into three commented sections — `# Simulation parameters`, `# Input files`, `# Output files` — sorts F lines by a canonical type priority, and keeps standalone `#` comments attached to the line they precede.
+- Saving/creating from the form runs the same formatter automatically, so files stay tidy across repeated edits.
 
 ### 2. Launching a simulation
 
@@ -268,10 +272,11 @@ npm install
 
 ### 3. Architecture overview
 
-The extension consists of two independently compiled parts :
+The extension consists of three independently compiled parts :
 
 - **Extension host** (`src/`) — TypeScript compiled with esbuild, runs in Node.js inside VS Code
-- **Webview** (`webviews/viewer/`) — Svelte 5 + Vite app that powers the 3D visualizer; built separately into `webviews/viewer/dist/`
+- **Viewer webview** (`webviews/viewer/`) — Svelte 5 + Vite app that powers the 3D visualizer; built separately into `webviews/viewer/dist/`
+- **Export form webview** (`webviews/export/`) — Svelte 5 + Vite app that powers the `.export` file editor; built separately into `webviews/export/dist/`
 
 ### 4. Running the extension locally
 
@@ -283,11 +288,11 @@ This starts three background watch tasks automatically (defined in `.vscode/task
 |---|---|
 | `npm: watch:esbuild` | Recompiles the extension host on every save |
 | `npm: watch:tsc` | Type-checks the extension host continuously |
-| `npm: watch:webview` | Rebuilds the Svelte webview on every save |
+| `npm: watch:webview` | Rebuilds both Svelte webviews (viewer + export form) on every save |
 
 After making changes to the **extension host** (`src/`), reload the debug window with `Ctrl + R`.
 
-After making changes to the **webview** (`webviews/viewer/src/`), wait for the `watch:webview` task to finish rebuilding, then run `Developer: Reload Webviews` from the Command Palette.
+After making changes to a **webview** (`webviews/viewer/src/` or `webviews/export/src/`), wait for the `watch:webview` task to finish rebuilding, then run `Developer: Reload Webviews` from the Command Palette.
 
 ### 5. Building manually
 
