@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { hiddenObjects, sidebarHiddenGroups } from '../../lib/state';
+  import { hiddenObjects, settings, sidebarHiddenGroups } from '../../lib/state';
+  import type { GroupKind } from '../../lib/state';
   import { VisibilityManager } from '../../lib/commands/VisibilityManager';
   import GroupButton from './GroupButton.svelte';
   import ObjectIcon from '../../icons/ObjectIcon.svelte';
@@ -12,6 +13,7 @@
     nodes,
     volumes,
     edges,
+    mixed,
     color,
   }: {
     objectKey: string;
@@ -19,8 +21,11 @@
     nodes: string[];
     volumes: string[];
     edges: string[];
+    mixed: { name: string; kind: GroupKind }[];
     color: number[];
   } = $props();
+
+  let groupByKind = $derived($settings.groupByKind);
 
   let objectName = $derived(objectKey.replace('all_', '').replace('.obj', ''));
   let colorCss = $derived(
@@ -127,18 +132,24 @@
   </div>
 {:else if !collapsed}
   <div class="w-full flex flex-col items-center space-y-1">
-    {#each volumes as groupName}
-      <GroupButton {objectKey} {groupName} kind="volume" />
-    {/each}
-    {#each faces as groupName}
-      <GroupButton {objectKey} {groupName} kind="face" />
-    {/each}
-    {#each edges as groupName}
-      <GroupButton {objectKey} {groupName} kind="edge" />
-    {/each}
-    {#each nodes as groupName}
-      <GroupButton {objectKey} {groupName} kind="node" />
-    {/each}
+    {#if groupByKind}
+      {#each volumes as groupName}
+        <GroupButton {objectKey} {groupName} kind="volume" />
+      {/each}
+      {#each faces as groupName}
+        <GroupButton {objectKey} {groupName} kind="face" />
+      {/each}
+      {#each edges as groupName}
+        <GroupButton {objectKey} {groupName} kind="edge" />
+      {/each}
+      {#each nodes as groupName}
+        <GroupButton {objectKey} {groupName} kind="node" />
+      {/each}
+    {:else}
+      {#each mixed as { name, kind } (`${name}::${kind}`)}
+        <GroupButton {objectKey} groupName={name} {kind} />
+      {/each}
+    {/if}
     {#if hiddenGroupCount > 0}
       <div class="w-full text-center text-[0.7rem] pb-1 text-ui-text-muted">
         {hiddenGroupCount} hidden

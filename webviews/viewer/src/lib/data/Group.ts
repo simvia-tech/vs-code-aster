@@ -1,6 +1,6 @@
 import { GlobalSettings } from '../settings/GlobalSettings';
-
-export type GroupKind = 'face' | 'node' | 'volume' | 'edge';
+import type { GroupKind } from '../state';
+export type { GroupKind };
 
 export class Group {
   actor: any;
@@ -93,7 +93,8 @@ export class Group {
 
   setSize(distance: number): void {
     const decay = (this.size ?? 1) / 5;
-    const scale = Math.max(30 * (1 / Math.sqrt(1 + distance / decay)), 0);
+    const multiplier = GlobalSettings.Instance.nodeGroupSize;
+    const scale = Math.max(30 * multiplier * (1 / Math.sqrt(1 + distance / decay)), 0);
     this.actor.getProperty().setPointSize(scale);
   }
 

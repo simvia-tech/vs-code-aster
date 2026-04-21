@@ -110,6 +110,13 @@ export class CameraManager {
     VtkApp.Instance.getRenderWindow().render();
   }
 
+  refreshNodeGroupSize(): void {
+    for (const nodeGroup of Object.values(this.nodesGroups)) {
+      nodeGroup.setSize(this.lastDistance);
+    }
+    VtkApp.Instance.getRenderWindow().render();
+  }
+
   setOrientationWidgetVisible(visible: boolean): void {
     this.orientationWidget.setEnabled(visible);
     VtkApp.Instance.getRenderWindow().render();

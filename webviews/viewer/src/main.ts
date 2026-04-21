@@ -5,7 +5,7 @@ import { VisibilityManager } from './lib/commands/VisibilityManager';
 import { CameraManager } from './lib/interaction/CameraManager';
 import { GlobalSettings } from './lib/settings/GlobalSettings';
 import { settings, errorMessage } from './lib/state';
-import type { EdgeMode } from './lib/state';
+import type { EdgeMode, SidebarSort } from './lib/state';
 import './app.css';
 
 declare function acquireVsCodeApi(): {
@@ -34,6 +34,14 @@ window.addEventListener('message', async (e) => {
         if (s.edgeMode !== undefined) GlobalSettings.Instance.edgeMode = s.edgeMode as EdgeMode;
         if (s.edgeThresholdMultiplier !== undefined)
           GlobalSettings.Instance.edgeThresholdMultiplier = s.edgeThresholdMultiplier;
+        if (s.edgeGroupThickness !== undefined)
+          GlobalSettings.Instance.edgeGroupThickness = s.edgeGroupThickness;
+        if (s.edgeGroupDepthOffset !== undefined)
+          GlobalSettings.Instance.edgeGroupDepthOffset = s.edgeGroupDepthOffset;
+        if (s.nodeGroupSize !== undefined) GlobalSettings.Instance.nodeGroupSize = s.nodeGroupSize;
+        if (s.sidebarSort !== undefined)
+          GlobalSettings.Instance.sidebarSort = s.sidebarSort as SidebarSort;
+        if (s.groupByKind !== undefined) GlobalSettings.Instance.groupByKind = s.groupByKind;
         if (s.groupTransparency !== undefined)
           GlobalSettings.Instance.groupTransparency = s.groupTransparency;
         if (s.showOrientationWidget !== undefined)
@@ -45,6 +53,11 @@ window.addEventListener('message', async (e) => {
           hiddenObjectOpacity: s.hiddenObjectOpacity ?? cur.hiddenObjectOpacity,
           edgeMode: (s.edgeMode ?? cur.edgeMode) as EdgeMode,
           edgeThresholdMultiplier: s.edgeThresholdMultiplier ?? cur.edgeThresholdMultiplier,
+          edgeGroupThickness: s.edgeGroupThickness ?? cur.edgeGroupThickness,
+          edgeGroupDepthOffset: s.edgeGroupDepthOffset ?? cur.edgeGroupDepthOffset,
+          nodeGroupSize: s.nodeGroupSize ?? cur.nodeGroupSize,
+          sidebarSort: (s.sidebarSort ?? cur.sidebarSort) as SidebarSort,
+          groupByKind: s.groupByKind ?? cur.groupByKind,
           groupTransparency: s.groupTransparency ?? cur.groupTransparency,
           showOrientationWidget: s.showOrientationWidget ?? cur.showOrientationWidget,
           showBoundingBox: s.showBoundingBox ?? cur.showBoundingBox,

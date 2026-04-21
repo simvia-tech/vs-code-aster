@@ -2,6 +2,8 @@ import { writable } from 'svelte/store';
 import { tweened } from 'svelte/motion';
 import { cubicOut } from 'svelte/easing';
 
+export type GroupKind = 'face' | 'node' | 'volume' | 'edge';
+
 export type GroupHierarchy = Record<
   string,
   {
@@ -9,6 +11,7 @@ export type GroupHierarchy = Record<
     nodes: string[];
     volumes: string[];
     edges: string[];
+    mixed: { name: string; kind: GroupKind }[];
     color?: number[];
   }
 >;
@@ -16,11 +19,17 @@ export type HighlightedGroups = Map<string, number[]>;
 export type HiddenObjects = Set<string>;
 
 export type EdgeMode = 'gradual' | 'threshold' | 'show' | 'hide';
+export type SidebarSort = 'natural' | 'size';
 
 export interface Settings {
   hiddenObjectOpacity: number;
   edgeMode: EdgeMode;
   edgeThresholdMultiplier: number;
+  edgeGroupThickness: number;
+  edgeGroupDepthOffset: boolean;
+  nodeGroupSize: number;
+  sidebarSort: SidebarSort;
+  groupByKind: boolean;
   groupTransparency: number;
   showOrientationWidget: boolean;
   showBoundingBox: boolean;
@@ -36,6 +45,11 @@ export const settings = writable<Settings>({
   hiddenObjectOpacity: 0,
   edgeMode: 'threshold',
   edgeThresholdMultiplier: 1,
+  edgeGroupThickness: 3,
+  edgeGroupDepthOffset: true,
+  nodeGroupSize: 1,
+  sidebarSort: 'natural',
+  groupByKind: true,
   groupTransparency: 0.2,
   showOrientationWidget: true,
   showBoundingBox: false,

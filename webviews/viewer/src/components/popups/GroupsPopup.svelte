@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { groupHierarchy, sidebarHiddenGroups } from '../../lib/state';
+  import { groupHierarchy, settings, sidebarHiddenGroups } from '../../lib/state';
   import FaceIcon from '../../icons/FaceIcon.svelte';
   import NodeIcon from '../../icons/NodeIcon.svelte';
   import VolumeIcon from '../../icons/VolumeIcon.svelte';
   import EdgeIcon from '../../icons/EdgeIcon.svelte';
   import ObjectIcon from '../../icons/ObjectIcon.svelte';
   import Toggle from '../ui/Toggle.svelte';
-  import type { GroupKind } from '../../lib/data/Group';
+  import type { GroupKind } from '../../lib/state';
 
   let { onclose }: { onclose: () => void } = $props();
 
@@ -17,16 +17,18 @@
       const faces = data.faces;
       const edges = data.edges ?? [];
       const nodes = data.nodes;
+      const mixed = data.mixed ?? [];
+      const bucketed: { name: string; kind: GroupKind }[] = [
+        ...volumes.map((name) => ({ name, kind: 'volume' as GroupKind })),
+        ...faces.map((name) => ({ name, kind: 'face' as GroupKind })),
+        ...edges.map((name) => ({ name, kind: 'edge' as GroupKind })),
+        ...nodes.map((name) => ({ name, kind: 'node' as GroupKind })),
+      ];
       return {
         key,
         name: key.replace('all_', '').replace('.obj', ''),
         color: [r, g, b],
-        allGroups: [
-          ...volumes.map((name) => ({ name, kind: 'volume' as GroupKind })),
-          ...faces.map((name) => ({ name, kind: 'face' as GroupKind })),
-          ...edges.map((name) => ({ name, kind: 'edge' as GroupKind })),
-          ...nodes.map((name) => ({ name, kind: 'node' as GroupKind })),
-        ],
+        allGroups: $settings.groupByKind ? bucketed : mixed,
       };
     })
   );

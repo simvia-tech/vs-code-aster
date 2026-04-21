@@ -3,6 +3,7 @@ import { VtkApp } from '../core/VtkApp';
 import { GlobalSettings } from '../settings/GlobalSettings';
 import { highlightedGroups, hiddenObjects } from '../state';
 import type { Group, GroupKind } from '../data/Group';
+import { EdgeActorCreator } from '../data/create/EdgeActorCreator';
 
 export class VisibilityManager {
   private static _i: VisibilityManager;
@@ -157,6 +158,24 @@ export class VisibilityManager {
       if (this.visibleGroupsByObject[object] > 0) {
         this.groups[object]?.setOpacity(GlobalSettings.Instance.groupTransparency);
       }
+    }
+    VtkApp.Instance.getRenderWindow().render();
+  }
+
+  applyEdgeGroupThickness(): void {
+    const thickness = GlobalSettings.Instance.edgeGroupThickness;
+    for (const group of Object.values(this.groups)) {
+      if (group.kind !== 'edge') continue;
+      group.actor.getProperty().setLineWidth(thickness);
+    }
+    VtkApp.Instance.getRenderWindow().render();
+  }
+
+  applyEdgeGroupDepthOffset(): void {
+    const enabled = GlobalSettings.Instance.edgeGroupDepthOffset;
+    for (const group of Object.values(this.groups)) {
+      if (group.kind !== 'edge') continue;
+      EdgeActorCreator.applyDepthOffset(group.actor.getMapper(), enabled);
     }
     VtkApp.Instance.getRenderWindow().render();
   }

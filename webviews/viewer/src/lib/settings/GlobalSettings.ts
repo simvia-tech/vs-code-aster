@@ -39,6 +39,11 @@ export class GlobalSettings {
   specularPower = 15;
   ambientIntensity = 0.1;
   edgeOpacity = 0.7;
+  edgeGroupThickness = 3;
+  edgeGroupDepthOffset = true;
+  nodeGroupSize = 1;
+  sidebarSort: 'natural' | 'size' = 'natural';
+  groupByKind = true;
   groupTransparency = 0.2;
   showOrientationWidget = true;
   showBoundingBox = false;
