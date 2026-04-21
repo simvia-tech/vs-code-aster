@@ -5,6 +5,34 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-04-21
+
+Volume and edge groups now appear in the viewer alongside face and node groups, a new "Groups" settings tab exposes per-kind display tweaks, the bundled vtk.js is replaced by the tree-shaken npm package, and an optional animated background adds a cosmetic touch.
+
+### Added
+- **Volume groups** — `med2obj.py` now computes the skin of every volume group in a 3D `.med` mesh and writes it into the `.obj` as a dedicated group. The viewer renders them as their own category with a filled isometric cube icon, toggle-able independently from face groups.
+- **Edge groups** — level -2 groups (1D named cells) are extracted too and rendered as lines via a new `EdgeActorCreator`. Line width and depth offset (to avoid z-fighting with the skin) are user-controllable.
+- **Groups settings tab** — new tab in the viewer Settings popup covering:
+  - Edge-group thickness slider (1–10 px)
+  - Edge-group depth-offset toggle
+  - Node-group point-size multiplier (0.25×–4×)
+  - Sidebar sort order (natural / by cell count)
+  - Bucket groups by kind (on by default; off merges all four kinds into a single list sorted by the same order)
+- **Group-kinds legend** in the help popup's Groups tab, showing each icon with a short description.
+- **Edge threshold multiplier** is now persisted across sessions via `vs-code-aster.viewer.edgeThresholdMultiplier` (was previously editable but lost on reopen).
+- **Dream background** — optional cosmetic viewer setting (`vs-code-aster.viewer.dreamBackground`) that drifts four EDF orange/blue blobs behind the mesh via a WebGL fragment shader. Theme-aware: blob intensity adapts to light vs dark themes, peak intensity is capped so overlapping blobs never fully replace the theme color. Does not affect mesh lighting.
+
+### Changed
+- **vtk.js migrated to `@kitware/vtk.js` npm package** — the 2.6 MB bundled script is gone, replaced by tree-shaken ES-module imports and real TypeScript types. Opens the door to regular version upgrades.
+- **Settings popup**: the "Edges" tab is renamed to "Mesh edges" and its copy rewritten to distinguish the wireframe edges drawn on each cell from the new edge groups. Tab content now scrolls when it overflows instead of clipping.
+- **Sidebar groups** now bucket volumes, faces, edges, and nodes in that order, each with its own icon.
+
+### Fixed
+- Mesh edge colors now repaint immediately on theme switch instead of waiting for the next camera move.
+- Translucent meshes (highlighted parent behind a selected sub-group) no longer wash out on light themes — vtk.js 35's Order-Independent Transparency pass is bypassed in favor of plain SRC_ALPHA blending.
+- `.obj` files cached under `.vs-code-aster/mesh_cache/` from older extension versions are invalidated when the converter changes (via the bumped `med2obj-version: 2` header).
+- **Screenshots** now work again after the vtk.js migration — the capture path switched to vtk.js's `captureNextImage` API (which doesn't depend on `preserveDrawingBuffer`), and the dream background is composited behind the mesh when enabled. The screenshot button's hover highlight is also stripped from the full-viewer capture so it no longer bakes into the saved image.
+
 ## [1.8.1] - 2026-04-20
 
 Follow-up polish on the `.export` editor form: smarter autocomplete suggestions and the saved file now opens automatically after create/save.
