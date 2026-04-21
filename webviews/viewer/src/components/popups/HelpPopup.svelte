@@ -5,14 +5,17 @@
 <script lang="ts">
   import BoundingBoxIcon from '../../icons/BoundingBoxIcon.svelte';
   import ClearIcon from '../../icons/ClearIcon.svelte';
+  import EdgeIcon from '../../icons/EdgeIcon.svelte';
   import EyeIcon from '../../icons/EyeIcon.svelte';
   import FaceIcon from '../../icons/FaceIcon.svelte';
   import FilterIcon from '../../icons/FilterIcon.svelte';
   import MouseLeftIcon from '../../icons/MouseLeftIcon.svelte';
+  import NodeIcon from '../../icons/NodeIcon.svelte';
   import ObjectIcon from '../../icons/ObjectIcon.svelte';
   import MouseScrollIcon from '../../icons/MouseScrollIcon.svelte';
   import ResetIcon from '../../icons/ResetIcon.svelte';
   import ScreenshotIcon from '../../icons/ScreenshotIcon.svelte';
+  import VolumeIcon from '../../icons/VolumeIcon.svelte';
   import WireframeIcon from '../../icons/WireframeIcon.svelte';
   import ZoomIcon from '../../icons/ZoomIcon.svelte';
 
@@ -177,6 +180,32 @@
         </div>
       {:else if activeTab === 'Groups'}
         <div class="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3 items-center">
+          <span class="font-semibold text-ui-text-primary col-span-2">Group types</span>
+
+          <span class="inline-flex items-center justify-center size-5 text-ui-text-secondary">
+            <VolumeIcon class="size-3.5" />
+          </span>
+          <span
+            ><strong>Volume group</strong> — the skin of a 3D sub-domain, rendered as its bounding surface.</span
+          >
+
+          <span class="inline-flex items-center justify-center size-5 text-ui-text-secondary">
+            <FaceIcon class="size-3.5" />
+          </span>
+          <span><strong>Face group</strong> — a named set of surface elements.</span>
+
+          <span class="inline-flex items-center justify-center size-5 text-ui-text-secondary">
+            <EdgeIcon class="size-3.5" />
+          </span>
+          <span><strong>Edge group</strong> — a named set of 1D line elements.</span>
+
+          <span class="inline-flex items-center justify-center size-5 text-ui-text-secondary">
+            <NodeIcon class="size-3.5" />
+          </span>
+          <span><strong>Node group</strong> — a named set of discrete points.</span>
+
+          <span class="col-span-2 h-px bg-ui-border my-1"></span>
+
           <span
             class="relative inline-flex items-center text-[0.65rem] px-2 pt-0.5 pb-1 rounded-sm bg-ui-elem-hover text-ui-fg font-semibold min-w-16"
           >
