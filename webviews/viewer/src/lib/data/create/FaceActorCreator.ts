@@ -1,3 +1,8 @@
+import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
+import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
+import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData';
+import vtkPoints from '@kitware/vtk.js/Common/Core/Points';
+import vtkCellArray from '@kitware/vtk.js/Common/Core/CellArray';
 import { GlobalSettings } from '../../settings/GlobalSettings';
 import { VtkApp } from '../../core/VtkApp';
 
@@ -22,12 +27,12 @@ export class FaceActorCreator {
   ): { actor: any; colorIndex: number; isObjectActor: boolean; cellCount: number } {
     const { polyData, cellCount } = this.prepare(groupId);
 
-    const actor = vtk.Rendering.Core.vtkActor.newInstance();
-    const mapper = vtk.Rendering.Core.vtkMapper.newInstance();
+    const actor = vtkActor.newInstance();
+    const mapper = vtkMapper.newInstance();
 
     mapper.setInputData(polyData);
     if (!groupName.includes('all_')) {
-      mapper.setResolveCoincidentTopology(true);
+      mapper.setResolveCoincidentTopologyToPolygonOffset();
       mapper.setRelativeCoincidentTopologyPolygonOffsetParameters(-2, -2);
     }
     actor.setMapper(mapper);
@@ -39,9 +44,9 @@ export class FaceActorCreator {
   }
 
   private prepare(groupId: number): { polyData: any; cellCount: number } {
-    const pd = vtk.Common.DataModel.vtkPolyData.newInstance();
+    const pd = vtkPolyData.newInstance();
 
-    const pts = vtk.Common.Core.vtkPoints.newInstance();
+    const pts = vtkPoints.newInstance();
     const coords = new Float32Array(this.vertices.length * 3);
     this.vertices.forEach((v, i) => {
       coords[3 * i] = v.x;
@@ -57,7 +62,7 @@ export class FaceActorCreator {
 
     const cellCount = cellIndices.length;
     if (cellCount > 0) {
-      const cellArray = vtk.Common.Core.vtkCellArray.newInstance({
+      const cellArray = vtkCellArray.newInstance({
         values: Uint32Array.from(
           cellIndices.flatMap((i) => {
             const c = this.cells[i];

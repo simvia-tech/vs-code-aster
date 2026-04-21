@@ -1,3 +1,11 @@
+import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
+import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
+import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData';
+import vtkPixelSpaceCallbackMapper from '@kitware/vtk.js/Rendering/Core/PixelSpaceCallbackMapper';
+import vtkAppendPolyData from '@kitware/vtk.js/Filters/General/AppendPolyData';
+import vtkSphereSource from '@kitware/vtk.js/Filters/Sources/SphereSource';
+import vtkOrientationMarkerWidget from '@kitware/vtk.js/Interaction/Widgets/OrientationMarkerWidget';
+import { Corners } from '@kitware/vtk.js/Interaction/Widgets/OrientationMarkerWidget/Constants';
 import { VtkApp } from '../core/VtkApp';
 import { AxesCreator } from './AxesCreator';
 import { GlobalSettings } from '../settings/GlobalSettings';
@@ -176,14 +184,12 @@ export class CameraManager {
   private createAxisMarker(): any {
     const axes = AxesCreator.createCustomAxesActor();
 
-    const widget = vtk.Interaction.Widgets.vtkOrientationMarkerWidget.newInstance({
+    const widget = vtkOrientationMarkerWidget.newInstance({
       actor: axes,
       interactor: VtkApp.Instance.getRenderWindow().getInteractor(),
     });
     widget.setEnabled(true);
-    widget.setViewportCorner(
-      vtk.Interaction.Widgets.vtkOrientationMarkerWidget.Corners.BOTTOM_RIGHT
-    );
+    widget.setViewportCorner(Corners.BOTTOM_RIGHT);
     widget.setViewportSize(0.15);
 
     this.orientationWidget = widget;
@@ -322,13 +328,15 @@ export class CameraManager {
       lines[i * 3 + 2] = i * 2 + 1;
     });
 
-    const polyData = vtk.Common.DataModel.vtkPolyData.newInstance();
+    const polyData = vtkPolyData.newInstance();
     polyData.getPoints().setData(points, 3);
-    polyData.getLines().setData(lines, 1);
+    // The 2nd arg (numberOfComponents) is accepted at runtime but missing
+    // from vtk.js's .d.ts for setData on line arrays.
+    (polyData.getLines() as any).setData(lines, 1);
 
-    const mapper = vtk.Rendering.Core.vtkMapper.newInstance();
+    const mapper = vtkMapper.newInstance();
     mapper.setInputData(polyData);
-    const actor = vtk.Rendering.Core.vtkActor.newInstance();
+    const actor = vtkActor.newInstance();
     actor.setMapper(mapper);
     actor.getProperty().setColor(color[0], color[1], color[2]);
     actor.getProperty().setLineWidth(2);
@@ -346,7 +354,7 @@ export class CameraManager {
     if (diagonal < 1e-9) return null;
     const radius = diagonal * 0.006;
 
-    const corners: number[][] = [
+    const corners: [number, number, number][] = [
       [xmin, ymin, zmin],
       [xmax, ymin, zmin],
       [xmin, ymax, zmin],
@@ -357,9 +365,9 @@ export class CameraManager {
       [xmax, ymax, zmax],
     ];
 
-    const append = vtk.Filters.General.vtkAppendPolyData.newInstance();
+    const append = vtkAppendPolyData.newInstance();
     corners.forEach((center, i) => {
-      const sphere = vtk.Filters.Sources.vtkSphereSource.newInstance({
+      const sphere = vtkSphereSource.newInstance({
         center,
         radius,
         thetaResolution: 16,
@@ -369,9 +377,9 @@ export class CameraManager {
       else append.addInputData(sphere.getOutputData());
     });
 
-    const mapper = vtk.Rendering.Core.vtkMapper.newInstance();
+    const mapper = vtkMapper.newInstance();
     mapper.setInputData(append.getOutputData());
-    const actor = vtk.Rendering.Core.vtkActor.newInstance();
+    const actor = vtkActor.newInstance();
     actor.setMapper(mapper);
     const c = VtkApp.Instance.readEditorForeground();
     actor.getProperty().setColor(c[0], c[1], c[2]);
@@ -400,12 +408,14 @@ export class CameraManager {
       pts[i * 3 + 1] = p[1];
       pts[i * 3 + 2] = p[2];
     });
-    const polyData = vtk.Common.DataModel.vtkPolyData.newInstance();
+    const polyData = vtkPolyData.newInstance();
     polyData.getPoints().setData(pts, 3);
 
-    const mapper = vtk.Rendering.Core.vtkPixelSpaceCallbackMapper.newInstance();
+    const mapper = vtkPixelSpaceCallbackMapper.newInstance();
     mapper.setInputData(polyData);
-    mapper.setCallback(
+    // The 5th argument (viewportSize) is passed at runtime but omitted from
+    // the callback type in vtk.js's .d.ts.
+    (mapper.setCallback as (cb: (...args: any[]) => any) => void)(
       (
         coordsList: number[][],
         _camera: unknown,
@@ -426,7 +436,7 @@ export class CameraManager {
       }
     );
 
-    const actor = vtk.Rendering.Core.vtkActor.newInstance();
+    const actor = vtkActor.newInstance();
     actor.setMapper(mapper);
     actor.setPickable(false);
     return actor;
