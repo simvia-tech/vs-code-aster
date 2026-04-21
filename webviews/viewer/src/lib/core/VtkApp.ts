@@ -1,4 +1,7 @@
+import '@kitware/vtk.js/Rendering/Profiles/Geometry';
+import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
 import { Controller } from '../Controller';
+import { CameraManager } from '../interaction/CameraManager';
 
 export class VtkApp {
   private static _i: VtkApp;
@@ -35,21 +38,53 @@ export class VtkApp {
   }
 
   updateBackground(): void {
-    this.renderer.setBackground(this._readEditorBackground());
+    if (!this.renderer) return;
+    if (this._transparent) {
+      // With the WebGL canvas created in premultipliedAlpha mode, any RGB with
+      // alpha 0 is an undefined state that the browser may composite as opaque.
+      // Clearing to (0, 0, 0, 0) is the only reliable way to make untouched
+      // pixels fully transparent, letting the dream shader canvas behind show.
+      this.renderer.setBackground([0, 0, 0, 0]);
+    } else {
+      const [r, g, b] = this._readEditorBackground();
+      this.renderer.setBackground([r, g, b, 1]);
+    }
+    this.renderWindow?.render();
+  }
+
+  private _transparent = false;
+
+  setTransparentBackground(enabled: boolean): void {
+    this._transparent = enabled;
+    this.updateBackground();
   }
 
   init(scene: HTMLElement): void {
-    if (!window.vtk) {
-      return;
-    }
-
-    this.fullScreenRenderer = vtk.Rendering.Misc.vtkFullScreenRenderWindow.newInstance({
-      rootContainer: scene,
-      background: this._readEditorBackground(),
+    const [r, g, b] = this._readEditorBackground();
+    this.fullScreenRenderer = vtkFullScreenRenderWindow.newInstance({
+      container: scene,
+      background: [r, g, b, 1],
     });
 
     this.renderer = this.fullScreenRenderer.getRenderer();
     this.renderWindow = this.fullScreenRenderer.getRenderWindow();
+
+    // vtk.js 35 turns on Order-Independent Transparency when the WebGL2 context
+    // exposes EXT_color_buffer_half_float / EXT_color_buffer_float, and its
+    // weighted compositor washes translucent colors against bright backgrounds.
+    // Blocking the extension probe forces the OIT pass onto its own fallback
+    // (plain SRC_ALPHA blending), which renders identically on dark and light
+    // themes without losing any WebGL2 features elsewhere.
+    const gl = this.fullScreenRenderer.getApiSpecificRenderWindow().get3DContext();
+    if (gl) {
+      const origGetExtension = gl.getExtension.bind(gl);
+      gl.getExtension = (name: string) => {
+        if (name === 'EXT_color_buffer_half_float' || name === 'EXT_color_buffer_float') {
+          return null;
+        }
+        return origGetExtension(name);
+      };
+    }
 
     this.updateCameraOffset();
 
@@ -62,7 +97,10 @@ export class VtkApp {
     new MutationObserver(() => {
       this.updateBackground();
       Controller.Instance.refreshThemeColors();
-      this.renderWindow.render();
+      // Re-derive mesh edge colors from the just-applied face colors. Without
+      // this, edges retain their previous tint until the camera moves and the
+      // zoom listener re-runs updateEdgeVisibility.
+      CameraManager.Instance.refreshEdgeVisibility();
     }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
     Controller.Instance.getVSCodeAPI().postMessage({

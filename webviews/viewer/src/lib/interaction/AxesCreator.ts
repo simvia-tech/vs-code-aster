@@ -1,3 +1,10 @@
+import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
+import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
+import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
+import vtkAppendPolyData from '@kitware/vtk.js/Filters/General/AppendPolyData';
+import vtkCylinderSource from '@kitware/vtk.js/Filters/Sources/CylinderSource';
+import vtkSphereSource from '@kitware/vtk.js/Filters/Sources/SphereSource';
+
 export class AxesCreator {
   private axisRadius = 0.02;
 
@@ -16,7 +23,7 @@ export class AxesCreator {
     const spherePhi = 12;
 
     const addColor = (polyData: any, color: number[]) => {
-      const scalars = vtk.Common.Core.vtkDataArray.newInstance({
+      const scalars = vtkDataArray.newInstance({
         numberOfComponents: 3,
         values: new Uint8Array(polyData.getPoints().getNumberOfPoints() * 3),
         name: 'color',
@@ -33,9 +40,9 @@ export class AxesCreator {
       polyData.getPointData().setScalars(scalars);
     };
 
-    const xAxisSource = vtk.Filters.General.vtkAppendPolyData.newInstance();
+    const xAxisSource = vtkAppendPolyData.newInstance();
     xAxisSource.setInputData(
-      vtk.Filters.Sources.vtkCylinderSource
+      vtkCylinderSource
         .newInstance({
           radius: axisRadius,
           resolution: 20,
@@ -45,7 +52,7 @@ export class AxesCreator {
         .getOutputData()
     );
     xAxisSource.addInputData(
-      vtk.Filters.Sources.vtkSphereSource
+      vtkSphereSource
         .newInstance({
           radius: sphereRadius,
           center: [1, 0, 0],
@@ -57,9 +64,9 @@ export class AxesCreator {
     const xAxis = xAxisSource.getOutputData();
     addColor(xAxis, instance.colors.x);
 
-    const yAxisSource = vtk.Filters.General.vtkAppendPolyData.newInstance();
+    const yAxisSource = vtkAppendPolyData.newInstance();
     yAxisSource.setInputData(
-      vtk.Filters.Sources.vtkCylinderSource
+      vtkCylinderSource
         .newInstance({
           radius: axisRadius,
           resolution: 20,
@@ -69,7 +76,7 @@ export class AxesCreator {
         .getOutputData()
     );
     yAxisSource.addInputData(
-      vtk.Filters.Sources.vtkSphereSource
+      vtkSphereSource
         .newInstance({
           radius: sphereRadius,
           center: [0, 1, 0],
@@ -81,9 +88,9 @@ export class AxesCreator {
     const yAxis = yAxisSource.getOutputData();
     addColor(yAxis, instance.colors.y);
 
-    const zAxisSource = vtk.Filters.General.vtkAppendPolyData.newInstance();
+    const zAxisSource = vtkAppendPolyData.newInstance();
     zAxisSource.setInputData(
-      vtk.Filters.Sources.vtkCylinderSource
+      vtkCylinderSource
         .newInstance({
           radius: axisRadius,
           resolution: 20,
@@ -93,7 +100,7 @@ export class AxesCreator {
         .getOutputData()
     );
     zAxisSource.addInputData(
-      vtk.Filters.Sources.vtkSphereSource
+      vtkSphereSource
         .newInstance({
           radius: sphereRadius,
           center: [0, 0, 1],
@@ -105,15 +112,15 @@ export class AxesCreator {
     const zAxis = zAxisSource.getOutputData();
     addColor(zAxis, instance.colors.z);
 
-    const axesSource = vtk.Filters.General.vtkAppendPolyData.newInstance();
+    const axesSource = vtkAppendPolyData.newInstance();
     axesSource.setInputData(xAxis);
     axesSource.addInputData(yAxis);
     axesSource.addInputData(zAxis);
 
-    const axesMapper = vtk.Rendering.Core.vtkMapper.newInstance();
+    const axesMapper = vtkMapper.newInstance();
     axesMapper.setInputData(axesSource.getOutputData());
 
-    const axesActor = vtk.Rendering.Core.vtkActor.newInstance();
+    const axesActor = vtkActor.newInstance();
     axesActor.setMapper(axesMapper);
     axesActor.getProperty().setLighting(false);
 

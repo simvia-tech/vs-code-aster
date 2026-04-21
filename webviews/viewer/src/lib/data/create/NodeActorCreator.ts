@@ -1,3 +1,8 @@
+import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
+import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
+import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData';
+import vtkPoints from '@kitware/vtk.js/Common/Core/Points';
+import vtkCellArray from '@kitware/vtk.js/Common/Core/CellArray';
 import { GlobalSettings } from '../../settings/GlobalSettings';
 import { VtkApp } from '../../core/VtkApp';
 
@@ -19,10 +24,10 @@ export class NodeActorCreator {
   create(groupId: number): { actor: any; colorIndex: number } {
     const polyData = this.prepare(groupId);
 
-    const mapper = vtk.Rendering.Core.vtkMapper.newInstance();
+    const mapper = vtkMapper.newInstance();
     mapper.setInputData(polyData);
 
-    const actor = vtk.Rendering.Core.vtkActor.newInstance();
+    const actor = vtkActor.newInstance();
     actor.setMapper(mapper);
 
     const colorIndex = this.setProperty(actor);
@@ -32,14 +37,14 @@ export class NodeActorCreator {
   }
 
   private prepare(groupId: number): any {
-    const pd = vtk.Common.DataModel.vtkPolyData.newInstance();
+    const pd = vtkPolyData.newInstance();
 
     const nodeIndices = this.nodeIndexToGroup
       .map((g, idx) => (g === groupId ? idx : -1))
       .filter((idx) => idx !== -1);
 
     if (nodeIndices.length > 0) {
-      const pts = vtk.Common.Core.vtkPoints.newInstance();
+      const pts = vtkPoints.newInstance();
       const data: number[] = [];
 
       for (const idx of nodeIndices) {
@@ -53,7 +58,7 @@ export class NodeActorCreator {
       pd.setPoints(pts);
 
       const numPoints = data.length / 3;
-      const verts = vtk.Common.Core.vtkCellArray.newInstance();
+      const verts = vtkCellArray.newInstance();
       const vertData: number[] = [];
 
       for (let i = 0; i < numPoints; i++) {
