@@ -10,11 +10,15 @@
     objectKey,
     faces,
     nodes,
+    volumes,
+    edges,
     color,
   }: {
     objectKey: string;
     faces: string[];
     nodes: string[];
+    volumes: string[];
+    edges: string[];
     color: number[];
   } = $props();
 
@@ -28,16 +32,16 @@
   let hiddenGroupCount = $derived.by(() => {
     const hidden = $sidebarHiddenGroups.get(objectKey);
     if (!hidden) return 0;
-    return [...faces, ...nodes].filter((g) => hidden.has(g)).length;
+    return [...volumes, ...faces, ...edges, ...nodes].filter((g) => hidden.has(g)).length;
   });
 
   let allGroupsHiddenFromSidebar = $derived.by(() => {
     const hidden = $sidebarHiddenGroups.get(objectKey);
     if (!hidden) return false;
-    return [...faces, ...nodes].every((g) => hidden.has(g));
+    return [...volumes, ...faces, ...edges, ...nodes].every((g) => hidden.has(g));
   });
 
-  let groupCount = $derived(faces.length + nodes.length);
+  let groupCount = $derived(volumes.length + faces.length + edges.length + nodes.length);
 
   function toggleVisibility() {
     VisibilityManager.Instance.toggleObjectVisibility(objectKey);
@@ -123,11 +127,17 @@
   </div>
 {:else if !collapsed}
   <div class="w-full flex flex-col items-center space-y-1">
+    {#each volumes as groupName}
+      <GroupButton {objectKey} {groupName} kind="volume" />
+    {/each}
     {#each faces as groupName}
-      <GroupButton {objectKey} {groupName} isFace={true} />
+      <GroupButton {objectKey} {groupName} kind="face" />
+    {/each}
+    {#each edges as groupName}
+      <GroupButton {objectKey} {groupName} kind="edge" />
     {/each}
     {#each nodes as groupName}
-      <GroupButton {objectKey} {groupName} isFace={false} />
+      <GroupButton {objectKey} {groupName} kind="node" />
     {/each}
     {#if hiddenGroupCount > 0}
       <div class="w-full text-center text-[0.7rem] pb-1 text-ui-text-muted">

@@ -2,23 +2,30 @@
   import { groupHierarchy, sidebarHiddenGroups } from '../../lib/state';
   import FaceIcon from '../../icons/FaceIcon.svelte';
   import NodeIcon from '../../icons/NodeIcon.svelte';
+  import VolumeIcon from '../../icons/VolumeIcon.svelte';
+  import EdgeIcon from '../../icons/EdgeIcon.svelte';
   import ObjectIcon from '../../icons/ObjectIcon.svelte';
   import Toggle from '../ui/Toggle.svelte';
+  import type { GroupKind } from '../../lib/data/Group';
 
   let { onclose }: { onclose: () => void } = $props();
 
   let objects = $derived(
     Object.entries($groupHierarchy).map(([key, data]) => {
       const [r, g, b] = (data as any).color ?? [0.537, 0.529, 0.529];
+      const volumes = data.volumes ?? [];
       const faces = data.faces;
+      const edges = data.edges ?? [];
       const nodes = data.nodes;
       return {
         key,
         name: key.replace('all_', '').replace('.obj', ''),
         color: [r, g, b],
         allGroups: [
-          ...faces.map((name) => ({ name, isFace: true })),
-          ...nodes.map((name) => ({ name, isFace: false })),
+          ...volumes.map((name) => ({ name, kind: 'volume' as GroupKind })),
+          ...faces.map((name) => ({ name, kind: 'face' as GroupKind })),
+          ...edges.map((name) => ({ name, kind: 'edge' as GroupKind })),
+          ...nodes.map((name) => ({ name, kind: 'node' as GroupKind })),
         ],
       };
     })
@@ -99,8 +106,12 @@
 
         {#each obj.allGroups as group}
           <label class="flex items-center gap-1.5 cursor-pointer select-none">
-            {#if group.isFace}
+            {#if group.kind === 'face'}
               <FaceIcon class="size-3.5 shrink-0" />
+            {:else if group.kind === 'volume'}
+              <VolumeIcon class="size-3.5 shrink-0" />
+            {:else if group.kind === 'edge'}
+              <EdgeIcon class="size-3.5 shrink-0" />
             {:else}
               <NodeIcon class="size-3.5 shrink-0" />
             {/if}

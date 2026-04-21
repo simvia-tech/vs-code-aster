@@ -20,6 +20,8 @@
         objectKey={key}
         faces={data.faces}
         nodes={data.nodes}
+        volumes={data.volumes ?? []}
+        edges={data.edges ?? []}
         color={(data as any).color ?? [0.537, 0.529, 0.529]}
       />
     {/each}

@@ -50,7 +50,7 @@ import medcoupling as mc  # noqa E402
 
 # Bump when the .obj output format changes in a breaking way. The extension
 # reads the `# med2obj-version:` header and regenerates on mismatch.
-MED2OBJ_VERSION = 1
+MED2OBJ_VERSION = 2
 
 
 def parse_args():
@@ -78,9 +78,12 @@ def write_obj(
     skin_mesh,
     skin_groups,
     node_groups,
+    volume_groups,
+    edge_groups,
     output_path,
     skin_level=-1,
     node_level=1,
+    edge_level=-2,
 ):
     with open(output_path, "w") as f:
         f.write(f"# med2obj-version: {MED2OBJ_VERSION}\n")
@@ -97,6 +100,15 @@ def write_obj(
             end_connectivity = END_CONNECTIVITY[len(conn) - 1] + 1
             f.write(f"f {' '.join([str(x + 1) for x in conn[1:end_connectivity]])}\n")
 
+        for group_name in volume_groups:
+            vol_submesh = med_file.getGroup(0, group_name)
+            vol_skin = vol_submesh.computeSkin()
+            f.write(f"vg {group_name}\n")
+            for elem in vol_skin:
+                conn = elem.getAllConn()
+                end_connectivity = END_CONNECTIVITY[len(conn) - 1] + 1
+                f.write(f"f {' '.join([str(x + 1) for x in conn[1:end_connectivity]])}\n")
+
         for group_name in skin_groups:
             submesh = med_file.getGroup(skin_level, group_name)
             f.write(f"g {group_name}\n")
@@ -104,6 +116,14 @@ def write_obj(
                 conn = elem.getAllConn()
                 end_connectivity = END_CONNECTIVITY[len(conn) - 1] + 1
                 f.write(f"f {' '.join([str(x + 1) for x in conn[1:end_connectivity]])}\n")
+
+        for group_name in edge_groups:
+            edge_submesh = med_file.getGroup(edge_level, group_name)
+            f.write(f"eg {group_name}\n")
+            for elem in edge_submesh:
+                conn = elem.getAllConn()
+                end_connectivity = END_CONNECTIVITY[len(conn) - 1] + 1
+                f.write(f"l {' '.join([str(x + 1) for x in conn[1:end_connectivity]])}\n")
 
         for group_name in node_groups:
             node_ids = med_file.getGroupArr(node_level, group_name).toNumPyArray()
@@ -125,27 +145,42 @@ def main():
     mesh = med_file.getMeshAtLevel(0)
 
     node_level = 1
+    available_levels = set(med_file.getNonEmptyLevels())
     if mesh.getMeshDimension() == 3:  ## Volumic 3d mesh
         ## compute only the skin of the mesh
         skin_mesh = mesh.computeSkin()
         surface_level = -1
+        edge_level = -2
+        volumes = med_file.getGroupsOnSpecifiedLev(0)
     elif mesh.getMeshDimension() == 2:  ## 2D mesh - convert to 3D
         skin_mesh = mesh.clone(True)
         surface_level = 0
+        edge_level = -1
+        volumes = []
     else:  ## 1D or other - clone as is
         skin_mesh = mesh.clone(True)
         surface_level = 0
+        edge_level = None
+        volumes = []
 
     nodes = med_file.getGroupsOnSpecifiedLev(node_level)
     surfaces = med_file.getGroupsOnSpecifiedLev(surface_level)
+    edges = (
+        med_file.getGroupsOnSpecifiedLev(edge_level)
+        if edge_level is not None and edge_level in available_levels
+        else []
+    )
     write_obj(
         med_file,
         skin_mesh,
         surfaces,
         nodes,
+        volumes,
+        edges,
         str(output_path),
         skin_level=surface_level,
         node_level=node_level,
+        edge_level=edge_level if edge_level is not None else -2,
     )
 
 

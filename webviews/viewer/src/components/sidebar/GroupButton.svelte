@@ -3,20 +3,22 @@
   import { VisibilityManager } from '../../lib/commands/VisibilityManager';
   import FaceIcon from '../../icons/FaceIcon.svelte';
   import NodeIcon from '../../icons/NodeIcon.svelte';
+  import VolumeIcon from '../../icons/VolumeIcon.svelte';
+  import EdgeIcon from '../../icons/EdgeIcon.svelte';
+  import type { GroupKind } from '../../lib/data/Group';
 
   let {
     objectKey,
     groupName,
-    isFace,
+    kind,
   }: {
     objectKey: string;
     groupName: string;
-    isFace: boolean;
+    kind: GroupKind;
   } = $props();
 
-  let highlight = $derived(
-    $highlightedGroups.get(`${objectKey}::${groupName}::${isFace ? 'face' : 'node'}`)
-  );
+  let fullKey = $derived(`${objectKey}::${groupName}::${kind}`);
+  let highlight = $derived($highlightedGroups.get(fullKey));
   let isHidden = $derived($sidebarHiddenGroups.get(objectKey)?.has(groupName) ?? false);
 
   let bgStyle = $derived(
@@ -25,9 +27,7 @@
   let colorStyle = $derived(highlight ? 'var(--ui-highlight-text)' : 'var(--ui-text-primary)');
 
   function handleClick() {
-    VisibilityManager.Instance.setVisibility(
-      `${objectKey}::${groupName}::${isFace ? 'face' : 'node'}`
-    );
+    VisibilityManager.Instance.setVisibility(fullKey);
   }
 </script>
 
@@ -42,8 +42,12 @@
     onclick={handleClick}
   >
     <span class="absolute left-1.5 top-1">
-      {#if isFace}
+      {#if kind === 'face'}
         <FaceIcon class="size-4" />
+      {:else if kind === 'volume'}
+        <VolumeIcon class="size-4" />
+      {:else if kind === 'edge'}
+        <EdgeIcon class="size-4" />
       {:else}
         <NodeIcon class="size-4" />
       {/if}
