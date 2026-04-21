@@ -61,10 +61,14 @@ export class VtkApp {
 
   init(scene: HTMLElement): void {
     const [r, g, b] = this._readEditorBackground();
+    // `rootContainer` tells vtk.js to append its own absolute-positioned div
+    // inside `#scene` (keeping #scene in the flex flow), instead of restyling
+    // `#scene` itself which would pull it out of the flex layout and break the
+    // sidebar. vtk.js's .d.ts omits this field, so we cast.
     this.fullScreenRenderer = vtkFullScreenRenderWindow.newInstance({
-      container: scene,
+      rootContainer: scene,
       background: [r, g, b, 1],
-    });
+    } as unknown as Parameters<typeof vtkFullScreenRenderWindow.newInstance>[0]);
 
     this.renderer = this.fullScreenRenderer.getRenderer();
     this.renderWindow = this.fullScreenRenderer.getRenderWindow();
@@ -75,7 +79,18 @@ export class VtkApp {
     // Blocking the extension probe forces the OIT pass onto its own fallback
     // (plain SRC_ALPHA blending), which renders identically on dark and light
     // themes without losing any WebGL2 features elsewhere.
-    const gl = this.fullScreenRenderer.getApiSpecificRenderWindow().get3DContext();
+    //
+    // This also primes the WebGL context with `preserveDrawingBuffer: true` —
+    // without it, vtk.js's default context attributes drop the framebuffer
+    // right after compositing and the screenshot feature captures a blank
+    // canvas. `canvas.getContext` ignores attributes on subsequent calls, so
+    // this first call is our only chance to set them.
+    const gl = this.fullScreenRenderer.getApiSpecificRenderWindow().get3DContext({
+      preserveDrawingBuffer: true,
+      depth: true,
+      alpha: true,
+      powerPreference: 'high-performance',
+    });
     if (gl) {
       const origGetExtension = gl.getExtension.bind(gl);
       gl.getExtension = (name: string) => {

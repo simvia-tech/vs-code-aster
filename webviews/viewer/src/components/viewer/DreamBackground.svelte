@@ -128,7 +128,11 @@
     if (scene && canvas) {
       scene.insertBefore(canvas, scene.firstChild);
     }
-    gl = canvas.getContext('webgl', { premultipliedAlpha: true, alpha: true });
+    gl = canvas.getContext('webgl', {
+      premultipliedAlpha: true,
+      alpha: true,
+      preserveDrawingBuffer: true,
+    });
     if (!gl) {
       console.error('DreamBackground: no WebGL context');
       return;
