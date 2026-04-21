@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from 'svelte';
   import { toBlob as domToBlob } from 'html-to-image';
   import { VtkApp } from '../../lib/core/VtkApp';
   import { Controller } from '../../lib/Controller';
@@ -8,22 +9,32 @@
   let tooltipClip = $state<string | null>(null);
   let visible = $state(false);
   let flash = $state(false);
+  let capturing = $state(false);
   let hideTimer: ReturnType<typeof setTimeout> | null = null;
 
-  function getVtkCanvas(): HTMLCanvasElement | null {
-    return document.querySelector('#scene canvas') as HTMLCanvasElement | null;
+  function getDreamCanvas(): HTMLCanvasElement | null {
+    return document.querySelector('#scene canvas.dream-canvas') as HTMLCanvasElement | null;
   }
 
-  function canvasOnlyBlob(): Promise<Blob | null> {
+  async function captureVtkImage(): Promise<HTMLImageElement | null> {
+    // vtk.js's captureNextImage() arms the render window, sets up a framebuffer
+    // capture, and resolves once the next render completes. This works even
+    // when preserveDrawingBuffer is off, unlike canvas.toBlob().
+    const apiRW = (VtkApp.Instance as any).fullScreenRenderer?.getApiSpecificRenderWindow?.();
+    if (!apiRW || typeof apiRW.captureNextImage !== 'function') return null;
+    const promise: Promise<string> = apiRW.captureNextImage('image/png');
     VtkApp.Instance.getRenderWindow().render();
-    const canvas = getVtkCanvas();
-    if (!canvas) return Promise.resolve(null);
-    return new Promise((r) => canvas.toBlob(r, 'image/png'));
+    const dataUrl = await promise;
+    if (!dataUrl) return null;
+    const img = new Image();
+    img.src = dataUrl;
+    await new Promise<void>((r) => (img.onload = () => r()));
+    return img;
   }
 
-  async function fullWebviewBlob(): Promise<Blob | null> {
-    VtkApp.Instance.getRenderWindow().render();
-    const vtkCanvas = getVtkCanvas();
+  async function canvasOnlyBlob(): Promise<Blob | null> {
+    const vtkImg = await captureVtkImage();
+    const dream = getDreamCanvas();
     const dpr = window.devicePixelRatio || 1;
     const w = document.body.offsetWidth;
     const h = document.body.offsetHeight;
@@ -35,8 +46,35 @@
     if (!ctx) return null;
     ctx.scale(dpr, dpr);
 
-    if (vtkCanvas) {
-      ctx.drawImage(vtkCanvas, 0, 0, w, h);
+    if (dream) {
+      ctx.drawImage(dream, 0, 0, w, h);
+    }
+    if (vtkImg) {
+      ctx.drawImage(vtkImg, 0, 0, w, h);
+    }
+
+    return new Promise((r) => composite.toBlob(r, 'image/png'));
+  }
+
+  async function fullWebviewBlob(): Promise<Blob | null> {
+    const vtkImg = await captureVtkImage();
+    const dream = getDreamCanvas();
+    const dpr = window.devicePixelRatio || 1;
+    const w = document.body.offsetWidth;
+    const h = document.body.offsetHeight;
+
+    const composite = document.createElement('canvas');
+    composite.width = w * dpr;
+    composite.height = h * dpr;
+    const ctx = composite.getContext('2d');
+    if (!ctx) return null;
+    ctx.scale(dpr, dpr);
+
+    if (dream) {
+      ctx.drawImage(dream, 0, 0, w, h);
+    }
+    if (vtkImg) {
+      ctx.drawImage(vtkImg, 0, 0, w, h);
     }
 
     try {
@@ -98,21 +136,31 @@
 
   async function onContextMenu(e: MouseEvent) {
     e.preventDefault();
-    await send(await fullWebviewBlob());
+    // Strip hover styles from the button itself so the full-viewer capture
+    // doesn't bake in the highlight produced by the right-click hover.
+    capturing = true;
+    await tick();
+    try {
+      await send(await fullWebviewBlob());
+    } finally {
+      capturing = false;
+    }
   }
 
   let showHoverTip = $derived(!tooltipFile);
 </script>
 
 <button
-  class="group relative size-6 p-1 flex items-center justify-center cursor-pointer stroke-[1.75] transition-colors {flash
-    ? 'bg-ui-elem text-ui-link'
-    : 'text-ui-text-secondary hover:bg-ui-elem'}"
+  class="group relative size-6 p-1 flex items-center justify-center cursor-pointer stroke-[1.75] {capturing
+    ? 'text-ui-text-secondary bg-transparent!'
+    : flash
+      ? 'bg-ui-elem text-ui-link transition-colors'
+      : 'text-ui-text-secondary hover:bg-ui-elem transition-colors'}"
   onclick={onClick}
   oncontextmenu={onContextMenu}
 >
   <ScreenshotIcon class="size-3.5" />
-  {#if showHoverTip}
+  {#if showHoverTip && !capturing}
     <span
       class="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 hidden group-hover:inline whitespace-nowrap text-ui-text-secondary text-xs"
     >
