@@ -3,6 +3,7 @@ import App from './components/layout/App.svelte';
 import { Controller } from './lib/Controller';
 import { VisibilityManager } from './lib/commands/VisibilityManager';
 import { CameraManager } from './lib/interaction/CameraManager';
+import { VtkApp } from './lib/core/VtkApp';
 import { GlobalSettings } from './lib/settings/GlobalSettings';
 import { settings, errorMessage } from './lib/state';
 import type { EdgeMode, SidebarSort } from './lib/state';
@@ -49,6 +50,8 @@ window.addEventListener('message', async (e) => {
         if (s.showBoundingBox !== undefined)
           GlobalSettings.Instance.showBoundingBox = s.showBoundingBox;
         if (s.showWireframe !== undefined) GlobalSettings.Instance.showWireframe = s.showWireframe;
+        if (s.dreamBackground !== undefined)
+          GlobalSettings.Instance.dreamBackground = s.dreamBackground;
         settings.update((cur) => ({
           hiddenObjectOpacity: s.hiddenObjectOpacity ?? cur.hiddenObjectOpacity,
           edgeMode: (s.edgeMode ?? cur.edgeMode) as EdgeMode,
@@ -62,6 +65,7 @@ window.addEventListener('message', async (e) => {
           showOrientationWidget: s.showOrientationWidget ?? cur.showOrientationWidget,
           showBoundingBox: s.showBoundingBox ?? cur.showBoundingBox,
           showWireframe: s.showWireframe ?? cur.showWireframe,
+          dreamBackground: s.dreamBackground ?? cur.dreamBackground,
         }));
         VisibilityManager.Instance.applyHiddenObjectOpacity();
         CameraManager.Instance.refreshEdgeVisibility();
@@ -73,6 +77,9 @@ window.addEventListener('message', async (e) => {
         }
         if (s.showWireframe === true) {
           CameraManager.Instance.setWireframeMode(true);
+        }
+        if (s.dreamBackground === true) {
+          VtkApp.Instance.setTransparentBackground(true);
         }
       }
       break;

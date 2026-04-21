@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { groupHierarchy } from '../../lib/state';
+  import { groupHierarchy, settings } from '../../lib/state';
   import Sidebar from './Sidebar.svelte';
   import TopActions from './TopActions.svelte';
   import TopToolbar from './TopToolbar.svelte';
   import ZoomWidget from '../viewer/ZoomWidget.svelte';
   import BoundingBoxLabels from '../viewer/BoundingBoxLabels.svelte';
+  import DreamBackground from '../viewer/DreamBackground.svelte';
   import Popup from '../popups/Popup.svelte';
   import HelpPopup from '../popups/HelpPopup.svelte';
   import SettingsPopup from '../popups/SettingsPopup.svelte';
@@ -16,6 +17,10 @@
 
   let hasData = $derived(Object.keys($groupHierarchy).length > 0);
 </script>
+
+{#if $settings.dreamBackground}
+  <DreamBackground />
+{/if}
 
 {#if hasData}
   <Sidebar

@@ -359,6 +359,12 @@
           "default": false,
           "markdownDescription": "Render meshes in wireframe mode instead of solid surfaces."
         },
+        "vs-code-aster.viewer.dreamBackground": {
+          "order": 22,
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Cosmetic animated EDF orange and blue light blobs slowly breathing behind the mesh. Purely decorative — does not affect mesh lighting."
+        },
         "vs-code-aster.enableTelemetry": {
           "order": 100,
           "type": "boolean",
