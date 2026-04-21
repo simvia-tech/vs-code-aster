@@ -1,8 +1,11 @@
 <p align="center"><img src="https://raw.githubusercontent.com/simvia-tech/vs-code-aster/main/media/images/simvia.png" alt="Simvia Logo" width="50%" /></p>
 
 <p align="center">
-  <a href="/"><img src="https://img.shields.io/badge/version-1.8.1-blue" alt="Version" /></a>
+  <a href="/"><img src="https://img.shields.io/badge/version-1.9.0-blue" alt="Version" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL%203.0-green" alt="License" /></a>
+  <a href="https://github.com/simvia-tech/vs-code-aster/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/simvia-tech/vs-code-aster/ci.yml?branch=main&label=CI" alt="CI Status" /></a>
+  <a href="https://github.com/simvia-tech/vs-code-aster/issues"><img src="https://img.shields.io/github/issues/simvia-tech/vs-code-aster?label=issues" alt="GitHub issues" /></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=simvia.vs-code-aster"><img src="https://vsmarketplacebadges.dev/installs-short/simvia.vs-code-aster.svg?label=installs&style=flat" alt="VS Marketplace installs" /></a>
 </p>
 
 # VS Code Aster – VS Code Extension for code_aster
@@ -188,7 +191,7 @@ If you want to use a custom alias, you can :
 
 The visualizer is an integrated 3D viewer that lets you display and explore your simulation geometry and results directly in VS Code — without leaving your workspace.
 
-It’s powered by **VTK.js**, and supports both mesh visualization and node-based groups.
+It’s powered by **VTK.js**, and surfaces every named group from your `.med` mesh: volume groups (rendered as the skin of each 3D sub-domain), face groups, edge groups (1D line elements), and node groups.
 
 ![Mesh viewer screenshot](media/images/viewer-screenshot.png)
 
@@ -202,12 +205,14 @@ There are two ways to open the visualizer :
 #### Features
 
 - Load geometry files (`.med`) directly into the viewer
-- Highlight face and node groups using the sidebar
+- Highlight volume, face, edge, and node groups using the sidebar — each kind gets its own icon
 - Highlight groups quickly by selecting their names from your command file (`.comm`)
 - Control the camera by rotating or panning it
 - **Bounding box** : toggle a wireframe cube with colored axes (X red, Y green, Z blue), corner dots, and dimension labels to quickly read the characteristic size of the structure
 - **Wireframe mode** : switch between solid surface and wireframe rendering to inspect mesh density
 - **Screenshot** : save the current 3D view as a PNG file next to your mesh and copy it to the clipboard
+- **Per-kind settings** : Settings popup exposes edge-group line thickness, edge-group depth offset (to avoid z-fighting), node-group point size, and the sidebar sort order — plus a toggle to bucket groups by kind or mix them into a single list
+- **Dream background** : optional cosmetic setting that animates EDF orange and blue light blobs behind the mesh for a more vibrant workspace
 
 #### Usage tips
 
