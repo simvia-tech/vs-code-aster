@@ -265,6 +265,14 @@
           "maximum": 0.5,
           "markdownDescription": "Opacity of objects hidden via the eye button in the mesh viewer (0 = fully invisible, 0.5 = 50% visible as a ghost)."
         },
+        "vs-code-aster.viewer.edgeThresholdMultiplier": {
+          "order": 11.5,
+          "type": "number",
+          "default": 1,
+          "minimum": 0.25,
+          "maximum": 5,
+          "markdownDescription": "Sensitivity of the threshold-based mesh edge display (see `#vs-code-aster.viewer.edgeMode#`). Higher values reveal mesh edges from farther away."
+        },
         "vs-code-aster.viewer.edgeMode": {
           "order": 11,
           "type": "string",
@@ -276,12 +284,12 @@
             "hide"
           ],
           "enumDescriptions": [
-            "Edges fade in as you zoom in, scaled by mesh density. When zoomed out, large meshes may appear very flat as outer edges are mostly hidden. Performance is impacted.",
-            "Edges appear abruptly at a zoom level based on mesh density. When zoomed out, large meshes may appear slightly flat as outer edges are hidden. Performance is not impacted.",
-            "Edges are always visible. Large meshes will appear almost entirely black when zoomed out. Performance is impacted.",
-            "Edges are always hidden. All shapes will look slightly flat regardless of zoom level or mesh size."
+            "Mesh edges fade in as you zoom in, scaled by mesh density. When zoomed out, large meshes may appear very flat as outer edges are mostly hidden. Performance is impacted.",
+            "Mesh edges appear abruptly at a zoom level based on mesh density. When zoomed out, large meshes may appear slightly flat as outer edges are hidden. Performance is not impacted.",
+            "Mesh edges are always visible. Large meshes will appear almost entirely black when zoomed out. Performance is impacted.",
+            "Mesh edges are always hidden. All shapes will look slightly flat regardless of zoom level or mesh size."
           ],
-          "markdownDescription": "Controls how mesh edges are displayed in the viewer."
+          "markdownDescription": "Controls how the wireframe edges drawn on each cell of the mesh are displayed in the viewer. Does not affect edge groups (1D named entities from the .med file — see `#vs-code-aster.viewer.edgeGroupThickness#`)."
         },
         "vs-code-aster.viewer.groupTransparency": {
           "order": 15,
@@ -290,6 +298,48 @@
           "minimum": 0,
           "maximum": 0.5,
           "markdownDescription": "Opacity of the parent mesh when a sub-group is highlighted (0 = invisible, 0.5 = semi-visible)."
+        },
+        "vs-code-aster.viewer.edgeGroupThickness": {
+          "order": 12,
+          "type": "integer",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 10,
+          "markdownDescription": "Line width (in pixels) used to render edge groups (1D named entities from the .med file) in the mesh viewer. Independent from the wireframe edges drawn on mesh cells (see `#vs-code-aster.viewer.edgeMode#`)."
+        },
+        "vs-code-aster.viewer.edgeGroupDepthOffset": {
+          "order": 13,
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Render edge groups above the mesh surface to avoid z-fighting (flickering lines). Disable if edge groups appear offset from their true position."
+        },
+        "vs-code-aster.viewer.nodeGroupSize": {
+          "order": 14,
+          "type": "number",
+          "default": 1,
+          "minimum": 0.25,
+          "maximum": 4,
+          "markdownDescription": "Multiplier applied to the size of node-group points in the mesh viewer. Points still scale with zoom; this controls their base size."
+        },
+        "vs-code-aster.viewer.sidebarSort": {
+          "order": 19,
+          "type": "string",
+          "default": "natural",
+          "enum": [
+            "natural",
+            "size"
+          ],
+          "enumDescriptions": [
+            "Sort groups alphabetically (natural order).",
+            "Sort groups by cell count, largest first — useful to spot dominant groups on big meshes."
+          ],
+          "markdownDescription": "Order used for groups in the mesh viewer sidebar."
+        },
+        "vs-code-aster.viewer.groupByKind": {
+          "order": 20,
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Bucket groups by kind in the mesh viewer sidebar (volumes, then faces, then edges, then nodes). When disabled, all groups of an object are shown in a single list sorted by `#vs-code-aster.viewer.sidebarSort#`."
         },
         "vs-code-aster.viewer.showOrientationWidget": {
           "order": 16,

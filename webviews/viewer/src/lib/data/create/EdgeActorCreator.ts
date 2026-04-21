@@ -21,6 +21,7 @@ export class EdgeActorCreator {
 
     const mapper = vtk.Rendering.Core.vtkMapper.newInstance();
     mapper.setInputData(polyData);
+    EdgeActorCreator.applyDepthOffset(mapper, GlobalSettings.Instance.edgeGroupDepthOffset);
 
     const actor = vtk.Rendering.Core.vtkActor.newInstance();
     actor.setMapper(mapper);
@@ -29,6 +30,15 @@ export class EdgeActorCreator {
     VtkApp.Instance.getRenderer().addActor(actor);
 
     return { actor, colorIndex, cellCount };
+  }
+
+  static applyDepthOffset(mapper: any, enabled: boolean): void {
+    mapper.setResolveCoincidentTopology(enabled);
+    if (enabled) {
+      mapper.setRelativeCoincidentTopologyLineOffsetParameters(-2, -2);
+    } else {
+      mapper.setRelativeCoincidentTopologyLineOffsetParameters(0, 0);
+    }
   }
 
   private prepare(groupId: number): { polyData: any; cellCount: number } {
@@ -68,7 +78,7 @@ export class EdgeActorCreator {
     const prop = actor.getProperty();
     const colorIndex = GlobalSettings.Instance.grpIndex;
     prop.setColor(GlobalSettings.Instance.getColorForGroup());
-    prop.setLineWidth(3);
+    prop.setLineWidth(GlobalSettings.Instance.edgeGroupThickness);
     prop.setLighting(false);
     actor.setVisibility(false);
     return colorIndex;

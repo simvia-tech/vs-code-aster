@@ -7,32 +7,43 @@
   import ChevronIcon from '../../icons/ChevronIcon.svelte';
   import Toggle from '../ui/Toggle.svelte';
   import Dropdown from '../ui/Dropdown.svelte';
-  import type { EdgeMode } from '../../lib/state';
+  import type { EdgeMode, SidebarSort } from '../../lib/state';
 
   let { onclose }: { onclose: () => void } = $props();
 
-  const tabs = ['Edges', 'Visibility', 'Display'] as const;
+  const tabs = ['Mesh edges', 'Groups', 'Visibility', 'Display'] as const;
   type Tab = (typeof tabs)[number];
-  let activeTab = $state<Tab>('Edges');
+  let activeTab = $state<Tab>('Mesh edges');
 
   const edgeModeOptions = [
-    { value: 'threshold', label: 'Show edges when zooming (threshold)' },
-    { value: 'gradual', label: 'Show edges when zooming (gradual)' },
-    { value: 'show', label: 'Always show edges' },
-    { value: 'hide', label: 'Always hide edges' },
+    { value: 'threshold', label: 'Show mesh edges when zooming (threshold)' },
+    { value: 'gradual', label: 'Show mesh edges when zooming (gradual)' },
+    { value: 'show', label: 'Always show mesh edges' },
+    { value: 'hide', label: 'Always hide mesh edges' },
   ];
 
   const edgeModeDescriptions: Record<EdgeMode, string> = {
     gradual:
-      'Edges fade in as you zoom in, scaled by mesh density. When zoomed out, large meshes may appear very flat as outer edges are mostly hidden. Performance is impacted.',
+      'Mesh edges fade in as you zoom in, scaled by mesh density. When zoomed out, large meshes may appear very flat as outer edges are mostly hidden. Performance is impacted.',
     threshold:
-      'Edges appear abruptly at a zoom level based on mesh density. When zoomed out, large meshes may appear slightly flat as outer edges are hidden. Performance is not impacted.',
-    show: 'Edges are always visible. Large meshes will appear almost entirely black when zoomed out. Performance is impacted.',
-    hide: 'Edges are always hidden. All shapes will look slightly flat regardless of zoom level or mesh size.',
+      'Mesh edges appear abruptly at a zoom level based on mesh density. When zoomed out, large meshes may appear slightly flat as outer edges are hidden. Performance is not impacted.',
+    show: 'Mesh edges are always visible. Large meshes will appear almost entirely black when zoomed out. Performance is impacted.',
+    hide: 'Mesh edges are always hidden. All shapes will look slightly flat regardless of zoom level or mesh size.',
   };
+
+  const sidebarSortOptions = [
+    { value: 'natural', label: 'Alphabetical (natural)' },
+    { value: 'size', label: 'By size (largest first)' },
+  ];
 
   let hiddenOpacityPct = $derived(Math.round($settings.hiddenObjectOpacity * 100));
   let edgeThresholdDisplay = $derived(parseFloat($settings.edgeThresholdMultiplier.toFixed(2)));
+  let edgeGroupThicknessDisplay = $derived($settings.edgeGroupThickness);
+  let nodeGroupSizeDisplay = $derived(parseFloat($settings.nodeGroupSize.toFixed(2)));
+  let sidebarSortLabel = $derived(
+    sidebarSortOptions.find((o) => o.value === $settings.sidebarSort)?.label ??
+      $settings.sidebarSort
+  );
   let edgeModeLabel = $derived(
     edgeModeOptions.find((o) => o.value === $settings.edgeMode)?.label ?? $settings.edgeMode
   );
@@ -79,6 +90,59 @@
     });
   }
 
+  function onEdgeGroupThicknessInput(e: Event) {
+    const thickness = parseInt((e.target as HTMLInputElement).value, 10);
+    GlobalSettings.Instance.edgeGroupThickness = thickness;
+    settings.update((s) => ({ ...s, edgeGroupThickness: thickness }));
+    VisibilityManager.Instance.applyEdgeGroupThickness();
+    Controller.Instance.getVSCodeAPI().postMessage({
+      type: 'saveSettings',
+      settings: { edgeGroupThickness: thickness },
+    });
+  }
+
+  function toggleEdgeGroupDepthOffset() {
+    const enabled = !$settings.edgeGroupDepthOffset;
+    GlobalSettings.Instance.edgeGroupDepthOffset = enabled;
+    settings.update((s) => ({ ...s, edgeGroupDepthOffset: enabled }));
+    VisibilityManager.Instance.applyEdgeGroupDepthOffset();
+    Controller.Instance.getVSCodeAPI().postMessage({
+      type: 'saveSettings',
+      settings: { edgeGroupDepthOffset: enabled },
+    });
+  }
+
+  function onNodeGroupSizeInput(e: Event) {
+    const value = parseInt((e.target as HTMLInputElement).value, 10) / 100;
+    GlobalSettings.Instance.nodeGroupSize = value;
+    settings.update((s) => ({ ...s, nodeGroupSize: value }));
+    CameraManager.Instance.refreshNodeGroupSize();
+    Controller.Instance.getVSCodeAPI().postMessage({
+      type: 'saveSettings',
+      settings: { nodeGroupSize: value },
+    });
+  }
+
+  function applySidebarSort(sort: SidebarSort) {
+    GlobalSettings.Instance.sidebarSort = sort;
+    settings.update((s) => ({ ...s, sidebarSort: sort }));
+    Controller.Instance.applySortOrder();
+    Controller.Instance.getVSCodeAPI().postMessage({
+      type: 'saveSettings',
+      settings: { sidebarSort: sort },
+    });
+  }
+
+  function toggleGroupByKind() {
+    const enabled = !$settings.groupByKind;
+    GlobalSettings.Instance.groupByKind = enabled;
+    settings.update((s) => ({ ...s, groupByKind: enabled }));
+    Controller.Instance.getVSCodeAPI().postMessage({
+      type: 'saveSettings',
+      settings: { groupByKind: enabled },
+    });
+  }
+
   function onGroupTransparencyInput(e: Event) {
     const raw = parseInt((e.target as HTMLInputElement).value, 10);
     const pct = Math.min(raw, 50);
@@ -108,13 +172,20 @@
     edgeMode: 'threshold' as EdgeMode,
     edgeThresholdMultiplier: 1,
   };
+  const GROUPS_DEFAULTS = {
+    edgeGroupThickness: 3,
+    edgeGroupDepthOffset: true,
+    nodeGroupSize: 1,
+    sidebarSort: 'natural' as SidebarSort,
+    groupByKind: true,
+  };
   const VISIBILITY_DEFAULTS = {
     hiddenObjectOpacity: 0,
     groupTransparency: 0.2,
   };
   const DISPLAY_DEFAULTS = { showOrientationWidget: true };
 
-  function resetEdgesTab() {
+  function resetMeshEdgesTab() {
     GlobalSettings.Instance.edgeMode = EDGE_DEFAULTS.edgeMode;
     GlobalSettings.Instance.edgeThresholdMultiplier = EDGE_DEFAULTS.edgeThresholdMultiplier;
     settings.update((s) => ({ ...s, ...EDGE_DEFAULTS }));
@@ -122,6 +193,23 @@
     Controller.Instance.getVSCodeAPI().postMessage({
       type: 'saveSettings',
       settings: EDGE_DEFAULTS,
+    });
+  }
+
+  function resetGroupsTab() {
+    GlobalSettings.Instance.edgeGroupThickness = GROUPS_DEFAULTS.edgeGroupThickness;
+    GlobalSettings.Instance.edgeGroupDepthOffset = GROUPS_DEFAULTS.edgeGroupDepthOffset;
+    GlobalSettings.Instance.nodeGroupSize = GROUPS_DEFAULTS.nodeGroupSize;
+    GlobalSettings.Instance.sidebarSort = GROUPS_DEFAULTS.sidebarSort;
+    GlobalSettings.Instance.groupByKind = GROUPS_DEFAULTS.groupByKind;
+    settings.update((s) => ({ ...s, ...GROUPS_DEFAULTS }));
+    VisibilityManager.Instance.applyEdgeGroupThickness();
+    VisibilityManager.Instance.applyEdgeGroupDepthOffset();
+    CameraManager.Instance.refreshNodeGroupSize();
+    Controller.Instance.applySortOrder();
+    Controller.Instance.getVSCodeAPI().postMessage({
+      type: 'saveSettings',
+      settings: GROUPS_DEFAULTS,
     });
   }
 
@@ -150,19 +238,29 @@
   function resetSettings() {
     const defaults = {
       ...EDGE_DEFAULTS,
+      ...GROUPS_DEFAULTS,
       ...VISIBILITY_DEFAULTS,
       ...DISPLAY_DEFAULTS,
     };
     GlobalSettings.Instance.hiddenObjectOpacity = defaults.hiddenObjectOpacity;
     GlobalSettings.Instance.edgeMode = defaults.edgeMode;
     GlobalSettings.Instance.edgeThresholdMultiplier = defaults.edgeThresholdMultiplier;
+    GlobalSettings.Instance.edgeGroupThickness = defaults.edgeGroupThickness;
+    GlobalSettings.Instance.edgeGroupDepthOffset = defaults.edgeGroupDepthOffset;
+    GlobalSettings.Instance.nodeGroupSize = defaults.nodeGroupSize;
+    GlobalSettings.Instance.sidebarSort = defaults.sidebarSort;
+    GlobalSettings.Instance.groupByKind = defaults.groupByKind;
     GlobalSettings.Instance.groupTransparency = defaults.groupTransparency;
     GlobalSettings.Instance.showOrientationWidget = defaults.showOrientationWidget;
     settings.update((s) => ({ ...s, ...defaults }));
     VisibilityManager.Instance.applyHiddenObjectOpacity();
     VisibilityManager.Instance.applyGroupTransparency();
+    VisibilityManager.Instance.applyEdgeGroupThickness();
+    VisibilityManager.Instance.applyEdgeGroupDepthOffset();
     CameraManager.Instance.refreshEdgeVisibility();
+    CameraManager.Instance.refreshNodeGroupSize();
     CameraManager.Instance.setOrientationWidgetVisible(true);
+    Controller.Instance.applySortOrder();
     Controller.Instance.getVSCodeAPI().postMessage({
       type: 'saveSettings',
       settings: defaults,
@@ -170,7 +268,8 @@
   }
 
   const tabResets: Record<Tab, () => void> = {
-    Edges: resetEdgesTab,
+    'Mesh edges': resetMeshEdgesTab,
+    Groups: resetGroupsTab,
     Visibility: resetVisibilityTab,
     Display: resetDisplayTab,
   };
@@ -218,13 +317,18 @@
   </nav>
 
   <div class="relative z-10 flex flex-col flex-1 min-w-0 px-6 pt-6 pb-4">
-    <div class="grow pr-1">
-      {#if activeTab === 'Edges'}
+    <div class="grow overflow-y-auto min-h-0 pr-1">
+      {#if activeTab === 'Mesh edges'}
         <div class="flex flex-col space-y-2">
+          <span class="text-xs text-ui-text-secondary pb-1">
+            Controls the wireframe edges drawn on every cell of the mesh. For the display of edge
+            <em>groups</em> (1D named entities from the .med file), see the <strong>Groups</strong>
+            tab.
+          </span>
           <div class="flex items-center gap-1.5">
-            <span class="text-xs font-medium">Edge rendering mode</span>
+            <span class="text-xs font-medium">Mesh edge rendering mode</span>
             {@render tip(
-              'Choose when mesh edges are visible: always, never, or only when zooming in. Threshold mode shows edges abruptly at a zoom level; gradual mode fades them in (may impact performance on dense meshes).'
+              'Choose when the wireframe lines drawn on each cell of the mesh are visible. This does not affect edge groups (1D named entities from the .med file).'
             )}
           </div>
           <Dropdown
@@ -274,6 +378,122 @@
               >
             </div>
           {/if}
+        </div>
+      {:else if activeTab === 'Groups'}
+        <div class="flex flex-col space-y-3">
+          <span class="text-xs text-ui-text-secondary pb-1">
+            Per-kind display settings for the named groups (volumes, faces, edges, nodes) that come
+            from the .med file.
+          </span>
+
+          <div class="flex flex-col space-y-1.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <label for="edgeGroupThicknessRange" class="text-xs font-medium"
+                  >Edge group thickness</label
+                >
+                {@render tip(
+                  'Line width used to render edge groups (1D named entities from the .med file). Independent from the wireframe edges drawn on mesh cells.'
+                )}
+              </div>
+              <span class="text-xs text-ui-text-secondary">{edgeGroupThicknessDisplay}px</span>
+            </div>
+            <input
+              id="edgeGroupThicknessRange"
+              type="range"
+              min="1"
+              max="10"
+              step="1"
+              value={$settings.edgeGroupThickness}
+              class="w-full cursor-pointer focus:outline-none [accent-color:var(--vscode-textLink-foreground,#0078d4)]"
+              oninput={onEdgeGroupThicknessInput}
+            />
+          </div>
+
+          <div class="flex items-center gap-3">
+            <Toggle
+              checked={$settings.edgeGroupDepthOffset}
+              onclick={toggleEdgeGroupDepthOffset}
+              ariaLabel="Edge groups depth offset"
+            />
+            <div class="flex flex-col gap-0.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-medium">Edge groups above the mesh</span>
+                {@render tip(
+                  'Force edge groups to render on top of the mesh to avoid z-fighting (flicker). Disable if lines appear in the wrong position.'
+                )}
+              </div>
+              <span class="text-xs text-ui-text-secondary"
+                >Nudge edge groups toward the camera so they sit cleanly on top of the surface.</span
+              >
+            </div>
+          </div>
+
+          <div class="flex flex-col space-y-1.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <label for="nodeGroupSizeRange" class="text-xs font-medium"
+                  >Node group point size</label
+                >
+                {@render tip(
+                  'Multiplier applied to the size of node-group points. Points still scale with zoom; this controls their base size.'
+                )}
+              </div>
+              <span class="text-xs text-ui-text-secondary">{nodeGroupSizeDisplay}×</span>
+            </div>
+            <input
+              id="nodeGroupSizeRange"
+              type="range"
+              min="25"
+              max="400"
+              step="5"
+              value={Math.round($settings.nodeGroupSize * 100)}
+              class="w-full cursor-pointer focus:outline-none [accent-color:var(--vscode-textLink-foreground,#0078d4)]"
+              oninput={onNodeGroupSizeInput}
+            />
+          </div>
+
+          <div class="flex items-center gap-3">
+            <Toggle
+              checked={$settings.groupByKind}
+              onclick={toggleGroupByKind}
+              ariaLabel="Group by kind"
+            />
+            <div class="flex flex-col gap-0.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-medium">Bucket groups by kind</span>
+                {@render tip(
+                  'When on, groups are displayed per kind in the sidebar (volumes, then faces, then edges, then nodes). When off, all groups of an object share a single list sorted by the Sidebar sort order.'
+                )}
+              </div>
+              <span class="text-xs text-ui-text-secondary"
+                >Separate volumes, faces, edges and nodes into distinct sections.</span
+              >
+            </div>
+          </div>
+
+          <div class="flex flex-col space-y-1.5">
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-medium">Sidebar sort order</span>
+              {@render tip(
+                'Order used for groups in the sidebar. With buckets on, sorts within each kind; with buckets off, sorts across all groups of an object.'
+              )}
+            </div>
+            <Dropdown
+              options={sidebarSortOptions}
+              value={$settings.sidebarSort}
+              onSelect={(v) => applySidebarSort(v as SidebarSort)}
+            >
+              <div
+                class="w-full text-xs px-2 py-1.5 rounded-sm cursor-pointer flex items-center justify-between gap-2 select-none bg-ui-elem hover:bg-ui-elem-hover text-ui-fg border border-ui-border"
+                role="button"
+                tabindex="0"
+              >
+                <span class="truncate">{sidebarSortLabel}</span>
+                <ChevronIcon class="size-3 shrink-0" />
+              </div>
+            </Dropdown>
+          </div>
         </div>
       {:else if activeTab === 'Visibility'}
         <div class="flex flex-col space-y-2">
