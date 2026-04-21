@@ -2,6 +2,7 @@
   import { settings } from '../../lib/state';
   import { GlobalSettings } from '../../lib/settings/GlobalSettings';
   import { CameraManager } from '../../lib/interaction/CameraManager';
+  import { VtkApp } from '../../lib/core/VtkApp';
   import { VisibilityManager } from '../../lib/commands/VisibilityManager';
   import { Controller } from '../../lib/Controller';
   import ChevronIcon from '../../icons/ChevronIcon.svelte';
@@ -157,6 +158,17 @@
     });
   }
 
+  function toggleDreamBackground() {
+    const enabled = !$settings.dreamBackground;
+    GlobalSettings.Instance.dreamBackground = enabled;
+    settings.update((s) => ({ ...s, dreamBackground: enabled }));
+    VtkApp.Instance.setTransparentBackground(enabled);
+    Controller.Instance.getVSCodeAPI().postMessage({
+      type: 'saveSettings',
+      settings: { dreamBackground: enabled },
+    });
+  }
+
   function toggleOrientationWidget() {
     const showOrientationWidget = !$settings.showOrientationWidget;
     GlobalSettings.Instance.showOrientationWidget = showOrientationWidget;
@@ -183,7 +195,7 @@
     hiddenObjectOpacity: 0,
     groupTransparency: 0.2,
   };
-  const DISPLAY_DEFAULTS = { showOrientationWidget: true };
+  const DISPLAY_DEFAULTS = { showOrientationWidget: true, dreamBackground: false };
 
   function resetMeshEdgesTab() {
     GlobalSettings.Instance.edgeMode = EDGE_DEFAULTS.edgeMode;
@@ -227,6 +239,7 @@
 
   function resetDisplayTab() {
     GlobalSettings.Instance.showOrientationWidget = DISPLAY_DEFAULTS.showOrientationWidget;
+    GlobalSettings.Instance.dreamBackground = DISPLAY_DEFAULTS.dreamBackground;
     settings.update((s) => ({ ...s, ...DISPLAY_DEFAULTS }));
     CameraManager.Instance.setOrientationWidgetVisible(true);
     Controller.Instance.getVSCodeAPI().postMessage({
@@ -252,6 +265,7 @@
     GlobalSettings.Instance.groupByKind = defaults.groupByKind;
     GlobalSettings.Instance.groupTransparency = defaults.groupTransparency;
     GlobalSettings.Instance.showOrientationWidget = defaults.showOrientationWidget;
+    GlobalSettings.Instance.dreamBackground = defaults.dreamBackground;
     settings.update((s) => ({ ...s, ...defaults }));
     VisibilityManager.Instance.applyHiddenObjectOpacity();
     VisibilityManager.Instance.applyGroupTransparency();
@@ -551,7 +565,7 @@
           </div>
         </div>
       {:else if activeTab === 'Display'}
-        <div class="flex flex-col space-y-2">
+        <div class="flex flex-col space-y-3">
           <div class="flex items-center gap-3">
             <Toggle
               checked={$settings.showOrientationWidget}
@@ -567,6 +581,25 @@
               </div>
               <span class="text-xs text-ui-text-secondary"
                 >Show the axes widget in the bottom-right corner.</span
+              >
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <Toggle
+              checked={$settings.dreamBackground}
+              onclick={toggleDreamBackground}
+              ariaLabel="Dream background"
+            />
+            <div class="flex flex-col gap-0.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-medium">Dream background</span>
+                {@render tip(
+                  'Cosmetic only: animated EDF orange and blue light blobs slowly breathing behind the mesh. Does not affect lighting on the mesh itself.'
+                )}
+              </div>
+              <span class="text-xs text-ui-text-secondary"
+                >Animated colored glows behind the mesh, purely decorative.</span
               >
             </div>
           </div>

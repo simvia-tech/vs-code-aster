@@ -129,6 +129,7 @@ export class WebviewVisu implements vscode.Disposable {
             'showOrientationWidget',
             'showBoundingBox',
             'showWireframe',
+            'dreamBackground',
           ];
           for (const key of settingKeys) {
             if (e.settings[key] !== undefined) {
@@ -206,6 +207,7 @@ export class WebviewVisu implements vscode.Disposable {
       showOrientationWidget: config.get<boolean>('viewer.showOrientationWidget', true),
       showBoundingBox: config.get<boolean>('viewer.showBoundingBox', false),
       showWireframe: config.get<boolean>('viewer.showWireframe', false),
+      dreamBackground: config.get<boolean>('viewer.dreamBackground', false),
     };
     this.panel.webview.postMessage({
       type: 'init',
