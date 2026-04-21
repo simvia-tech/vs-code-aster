@@ -7,7 +7,7 @@ import { WebviewVisu } from './WebviewVisu';
 import { TextDecoder } from 'util';
 import { getMeshCacheDir } from './projectPaths';
 
-const EXPECTED_MED2OBJ_VERSION = 1;
+const EXPECTED_MED2OBJ_VERSION = 2;
 
 function readObjVersion(objFilePath: string): number | null {
   try {

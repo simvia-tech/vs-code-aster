@@ -6,9 +6,16 @@ export interface ObjLoaderResult {
   cellIndexToGroup: number[];
   nodes: number[];
   nodeIndexToGroup: number[];
+  edges: number[][];
+  edgeIndexToGroup: number[];
   faceGroups: string[];
   nodeGroups: string[];
-  groupHierarchy: Record<string, { faces: string[]; nodes: string[] }>;
+  volumeGroups: string[];
+  edgeGroups: string[];
+  groupHierarchy: Record<
+    string,
+    { faces: string[]; nodes: string[]; volumes: string[]; edges: string[] }
+  >;
 }
 
 const YIELD_EVERY_LINES = 5_000;
@@ -25,13 +32,21 @@ export class ObjLoader {
     const cellIndexToGroup: number[] = [];
     const nodes: number[] = [];
     const nodeIndexToGroup: number[] = [];
+    const edges: number[][] = [];
+    const edgeIndexToGroup: number[] = [];
     const faceGroups: string[] = [];
     const nodeGroups: string[] = [];
-    const groupHierarchy: Record<string, { faces: string[]; nodes: string[] }> = {};
+    const volumeGroups: string[] = [];
+    const edgeGroups: string[] = [];
+    const groupHierarchy: Record<
+      string,
+      { faces: string[]; nodes: string[]; volumes: string[]; edges: string[] }
+    > = {};
 
     let nbVertices = 0;
     let groupId = -1;
     let nodeGroupId = -1;
+    let edgeGroupId = -1;
 
     const yield_ = () => new Promise<void>((r) => setTimeout(r, 0));
 
@@ -40,7 +55,7 @@ export class ObjLoader {
         groupId++;
         const skinName = 'all_' + fileNames[i];
 
-        groupHierarchy[skinName] = { faces: [], nodes: [] };
+        groupHierarchy[skinName] = { faces: [], nodes: [], volumes: [], edges: [] };
         faceGroups.push(skinName);
         nbVertices = vertices.length;
 
@@ -88,11 +103,36 @@ export class ObjLoader {
               break;
             }
 
+            case 'vg': {
+              groupId++;
+              const volumeGroupName = ss[1] || `volume${groupId}`;
+              const key = `${skinName}::${volumeGroupName}::volume`;
+              faceGroups.push(key);
+              volumeGroups.push(key);
+              groupHierarchy[skinName].volumes.push(volumeGroupName);
+              break;
+            }
+
             case 'ng': {
               nodeGroupId++;
               const nodeGroupName = ss[1] || `nodeGroup${nodeGroupId}`;
               nodeGroups.push(`${skinName}::${nodeGroupName}::node`);
               groupHierarchy[skinName].nodes.push(nodeGroupName);
+              break;
+            }
+
+            case 'eg': {
+              edgeGroupId++;
+              const edgeGroupName = ss[1] || `edgeGroup${edgeGroupId}`;
+              edgeGroups.push(`${skinName}::${edgeGroupName}::edge`);
+              groupHierarchy[skinName].edges.push(edgeGroupName);
+              break;
+            }
+
+            case 'l': {
+              const lineIndices = ss.slice(1).map((p) => Number.parseInt(p) - 1 + nbVertices);
+              edges.push(lineIndices);
+              edgeIndexToGroup.push(edgeGroupId);
               break;
             }
 
@@ -118,7 +158,7 @@ export class ObjLoader {
 
     Controller.Instance.getVSCodeAPI().postMessage({
       type: 'debugPanel',
-      text: `TOTAL: ${vertices.length} vertices, ${cells.length} cells, ${nodes.length} nodes`,
+      text: `TOTAL: ${vertices.length} vertices, ${cells.length} cells, ${nodes.length} nodes, ${edges.length} edges`,
     });
 
     return {
@@ -127,8 +167,12 @@ export class ObjLoader {
       cellIndexToGroup,
       nodes,
       nodeIndexToGroup,
+      edges,
+      edgeIndexToGroup,
       faceGroups,
       nodeGroups,
+      volumeGroups,
+      edgeGroups,
       groupHierarchy,
     };
   }

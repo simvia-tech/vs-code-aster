@@ -32,10 +32,10 @@ export class CameraManager {
     this.lastDistance = this.initialDistance;
 
     for (const [groupName, group] of Object.entries(groups)) {
-      if (!group.isFaceGroup) {
+      if (group.kind === 'node') {
         this.nodesGroups[groupName] = group;
         group.setSize(this.lastDistance);
-      } else if (group.cellCount !== null) {
+      } else if (group.isSurfaceGroup && group.cellCount !== null) {
         this.faceGroups[groupName] = group;
         group.updateEdgeVisibility(this.lastDistance, this.initialDistance);
       }
@@ -198,7 +198,7 @@ export class CameraManager {
     let zmax = -Infinity;
 
     for (const group of Object.values(groups)) {
-      if (!group.isFaceGroup || group.fileGroup !== null) continue;
+      if (!group.isSurfaceGroup || group.fileGroup !== null) continue;
       const b = group.actor.getBounds();
       if (b[0] < xmin) xmin = b[0];
       if (b[1] > xmax) xmax = b[1];

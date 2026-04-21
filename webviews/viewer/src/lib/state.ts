@@ -2,7 +2,16 @@ import { writable } from 'svelte/store';
 import { tweened } from 'svelte/motion';
 import { cubicOut } from 'svelte/easing';
 
-export type GroupHierarchy = Record<string, { faces: string[]; nodes: string[]; color?: number[] }>;
+export type GroupHierarchy = Record<
+  string,
+  {
+    faces: string[];
+    nodes: string[];
+    volumes: string[];
+    edges: string[];
+    color?: number[];
+  }
+>;
 export type HighlightedGroups = Map<string, number[]>;
 export type HiddenObjects = Set<string>;
 

@@ -2,7 +2,7 @@ import { Controller } from '../Controller';
 import { VtkApp } from '../core/VtkApp';
 import { GlobalSettings } from '../settings/GlobalSettings';
 import { highlightedGroups, hiddenObjects } from '../state';
-import type { Group } from '../data/Group';
+import type { Group, GroupKind } from '../data/Group';
 
 export class VisibilityManager {
   private static _i: VisibilityManager;
@@ -36,7 +36,7 @@ export class VisibilityManager {
   setVisibility(
     groupName: string,
     visible?: boolean
-  ): { visible: boolean; color: number[]; isFaceGroup: boolean } | undefined {
+  ): { visible: boolean; color: number[]; kind: GroupKind } | undefined {
     const post = (text: string) => {
       Controller.Instance.getVSCodeAPI().postMessage({ type: 'debugPanel', text });
     };
@@ -58,7 +58,7 @@ export class VisibilityManager {
     }
 
     const color = group.getColor();
-    const isFaceGroup = group.isFaceGroup;
+    const kind = group.kind;
 
     const wasHighlighted = this.highlightedGroupsSet.has(groupName);
     const isHighlighted = typeof visible === 'boolean' ? visible : !wasHighlighted;
@@ -101,7 +101,7 @@ export class VisibilityManager {
 
     VtkApp.Instance.getRenderWindow().render();
 
-    return { visible: isHighlighted, color, isFaceGroup };
+    return { visible: isHighlighted, color, kind };
   }
 
   toggleObjectVisibility(object: string): boolean {

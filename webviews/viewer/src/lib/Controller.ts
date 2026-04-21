@@ -63,6 +63,8 @@ export class Controller {
         ...groupHierarchy[key],
         faces: [...groupHierarchy[key].faces].sort(naturalSort),
         nodes: [...groupHierarchy[key].nodes].sort(naturalSort),
+        volumes: [...(groupHierarchy[key].volumes ?? [])].sort(naturalSort),
+        edges: [...(groupHierarchy[key].edges ?? [])].sort(naturalSort),
       };
     }
 

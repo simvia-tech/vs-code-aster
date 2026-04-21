@@ -1,9 +1,11 @@
 import { GlobalSettings } from '../settings/GlobalSettings';
 
+export type GroupKind = 'face' | 'node' | 'volume' | 'edge';
+
 export class Group {
   actor: any;
   name: string;
-  isFaceGroup: boolean;
+  kind: GroupKind;
   fileGroup: string | null;
   size: number | null;
   colorIndex: number | null;
@@ -14,7 +16,7 @@ export class Group {
   constructor(
     actor: any,
     name: string,
-    isFaceGroup: boolean,
+    kind: GroupKind,
     fileGroup: string | null = null,
     parentSize: number | null = null,
     colorIndex: number | null = null,
@@ -23,12 +25,16 @@ export class Group {
   ) {
     this.actor = actor;
     this.name = name;
-    this.isFaceGroup = isFaceGroup;
+    this.kind = kind;
     this.fileGroup = fileGroup;
     this.size = parentSize;
     this.colorIndex = colorIndex;
     this.isObjectActor = isObjectActor;
     this.cellCount = cellCount;
+  }
+
+  get isSurfaceGroup(): boolean {
+    return this.kind === 'face' || this.kind === 'volume';
   }
 
   applyThemeColor(): void {

@@ -2,6 +2,7 @@ import { GlobalSettings } from '../settings/GlobalSettings';
 import { ObjLoader } from './ObjLoader';
 import { FaceActorCreator } from './create/FaceActorCreator';
 import { NodeActorCreator } from './create/NodeActorCreator';
+import { EdgeActorCreator } from './create/EdgeActorCreator';
 import { Group } from './Group';
 import { Controller } from '../Controller';
 import { VtkApp } from '../core/VtkApp';
@@ -40,13 +41,17 @@ export class CreateGroups {
       cellIndexToGroup,
       nodes,
       nodeIndexToGroup,
+      edges,
+      edgeIndexToGroup,
       faceGroups,
       nodeGroups,
+      edgeGroups,
       groupHierarchy,
     } = result;
 
     const faceActorCreator = new FaceActorCreator(vertices, cells, cellIndexToGroup);
     const nodeActorCreator = new NodeActorCreator(vertices, nodes, nodeIndexToGroup);
+    const edgeActorCreator = new EdgeActorCreator(vertices, edges, edgeIndexToGroup);
 
     const groupKeys = Object.keys(groupHierarchy);
     const yield_ = () => new Promise<void>((r) => setTimeout(r, 0));
@@ -70,7 +75,7 @@ export class CreateGroups {
       const groupInstance = new Group(
         actor,
         fileGroup,
-        true,
+        'face',
         null,
         null,
         fileColorIndex,
@@ -80,6 +85,28 @@ export class CreateGroups {
       this.groups[fileGroup] = groupInstance;
 
       const size = this.computeSize(actor);
+
+      for (const volumeGroup of groupHierarchy[fileGroup].volumes) {
+        const key = `${fileGroup}::${volumeGroup}::volume`;
+        const volumeGroupId = faceGroups.indexOf(key);
+        const {
+          actor: volumeActor,
+          colorIndex: volumeColorIndex,
+          isObjectActor: volumeIsObj,
+          cellCount: volumeCellCount,
+        } = faceActorCreator.create(volumeGroup, volumeGroupId);
+        const subGroup = new Group(
+          volumeActor,
+          volumeGroup,
+          'volume',
+          fileGroup,
+          size,
+          volumeColorIndex,
+          volumeIsObj,
+          volumeCellCount
+        );
+        this.groups[key] = subGroup;
+      }
 
       for (const faceGroup of groupHierarchy[fileGroup].faces) {
         const faceGroupId = faceGroups.indexOf(`${fileGroup}::${faceGroup}::face`);
@@ -92,7 +119,7 @@ export class CreateGroups {
         const subGroup = new Group(
           faceActor,
           faceGroup,
-          true,
+          'face',
           fileGroup,
           size,
           faceColorIndex,
@@ -102,6 +129,26 @@ export class CreateGroups {
         this.groups[`${fileGroup}::${faceGroup}::face`] = subGroup;
       }
 
+      for (const edgeGroup of groupHierarchy[fileGroup].edges) {
+        const edgeGroupId = edgeGroups.indexOf(`${fileGroup}::${edgeGroup}::edge`);
+        const {
+          actor: edgeActor,
+          colorIndex: edgeColorIndex,
+          cellCount: edgeCellCount,
+        } = edgeActorCreator.create(edgeGroupId);
+        const subGroup = new Group(
+          edgeActor,
+          edgeGroup,
+          'edge',
+          fileGroup,
+          size,
+          edgeColorIndex,
+          false,
+          edgeCellCount
+        );
+        this.groups[`${fileGroup}::${edgeGroup}::edge`] = subGroup;
+      }
+
       for (const nodeGroup of groupHierarchy[fileGroup].nodes) {
         const nodeGroupId = nodeGroups.indexOf(`${fileGroup}::${nodeGroup}::node`);
         const { actor: nodeActor, colorIndex: nodeColorIndex } =
@@ -109,7 +156,7 @@ export class CreateGroups {
         const subGroup = new Group(
           nodeActor,
           nodeGroup,
-          false,
+          'node',
           fileGroup,
           size,
           nodeColorIndex,
