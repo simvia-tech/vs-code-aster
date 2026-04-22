@@ -19,9 +19,12 @@ interface FileDescriptor {
 interface Parameters {
   time_limit: string;
   memory_limit: string;
+  max_base: string;
   ncpus: string;
   mpi_nbcpu: string;
   mpi_nbnoeud: string;
+  testlist: string;
+  expected_diag: string;
 }
 
 interface FormData {
@@ -299,9 +302,12 @@ export class ExportEditor<TResult> implements vscode.Disposable {
       parameters: {
         time_limit: '',
         memory_limit: '',
+        max_base: '',
         ncpus: '',
         mpi_nbcpu: '',
         mpi_nbnoeud: '',
+        testlist: '',
+        expected_diag: '',
       },
       inputFiles: [],
       outputFiles: [],
@@ -318,8 +324,9 @@ export class ExportEditor<TResult> implements vscode.Disposable {
 
       const tokens = cleanLine.split(/\s+/);
 
-      if (tokens[0] === 'P' && tokens.length === 3) {
-        const [, key, value] = tokens;
+      if (tokens[0] === 'P' && tokens.length >= 3) {
+        const key = tokens[1];
+        const value = tokens.slice(2).join(' ');
         if (key in formData.parameters) {
           formData.parameters[key as keyof Parameters] = value;
         }

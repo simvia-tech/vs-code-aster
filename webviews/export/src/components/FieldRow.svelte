@@ -10,6 +10,7 @@
     error?: string;
     accent?: boolean;
     suffix?: string;
+    optional?: boolean;
   }
 
   let {
@@ -21,9 +22,12 @@
     error = '',
     accent = false,
     suffix = '',
+    optional = false,
   }: Props = $props();
 
-  let invalid = $derived(!!error || (kind === 'int' && !isInteger(value)));
+  let invalid = $derived(
+    !!error || (kind === 'int' && !(optional && value.trim() === '') && !isInteger(value))
+  );
 
   function handleKeydown(e: KeyboardEvent) {
     if (kind !== 'int') {
