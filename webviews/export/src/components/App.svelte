@@ -4,6 +4,7 @@
   import FieldRow from './FieldRow.svelte';
   import FileSection from './FileSection.svelte';
   import SubmitBar from './SubmitBar.svelte';
+  import Dropdown from './ui/Dropdown.svelte';
   import {
     DEFAULT_UNITS,
     getNextAvailableUnit,
@@ -26,17 +27,79 @@
     console.error('acquireVsCodeApi failed', e);
   }
 
+  const INTEGER_PARAMS = new Set([
+    'time_limit',
+    'memory_limit',
+    'max_base',
+    'ncpus',
+    'mpi_nbcpu',
+    'mpi_nbnoeud',
+  ]);
+  const OPTIONAL_PARAMS = new Set(['max_base', 'testlist', 'expected_diag']);
+
   let formData = $state<FormData>({
     name: 'simvia',
     parameters: {
       time_limit: '300',
       memory_limit: '1024',
+      max_base: '',
       ncpus: '1',
       mpi_nbcpu: '4',
       mpi_nbnoeud: '1',
+      testlist: '',
+      expected_diag: '',
     },
     inputFiles: [],
     outputFiles: [],
+  });
+
+  const TESTLIST_CONCURRENCY = ['sequential', 'parallel'] as const;
+  const TESTLIST_CATEGORY = ['verification', 'validation'] as const;
+  type Concurrency = (typeof TESTLIST_CONCURRENCY)[number] | '';
+  type Category = (typeof TESTLIST_CATEGORY)[number] | '';
+
+  function parseTestlist(raw: string): {
+    concurrency: Concurrency;
+    category: Category;
+    projects: string;
+  } {
+    let concurrency: Concurrency = '';
+    let category: Category = '';
+    const projects: string[] = [];
+    for (const token of raw.trim().split(/\s+/).filter(Boolean)) {
+      if ((TESTLIST_CONCURRENCY as readonly string[]).includes(token)) {
+        concurrency = token as Concurrency;
+      } else if ((TESTLIST_CATEGORY as readonly string[]).includes(token)) {
+        category = token as Category;
+      } else {
+        projects.push(token);
+      }
+    }
+    return { concurrency, category, projects: projects.join(' ') };
+  }
+
+  function serializeTestlist(
+    concurrency: Concurrency,
+    category: Category,
+    projects: string
+  ): string {
+    const parts: string[] = [];
+    if (concurrency) parts.push(concurrency);
+    if (category) parts.push(category);
+    const trimmedProjects = projects.trim();
+    if (category === 'validation' && trimmedProjects) {
+      parts.push(trimmedProjects);
+    }
+    return parts.join(' ');
+  }
+
+  let testlist = $state(parseTestlist(''));
+
+  $effect(() => {
+    const next = serializeTestlist(testlist.concurrency, testlist.category, testlist.projects);
+    if (next !== formData.parameters.testlist) {
+      formData.parameters.testlist = next;
+    }
   });
 
   let suggestionsFor = $state<Record<string, string[]>>({});
@@ -62,6 +125,12 @@
     }
 
     for (const [key, value] of Object.entries(formData.parameters)) {
+      if (!INTEGER_PARAMS.has(key)) {
+        continue;
+      }
+      if (OPTIONAL_PARAMS.has(key) && value.trim() === '') {
+        continue;
+      }
       if (!isInteger(value)) {
         errors[key] = `"${key}" must be a whole number.`;
       }
@@ -234,7 +303,11 @@
     const lines: string[] = [];
     lines.push(`${formData.name.trim()}.export`);
     for (const [key, value] of Object.entries(formData.parameters)) {
-      lines.push(`P ${key} ${value.trim()}`);
+      const trimmed = value.trim();
+      if (OPTIONAL_PARAMS.has(key) && trimmed === '') {
+        continue;
+      }
+      lines.push(`P ${key} ${trimmed}`);
     }
     for (const f of formData.inputFiles) {
       if (isEmptyFile(f)) {
@@ -274,6 +347,7 @@
     const saved = vscode?.getState() as { formData?: FormData } | undefined;
     if (saved?.formData) {
       Object.assign(formData, saved.formData);
+      testlist = parseTestlist(formData.parameters.testlist ?? '');
       loadedFromState = true;
     } else {
       formData.inputFiles.push({
@@ -375,6 +449,7 @@
           params[key] = v;
         }
       }
+      testlist = parseTestlist(formData.parameters.testlist);
     }
     if (
       (data.inputFiles && data.inputFiles.length > 0) ||
@@ -445,15 +520,96 @@
       bind:value={formData.parameters.mpi_nbcpu}
       error={errorFor['mpi_nbcpu']}
     />
-    <div class="col-start-2">
-      <FieldRow
-        id="mpi_nbnoeud"
-        label="MPI NBNOEUD"
-        kind="int"
-        bind:value={formData.parameters.mpi_nbnoeud}
-        error={errorFor['mpi_nbnoeud']}
-      />
+    <FieldRow
+      id="max_base"
+      label="Max Base (Mo)"
+      kind="int"
+      optional
+      placeholder="optional"
+      bind:value={formData.parameters.max_base}
+      error={errorFor['max_base']}
+    />
+    <FieldRow
+      id="mpi_nbnoeud"
+      label="MPI NBNOEUD"
+      kind="int"
+      bind:value={formData.parameters.mpi_nbnoeud}
+      error={errorFor['mpi_nbnoeud']}
+    />
+  </div>
+
+  <div class="mt-2 flex flex-col gap-2">
+    <div class="flex items-center gap-3">
+      <span class="w-40 shrink-0 text-sm font-semibold text-ui-text-secondary select-none">
+        Test list
+      </span>
+      <div class="flex-1 flex items-center gap-2 min-w-0">
+        <Dropdown
+          options={[
+            { value: '', label: '—' },
+            ...TESTLIST_CONCURRENCY.map((v) => ({ value: v, label: v })),
+          ]}
+          value={testlist.concurrency || null}
+          onSelect={(v) => (testlist.concurrency = v as Concurrency)}
+        >
+          <button
+            type="button"
+            class="flex items-center gap-1 bg-ui-input-bg border border-ui-input-border rounded-sm px-2 py-1 text-sm cursor-pointer focus:border-ui-focus focus:outline-none w-32 justify-between {testlist.concurrency
+              ? 'text-ui-input-fg'
+              : 'text-ui-text-muted italic'}"
+            aria-label="Test concurrency"
+          >
+            <span>{testlist.concurrency || 'concurrency'}</span>
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
+              <path d="M1 2.5 L4 5.5 L7 2.5 Z" />
+            </svg>
+          </button>
+        </Dropdown>
+        <Dropdown
+          options={[
+            { value: '', label: '—' },
+            ...TESTLIST_CATEGORY.map((v) => ({ value: v, label: v })),
+          ]}
+          value={testlist.category || null}
+          onSelect={(v) => (testlist.category = v as Category)}
+        >
+          <button
+            type="button"
+            class="flex items-center gap-1 bg-ui-input-bg border border-ui-input-border rounded-sm px-2 py-1 text-sm cursor-pointer focus:border-ui-focus focus:outline-none w-32 justify-between {testlist.category
+              ? 'text-ui-input-fg'
+              : 'text-ui-text-muted italic'}"
+            aria-label="Test category"
+          >
+            <span>{testlist.category || 'category'}</span>
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" aria-hidden="true">
+              <path d="M1 2.5 L4 5.5 L7 2.5 Z" />
+            </svg>
+          </button>
+        </Dropdown>
+        <input
+          id="testlist_projects"
+          type="text"
+          class="flex-1 min-w-0 bg-ui-input-bg border border-ui-input-border rounded-sm px-2 py-1 text-sm focus:border-ui-focus focus:outline-none {testlist.category ===
+          'validation'
+            ? 'text-ui-input-fg'
+            : 'text-ui-text-muted cursor-not-allowed'}"
+          placeholder={testlist.category === 'validation'
+            ? 'project(s), e.g. code seism'
+            : 'only for validation'}
+          disabled={testlist.category !== 'validation'}
+          bind:value={testlist.projects}
+        />
+      </div>
     </div>
+
+    <FieldRow
+      id="expected_diag"
+      label="Expected diag"
+      optional
+      placeholder="optional, e.g. NOOK_TEST_RESU"
+      bind:value={formData.parameters.expected_diag}
+      error={errorFor['expected_diag']}
+    />
   </div>
 
   <FileSection

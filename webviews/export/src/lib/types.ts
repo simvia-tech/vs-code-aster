@@ -70,9 +70,12 @@ export interface FileDescriptor {
 export interface Parameters {
   time_limit: string;
   memory_limit: string;
+  max_base: string;
   ncpus: string;
   mpi_nbcpu: string;
   mpi_nbnoeud: string;
+  testlist: string;
+  expected_diag: string;
 }
 
 export interface FormData {
