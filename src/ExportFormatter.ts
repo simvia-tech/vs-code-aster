@@ -45,7 +45,10 @@ const SECTION_HEADERS = {
   parameters: '# Simulation parameters',
   inputs: '# Input files',
   outputs: '# Output files',
+  unknown: '# Unknown lines',
 } as const;
+
+const VALID_IO_FLAGS = new Set(['D', 'DC', 'R', 'RC']);
 
 const STATIC_HEADER_LINES = [
   '# This file was generated using VS Code Aster - https://github.com/simvia-tech/vs-code-aster',
@@ -76,6 +79,7 @@ export function formatExportContent(text: string, filename?: string): string {
   const lines = text.split(/\r?\n/);
   const pEntries: Entry[] = [];
   const fEntries: Entry[] = [];
+  const unknownEntries: Entry[] = [];
   let pendingComments: string[] = [];
 
   for (const line of lines) {
@@ -91,10 +95,12 @@ export function formatExportContent(text: string, filename?: string): string {
     }
     const tokens = trimmed.split(/\s+/);
     const head = tokens[0];
-    if (head === 'P') {
+    const isValidFR =
+      (head === 'F' || head === 'R') && tokens.length === 5 && VALID_IO_FLAGS.has(tokens[3] ?? '');
+    if (head === 'P' && tokens.length >= 2) {
       pEntries.push({ comments: pendingComments, line: trimmed, type: '' });
       pendingComments = [];
-    } else if (head === 'F' || head === 'R') {
+    } else if (isValidFR) {
       const direction: 'D' | 'R' = tokens[3] === 'D' || tokens[3] === 'DC' ? 'D' : 'R';
       fEntries.push({
         comments: pendingComments,
@@ -103,6 +109,9 @@ export function formatExportContent(text: string, filename?: string): string {
         head: head as 'F' | 'R',
         direction,
       });
+      pendingComments = [];
+    } else {
+      unknownEntries.push({ comments: pendingComments, line: trimmed, type: '' });
       pendingComments = [];
     }
   }
@@ -127,6 +136,9 @@ export function formatExportContent(text: string, filename?: string): string {
   }
   if (rEntries.length > 0) {
     sections.push(`${SECTION_HEADERS.outputs}\n${renderSection(rEntries)}`);
+  }
+  if (unknownEntries.length > 0) {
+    sections.push(`${SECTION_HEADERS.unknown}\n${renderSection(unknownEntries)}`);
   }
   if (pendingComments.length > 0) {
     sections.push(pendingComments.join('\n'));
