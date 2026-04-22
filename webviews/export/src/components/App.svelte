@@ -58,28 +58,36 @@
     const errors: Record<string, string> = {};
 
     if (formData.name.trim() === '') {
-      errors['envName'] = 'File name is required.';
+      errors['envName'] = 'The export file name is required.';
     }
 
     for (const [key, value] of Object.entries(formData.parameters)) {
       if (!isInteger(value)) {
-        errors[key] = `"${key}" must be an integer.`;
+        errors[key] = `"${key}" must be a whole number.`;
       }
     }
 
     const checkFiles = (files: FileDescriptor[], label: 'Input' | 'Output') => {
-      files.forEach((f) => {
+      files.forEach((f, idx) => {
         if (isEmptyFile(f)) {
           return;
         }
-        if (!f.name.trim()) {
-          errors[`name-${f.id}`] = `${label} file: missing file name.`;
-        }
+        const prefix = `${label} file #${idx + 1}`;
+        const trimmedName = f.name.trim();
+        const dotIdx = trimmedName.lastIndexOf('.');
+        const base = dotIdx >= 0 ? trimmedName.slice(0, dotIdx) : trimmedName;
+        const ext = dotIdx >= 0 ? trimmedName.slice(dotIdx + 1) : '';
         if (!f.type.trim()) {
-          errors[`type-${f.id}`] = `${label} file: missing type.`;
+          errors[`type-${f.id}`] = `${prefix}: file type is required.`;
+        }
+        if (!base) {
+          errors[`name-${f.id}`] = `${prefix}: file name is required.`;
+        }
+        if (!ext) {
+          errors[`ext-${f.id}`] = `${prefix}: file extension is required.`;
         }
         if (!isInteger(f.unit)) {
-          errors[`unit-${f.id}`] = 'Unit must be an integer.';
+          errors[`unit-${f.id}`] = `${prefix}: unit must be a whole number.`;
         }
       });
     };
@@ -98,8 +106,22 @@
     return out;
   });
 
+  let allErrors = $derived<{ targetId?: string; message: string }[]>([
+    ...Object.entries(errorFor).map(([targetId, message]) => ({ targetId, message })),
+    ...formErrors.map((message) => ({ message })),
+  ]);
+
+  function focusTarget(id: string) {
+    const el = document.getElementById(id);
+    if (!el) {
+      return;
+    }
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    (el as HTMLElement).focus({ preventScroll: true });
+  }
+
   let warnings = $derived.by(() => {
-    const out: string[] = [];
+    const out: { targetId?: string; message: string }[] = [];
 
     if (
       mode === 'edit' &&
@@ -107,9 +129,10 @@
       formData.name.trim() &&
       formData.name.trim() !== originalName
     ) {
-      out.push(
-        `Saving will rename ${originalName}.export to ${formData.name.trim()}.export. The original file will be deleted.`
-      );
+      out.push({
+        targetId: 'envName',
+        message: `Saving will rename ${originalName}.export to ${formData.name.trim()}.export. The original file will be deleted.`,
+      });
     }
 
     const meshTypes = new Set(['mmed', 'mail', 'msh']);
@@ -117,15 +140,21 @@
       (f) => !isEmptyFile(f) && meshTypes.has(f.type)
     );
     if (!hasMesh) {
-      out.push('No mesh file is set (mmed, mail, or msh).');
+      out.push({
+        targetId: 'add-input',
+        message: 'No mesh file is set (mmed, mail, or msh).',
+      });
     }
 
     const hasRmed = formData.outputFiles.some((f) => !isEmptyFile(f) && f.type === 'rmed');
     if (!hasRmed) {
-      out.push('No rmed output file is set.');
+      out.push({
+        targetId: 'add-output',
+        message: 'No rmed output file is set.',
+      });
     }
 
-    const byUnit = new Map<string, string[]>();
+    const byUnit = new Map<string, { names: string[]; firstId: string }>();
     for (const f of [...formData.inputFiles, ...formData.outputFiles]) {
       if (isEmptyFile(f)) {
         continue;
@@ -138,13 +167,19 @@
         continue;
       }
       const label = f.name.trim() || `(unnamed ${f.type || 'file'})`;
-      const existing = byUnit.get(unitStr) ?? [];
-      existing.push(label);
-      byUnit.set(unitStr, existing);
+      const existing = byUnit.get(unitStr);
+      if (existing) {
+        existing.names.push(label);
+      } else {
+        byUnit.set(unitStr, { names: [label], firstId: f.id });
+      }
     }
-    for (const [unit, names] of byUnit) {
+    for (const [unit, { names, firstId }] of byUnit) {
       if (names.length > 1) {
-        out.push(`Multiple files share unit ${unit}: ${names.join(', ')}`);
+        out.push({
+          targetId: `unit-${firstId}`,
+          message: `Multiple files share unit ${unit}: ${names.join(', ')}`,
+        });
       }
     }
     return out;
@@ -205,13 +240,17 @@
       if (isEmptyFile(f)) {
         continue;
       }
-      lines.push(`F ${f.type} ${f.name.trim()} D ${f.unit.trim()}`);
+      const head = f.type === 'base' ? 'R' : 'F';
+      const status = f.type === 'base' ? 'DC' : 'D';
+      lines.push(`${head} ${f.type} ${f.name.trim()} ${status} ${f.unit.trim()}`);
     }
     for (const f of formData.outputFiles) {
       if (isEmptyFile(f)) {
         continue;
       }
-      lines.push(`F ${f.type} ${f.name.trim()} R ${f.unit.trim()}`);
+      const head = f.type === 'base' ? 'R' : 'F';
+      const status = f.type === 'base' ? 'RC' : 'R';
+      lines.push(`${head} ${f.type} ${f.name.trim()} ${status} ${f.unit.trim()}`);
     }
     vscode?.postMessage({ command: 'result', value: lines.join('\n') });
   }
@@ -445,34 +484,45 @@
     onRemove={removeFile}
   />
 
-  {#if formErrors.length > 0}
+  {#if allErrors.length > 0}
     <div
       id="panel-errors"
-      class="mt-6 p-4 rounded border text-sm scroll-mt-8 scroll-mb-20"
+      class="panel-errors mt-6 p-4 rounded border text-sm scroll-mt-8 scroll-mb-20"
       style="border-color: var(--vscode-inputValidation-errorBorder, #d45858); background: color-mix(in srgb, var(--vscode-inputValidation-errorBorder, #d45858) 12%, transparent); color: var(--vscode-inputValidation-errorBorder, #d45858)"
       role="alert"
     >
-      <div class="font-semibold mb-3">Cannot save</div>
-      <ul class="flex flex-col gap-2.5">
-        {#each formErrors as e}
-          <li class="flex items-start gap-2">
-            <svg
-              class="shrink-0 mt-0.5"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
+      <div class="font-semibold mb-3">
+        {allErrors.length === 1 ? 'Error' : 'Errors'}
+      </div>
+      <ul class="flex flex-col gap-0.5">
+        {#each allErrors as e}
+          <li>
+            <button
+              type="button"
+              class="panel-row w-full text-left flex items-start gap-2 py-1 px-2 -mx-1 rounded {e.targetId
+                ? 'cursor-pointer'
+                : 'cursor-default'}"
+              disabled={!e.targetId}
+              onclick={() => e.targetId && focusTarget(e.targetId)}
             >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            <span>{e}</span>
+              <svg
+                class="shrink-0 mt-0.5"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span>{e.message}</span>
+            </button>
           </li>
         {/each}
       </ul>
@@ -482,31 +532,44 @@
   {#if warnings.length > 0}
     <div
       id="panel-warnings"
-      class="mt-6 p-4 rounded border text-sm scroll-mt-8 scroll-mb-20"
+      class="panel-warnings mt-6 p-4 rounded border text-sm scroll-mt-8 scroll-mb-20"
       style="border-color: var(--vscode-editorWarning-foreground, #cca700); background: color-mix(in srgb, var(--vscode-editorWarning-foreground, #cca700) 10%, transparent); color: var(--vscode-editorWarning-foreground, #cca700)"
       role="alert"
     >
-      <div class="font-semibold mb-3">Warning</div>
-      <ul class="flex flex-col gap-2.5">
+      <div class="font-semibold mb-3">
+        {warnings.length === 1 ? 'Warning' : 'Warnings'}
+      </div>
+      <ul class="flex flex-col gap-0.5">
         {#each warnings as w}
-          <li class="flex items-start gap-2">
-            <svg
-              class="shrink-0 mt-0.5"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
+          <li>
+            <button
+              type="button"
+              class="panel-row w-full text-left flex items-start gap-2 py-1 px-2 -mx-1 rounded {w.targetId
+                ? 'cursor-pointer'
+                : 'cursor-default'}"
+              disabled={!w.targetId}
+              onclick={() => w.targetId && focusTarget(w.targetId)}
             >
-              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-              <path d="M12 9v4" />
-              <path d="M12 17h.01" />
-            </svg>
-            <span>{w}</span>
+              <svg
+                class="shrink-0 mt-0.5"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path
+                  d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+                />
+                <path d="M12 9v4" />
+                <path d="M12 17h.01" />
+              </svg>
+              <span>{w.message}</span>
+            </button>
           </li>
         {/each}
       </ul>
@@ -526,3 +589,20 @@
     onScrollToWarnings={() => scrollTo('panel-warnings')}
   />
 </main>
+
+<style>
+  .panel-errors .panel-row:not(:disabled):hover {
+    background: color-mix(
+      in srgb,
+      var(--vscode-inputValidation-errorBorder, #d45858) 18%,
+      transparent
+    );
+  }
+  .panel-warnings .panel-row:not(:disabled):hover {
+    background: color-mix(
+      in srgb,
+      var(--vscode-editorWarning-foreground, #cca700) 18%,
+      transparent
+    );
+  }
+</style>

@@ -90,43 +90,64 @@ export function newRowId(prefix = 'row'): string {
 
 /**
  * Returns the next integer unit for a file of the given `type`.
- * Scoped to same-type rows only (so `comm` numbering does not jump over
- * unrelated `med` units). `excludeId` skips the file being re-assigned,
- * so re-picking the same type for an existing row is idempotent.
+ * `excludeId` skips the file being re-assigned, so re-picking the same
+ * type for an existing row is idempotent.
  *
- * Rule: start at the type's default. If any same-type unit is >= default,
- * return `max(usedUnits >= default) + 1`; otherwise return the default.
+ * Rules:
+ * - Fixed-zero types (e.g. `nom`) always return `0`.
+ * - If another file of the same type exists, continue that type's own
+ *   sequence: `max(usedUnits >= default) + 1`, or the default if none.
+ * - Otherwise (type not yet present), return the highest unit across all
+ *   files rounded up to the next multiple of 10 (e.g. 30 → 40, 31 → 40).
+ *   Falls back to the type's default when no file has a positive unit.
  */
 export function getNextAvailableUnit(
   type: string,
   files: FileDescriptor[],
   excludeId?: string
 ): string {
+  if (isFixedZeroType(type)) {
+    return '0';
+  }
   const defaultUnit = DEFAULT_UNITS[type as AllowedType];
   if (defaultUnit === undefined) {
     return '0';
   }
   const start = Number(defaultUnit);
-  if (!Number.isFinite(start) || start === 0) {
-    return '0';
-  }
-  const usedAtOrAbove: number[] = [];
-  for (const f of files) {
-    if (f.id === excludeId) {
-      continue;
-    }
+  const others = files.filter((f) => f.id !== excludeId);
+
+  const sameTypeAtOrAbove: number[] = [];
+  let sameTypePresent = false;
+  for (const f of others) {
     if (f.type !== type) {
       continue;
     }
+    sameTypePresent = true;
     const n = Number(f.unit);
-    if (Number.isInteger(n) && n >= start) {
-      usedAtOrAbove.push(n);
+    if (Number.isInteger(n) && Number.isFinite(start) && start > 0 && n >= start) {
+      sameTypeAtOrAbove.push(n);
     }
   }
-  if (usedAtOrAbove.length === 0) {
+
+  if (sameTypePresent) {
+    if (sameTypeAtOrAbove.length > 0) {
+      return String(Math.max(...sameTypeAtOrAbove) + 1);
+    }
+    if (Number.isFinite(start) && start > 0) {
+      return String(start);
+    }
+  }
+
+  const allPositive = others.map((f) => Number(f.unit)).filter((n) => Number.isInteger(n) && n > 0);
+  if (allPositive.length > 0) {
+    const max = Math.max(...allPositive);
+    return String((Math.floor(max / 10) + 1) * 10);
+  }
+
+  if (Number.isFinite(start) && start > 0) {
     return String(start);
   }
-  return String(Math.max(...usedAtOrAbove) + 1);
+  return '0';
 }
 
 export function isInteger(value: string): boolean {

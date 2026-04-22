@@ -35,8 +35,10 @@
   }: Props = $props();
 
   let nameError = $derived(errorFor[`name-${file.id}`] ?? '');
+  let extError = $derived(errorFor[`ext-${file.id}`] ?? '');
   let unitError = $derived(errorFor[`unit-${file.id}`] ?? '');
   let typeError = $derived(errorFor[`type-${file.id}`] ?? '');
+  let rowErrors = $derived([typeError, nameError, extError, unitError].filter((m) => m !== ''));
 
   let typeOptions = $derived(
     (kind === 'input' ? INPUT_TYPES : OUTPUT_TYPES).map((t) => ({ value: t, label: t }))
@@ -44,9 +46,31 @@
 
   let unitLocked = $derived(isFixedZeroType(file.type));
 
+  function splitName(name: string): { base: string; ext: string } {
+    const idx = name.lastIndexOf('.');
+    if (idx < 0) {
+      return { base: name, ext: '' };
+    }
+    return { base: name.slice(0, idx), ext: name.slice(idx + 1) };
+  }
+
+  let baseName = $state(splitName(file.name).base);
+  let extension = $state(splitName(file.name).ext);
+
+  $effect(() => {
+    const composed = extension ? `${baseName}.${extension}` : baseName;
+    if (composed !== file.name) {
+      file.name = composed;
+    }
+  });
+
   function handleTypeChange(newType: string) {
     if (file.type === newType) {
       return;
+    }
+    const previousType = file.type;
+    if (extension === '' || extension === previousType) {
+      extension = newType;
     }
     file.type = newType;
     if (isFixedZeroType(newType)) {
@@ -72,7 +96,15 @@
   }
 
   function handleNameQuery(value: string) {
-    file.name = value;
+    // Suggestions are full filenames ("simvia.comm"); if a dot is present,
+    // split it so the two fields stay coherent.
+    const { base, ext } = splitName(value);
+    if (ext) {
+      baseName = base;
+      extension = ext;
+    } else {
+      baseName = value;
+    }
     onAutocompleteQuery(file.id, value, file.type);
   }
 </script>
@@ -113,12 +145,24 @@
 
     <AutocompleteInput
       id={`name-${file.id}`}
-      bind:value={file.name}
+      bind:value={baseName}
       placeholder="File name"
       invalid={!!nameError}
       suggestions={suggestionsFor[file.id] ?? []}
       onQuery={handleNameQuery}
       onFocusChange={(focused) => onAutocompleteFocus(focused ? file.id : null)}
+    />
+
+    <span class="text-ui-text-muted select-none">.</span>
+
+    <input
+      id={`ext-${file.id}`}
+      aria-label="File extension"
+      type="text"
+      class="w-20 shrink-0 bg-ui-input-bg border border-ui-input-border rounded-sm px-2 py-1 text-sm text-ui-input-fg focus:border-ui-focus focus:outline-none"
+      class:input-warning={!!extError}
+      placeholder="ext"
+      bind:value={extension}
     />
 
     <input
@@ -156,9 +200,14 @@
     </button>
   </div>
 
-  {#if nameError || unitError || typeError}
-    <p class="px-7 text-xs" style="color: var(--vscode-inputValidation-errorBorder, #d45858)">
-      {nameError || typeError || unitError}
-    </p>
+  {#if rowErrors.length > 0}
+    <ul
+      class="px-7 text-xs flex flex-col gap-0.5"
+      style="color: var(--vscode-inputValidation-errorBorder, #d45858)"
+    >
+      {#each rowErrors as message}
+        <li>{message}</li>
+      {/each}
+    </ul>
   {/if}
 </div>

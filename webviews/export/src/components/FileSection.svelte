@@ -80,6 +80,7 @@
   </div>
 
   <button
+    id={`add-${kind}`}
     type="button"
     class="w-full mt-3 flex items-center justify-center gap-1.5 py-1.5 rounded border border-dashed border-ui-border text-xs font-medium text-ui-text-secondary hover:text-ui-fg hover:bg-ui-elem hover:border-ui-text-muted cursor-pointer transition-colors"
     aria-label={`Add ${kind} file`}
