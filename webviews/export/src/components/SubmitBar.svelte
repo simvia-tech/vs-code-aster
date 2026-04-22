@@ -30,7 +30,7 @@
     {#if errorCount > 0}
       <button
         type="button"
-        class="flex items-center gap-1.5 font-medium cursor-pointer hover:underline focus:outline-none focus:underline rounded"
+        class="pill pill-error flex items-center gap-1.5 font-medium cursor-pointer focus:outline-none rounded px-2 py-1 -mx-2"
         style="color: var(--vscode-inputValidation-errorBorder, #d45858)"
         aria-label={`Jump to ${errorCount} error${errorCount === 1 ? '' : 's'}`}
         onclick={onScrollToErrors}
@@ -57,7 +57,7 @@
     {#if warningCount > 0}
       <button
         type="button"
-        class="flex items-center gap-1.5 font-medium cursor-pointer hover:underline focus:outline-none focus:underline rounded"
+        class="pill pill-warning flex items-center gap-1.5 font-medium cursor-pointer focus:outline-none rounded px-2 py-1 -mx-2"
         style="color: var(--vscode-editorWarning-foreground, #cca700)"
         aria-label={`Jump to ${warningCount} warning${warningCount === 1 ? '' : 's'}`}
         onclick={onScrollToWarnings}
@@ -101,3 +101,22 @@
     </button>
   </div>
 </div>
+
+<style>
+  .pill-error:hover,
+  .pill-error:focus-visible {
+    background: color-mix(
+      in srgb,
+      var(--vscode-inputValidation-errorBorder, #d45858) 16%,
+      transparent
+    );
+  }
+  .pill-warning:hover,
+  .pill-warning:focus-visible {
+    background: color-mix(
+      in srgb,
+      var(--vscode-editorWarning-foreground, #cca700) 16%,
+      transparent
+    );
+  }
+</style>
