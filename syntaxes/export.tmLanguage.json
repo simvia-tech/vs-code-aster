@@ -5,7 +5,8 @@
   "patterns": [
     { "include": "#comment" },
     { "include": "#parameter-line" },
-    { "include": "#file-line" }
+    { "include": "#file-line" },
+    { "include": "#unknown-line" }
   ],
   "repository": {
     "comment": {
@@ -44,6 +45,10 @@
         { "include": "#comment" },
         { "include": "#extra-token" }
       ]
+    },
+    "unknown-line": {
+      "match": "^\\s*[^#\\s].*$",
+      "name": "invalid.illegal.unknown-line.export"
     }
   }
 }
