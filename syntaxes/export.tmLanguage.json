@@ -30,7 +30,7 @@
       ]
     },
     "file-line": {
-      "begin": "^\\s*(F)\\s+(\\S+)\\s+(\\S+)\\s+(?:(D)|(RC?))\\s+(\\S+)",
+      "begin": "^\\s*([FR])\\s+(\\S+)\\s+(\\S+)\\s+(?:(DC?)|(RC?))\\s+(\\S+)",
       "end": "$",
       "beginCaptures": {
         "1": { "name": "keyword.control.file.export" },

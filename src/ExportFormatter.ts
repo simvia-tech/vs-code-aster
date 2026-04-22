@@ -4,6 +4,7 @@ interface Entry {
   comments: string[];
   line: string;
   type: string;
+  head?: 'F' | 'R';
   direction?: 'D' | 'R';
 }
 
@@ -29,6 +30,9 @@ function typeRank(type: string): number {
 }
 
 function byType(a: Entry, b: Entry): number {
+  if (a.head !== b.head) {
+    return a.head === 'F' ? -1 : 1;
+  }
   const pa = typeRank(a.type);
   const pb = typeRank(b.type);
   if (pa !== pb) {
@@ -90,12 +94,13 @@ export function formatExportContent(text: string, filename?: string): string {
     if (head === 'P') {
       pEntries.push({ comments: pendingComments, line: trimmed, type: '' });
       pendingComments = [];
-    } else if (head === 'F') {
-      const direction: 'D' | 'R' = tokens[3] === 'D' ? 'D' : 'R';
+    } else if (head === 'F' || head === 'R') {
+      const direction: 'D' | 'R' = tokens[3] === 'D' || tokens[3] === 'DC' ? 'D' : 'R';
       fEntries.push({
         comments: pendingComments,
         line: trimmed,
         type: tokens[1] ?? '',
+        head: head as 'F' | 'R',
         direction,
       });
       pendingComments = [];
