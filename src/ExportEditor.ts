@@ -325,16 +325,16 @@ export class ExportEditor<TResult> implements vscode.Disposable {
         }
       }
 
-      if (tokens[0] === 'F' && tokens.length === 5) {
+      if ((tokens[0] === 'F' || tokens[0] === 'R') && tokens.length === 5) {
         const [, type, name, ioFlag, unit] = tokens;
         const fileObj: FileDescriptor = {
           type: type,
           name: name,
           unit: unit,
         };
-        if (ioFlag === 'D') {
+        if (ioFlag === 'D' || ioFlag === 'DC') {
           formData.inputFiles.push(fileObj);
-        } else if (ioFlag === 'R') {
+        } else if (ioFlag === 'R' || ioFlag === 'RC') {
           formData.outputFiles.push(fileObj);
         }
       }
