@@ -5,6 +5,29 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.1] - 2026-04-23
+
+New viewer toolbar actions (auto-rotate, video recording), a reorganized settings popup with a dedicated Toolbar tab, and a round of `.export` editor fixes.
+
+### Added
+- **Auto-rotate** toolbar button with a right-click popover for session-only speed and reverse-direction; persistent defaults in `Settings → Toolbar`.
+- **Record** toolbar button (mp4/h264 when supported, else webm, saved to `.vs-code-aster/recordings/`). Right-click menu offers whole-webview or without-sidebar variants. Whole-webview rasterizes the DOM and may briefly freeze the viewer on UI changes.
+- **Settings → Toolbar tab** grouping each toolbar action with its persisted defaults.
+- `.export` base directory support (`R extension name D/DC/RC unit`).
+- `.export` `max_base`, `testlist`, `expected_diag` form fields.
+- `.export` split basename / extension inputs, smarter default unit, and preservation of unknown lines.
+
+### Changed
+- **Viewer settings** reorganized into `Rendering`, `Groups`, `Visibility`, `Toolbar` tabs.
+- **Dream background** on by default.
+- **Screenshot right-click** now opens a menu (was a direct full-webview capture).
+- **Canvas screenshots and recordings** crop out the sidebar region so the mesh is centered in the output.
+- **Export form error/warning panel** merged into one clickable list with per-field jumps.
+
+### Fixed
+- `.export` file name / extension inputs no longer silently revert due to a state-sync feedback loop.
+- Optional integer parameters no longer flagged as invalid when left empty.
+
 ## [1.9.0] - 2026-04-21
 
 Volume and edge groups now appear in the viewer alongside face and node groups, a new "Groups" settings tab exposes per-kind display tweaks, the bundled vtk.js is replaced by the tree-shaken npm package, and an optional animated background adds a cosmetic touch.
