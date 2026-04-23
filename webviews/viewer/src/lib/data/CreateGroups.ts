@@ -53,6 +53,31 @@ export class CreateGroups {
     const nodeActorCreator = new NodeActorCreator(vertices, nodes, nodeIndexToGroup);
     const edgeActorCreator = new EdgeActorCreator(vertices, edges, edgeIndexToGroup);
 
+    const edgeKey = (a: number, b: number) => (a < b ? `${a}-${b}` : `${b}-${a}`);
+    const faceEdgeSet = new Set<string>();
+    for (const cell of cells) {
+      for (let i = 0; i < cell.length; i++) {
+        faceEdgeSet.add(edgeKey(cell[i], cell[(i + 1) % cell.length]));
+      }
+    }
+    const standaloneByFile: Record<string, number[]> = {};
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
+      let isStandalone = false;
+      for (let j = 0; j + 1 < e.length; j++) {
+        if (!faceEdgeSet.has(edgeKey(e[j], e[j + 1]))) {
+          isStandalone = true;
+          break;
+        }
+      }
+      if (!isStandalone) continue;
+      const egId = edgeIndexToGroup[i];
+      if (egId < 0) continue;
+      const fileGroup = edgeGroups[egId]?.split('::')[0];
+      if (!fileGroup) continue;
+      (standaloneByFile[fileGroup] ||= []).push(i);
+    }
+
     const groupKeys = Object.keys(groupHierarchy);
     const yield_ = () => new Promise<void>((r) => setTimeout(r, 0));
 
@@ -70,7 +95,7 @@ export class CreateGroups {
         colorIndex: fileColorIndex,
         isObjectActor: fileIsObj,
         cellCount: fileCellCount,
-      } = faceActorCreator.create(fileGroup, groupId);
+      } = faceActorCreator.create(fileGroup, groupId, true);
 
       const groupInstance = new Group(
         actor,
@@ -83,6 +108,15 @@ export class CreateGroups {
         fileCellCount
       );
       this.groups[fileGroup] = groupInstance;
+
+      const standaloneIdx = standaloneByFile[fileGroup];
+      if (standaloneIdx && standaloneIdx.length > 0) {
+        const result = edgeActorCreator.createStandalone(standaloneIdx, objColor);
+        if (result) {
+          groupInstance.standaloneEdgesActor = result.actor;
+          groupInstance.standaloneEdgesContourActor = result.contourActor;
+        }
+      }
 
       const size = this.computeSize(actor);
 

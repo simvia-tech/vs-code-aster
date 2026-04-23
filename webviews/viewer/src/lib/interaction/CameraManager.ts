@@ -215,6 +215,7 @@ export class CameraManager {
     const rep = wireframe ? 1 : 2;
     for (const group of Object.values(this.faceGroups)) {
       group.actor.getProperty().setRepresentation(rep);
+      group.setWireframeMode(wireframe);
     }
     VtkApp.Instance.getRenderWindow().render();
   }

@@ -22,8 +22,9 @@ export class FaceActorCreator {
   }
 
   create(
-    groupName: string,
-    groupId: number
+    _groupName: string,
+    groupId: number,
+    isObject = false
   ): { actor: any; colorIndex: number; isObjectActor: boolean; cellCount: number } {
     const { polyData, cellCount } = this.prepare(groupId);
 
@@ -31,13 +32,13 @@ export class FaceActorCreator {
     const mapper = vtkMapper.newInstance();
 
     mapper.setInputData(polyData);
-    if (!groupName.includes('all_')) {
+    if (!isObject) {
       mapper.setResolveCoincidentTopologyToPolygonOffset();
       mapper.setRelativeCoincidentTopologyPolygonOffsetParameters(-2, -2);
     }
     actor.setMapper(mapper);
 
-    const { colorIndex, isObjectActor } = this.setProperty(actor, groupName, cellCount);
+    const { colorIndex, isObjectActor } = this.setProperty(actor, isObject, cellCount);
     VtkApp.Instance.getRenderer().addActor(actor);
 
     return { actor, colorIndex, isObjectActor, cellCount };
@@ -78,14 +79,14 @@ export class FaceActorCreator {
 
   private setProperty(
     actor: any,
-    groupName: string,
+    isObject: boolean,
     _cellCount: number
   ): { colorIndex: number; isObjectActor: boolean } {
     const prop = actor.getProperty();
 
     let colorIndex: number;
     let isObjectActor: boolean;
-    if (groupName.includes('all_')) {
+    if (isObject) {
       isObjectActor = true;
       colorIndex = GlobalSettings.Instance.objIndex;
       prop.setColor(GlobalSettings.Instance.getColorForObject());
