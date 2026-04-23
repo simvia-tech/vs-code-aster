@@ -48,7 +48,10 @@ export class GlobalSettings {
   showOrientationWidget = true;
   showBoundingBox = false;
   showWireframe = false;
-  dreamBackground = false;
+  dreamBackground = true;
+  autoRotate = false;
+  autoRotateSpeed = 15;
+  autoRotateReverse = false;
 
   get isDark(): boolean {
     return (

@@ -22,6 +22,10 @@ export class CameraManager {
   private orientationWidget: any;
   private boundingBoxActors: any[] = [];
   private boundingBoxDotsActor: any = null;
+  private rafHandle: number | null = null;
+  private lastFrameTime = 0;
+  private autoRotateSpeedDegPerSec = 15;
+  private autoRotateReverse = false;
 
   static get Instance(): CameraManager {
     if (!this._i) {
@@ -57,6 +61,72 @@ export class CameraManager {
     if (GlobalSettings.Instance.showWireframe) {
       this.setWireframeMode(true);
     }
+
+    this.autoRotateSpeedDegPerSec = GlobalSettings.Instance.autoRotateSpeed;
+    this.autoRotateReverse = GlobalSettings.Instance.autoRotateReverse;
+    if (GlobalSettings.Instance.autoRotate) {
+      this.setAutoRotate(true);
+    }
+  }
+
+  setAutoRotate(enabled: boolean): void {
+    if (enabled) {
+      if (this.rafHandle !== null) return;
+      this.lastFrameTime = performance.now();
+      const step = (now: number) => {
+        const dt = (now - this.lastFrameTime) / 1000;
+        this.lastFrameTime = now;
+        const sign = this.autoRotateReverse ? -1 : 1;
+        this.rotateCameraAroundViewUp((sign * this.autoRotateSpeedDegPerSec * Math.PI * dt) / 180);
+        this.rafHandle = requestAnimationFrame(step);
+      };
+      this.rafHandle = requestAnimationFrame(step);
+    } else {
+      if (this.rafHandle !== null) {
+        cancelAnimationFrame(this.rafHandle);
+        this.rafHandle = null;
+      }
+    }
+  }
+
+  setAutoRotateSpeed(degPerSec: number): void {
+    this.autoRotateSpeedDegPerSec = degPerSec;
+  }
+
+  setAutoRotateReverse(reverse: boolean): void {
+    this.autoRotateReverse = reverse;
+  }
+
+  private rotateCameraAroundViewUp(angle: number): void {
+    if (!this.camera) return;
+    const focalPoint = this.camera.getFocalPoint();
+    const position = this.camera.getPosition();
+    const viewUp = this.camera.getViewUp();
+
+    const ax = viewUp[0];
+    const ay = viewUp[1];
+    const az = viewUp[2];
+    const len = Math.sqrt(ax * ax + ay * ay + az * az);
+    if (len < 1e-9) return;
+    const kx = ax / len;
+    const ky = ay / len;
+    const kz = az / len;
+
+    const vx = position[0] - focalPoint[0];
+    const vy = position[1] - focalPoint[1];
+    const vz = position[2] - focalPoint[2];
+
+    const cosA = Math.cos(angle);
+    const sinA = Math.sin(angle);
+    const dot = kx * vx + ky * vy + kz * vz;
+
+    const rx = vx * cosA + (ky * vz - kz * vy) * sinA + kx * dot * (1 - cosA);
+    const ry = vy * cosA + (kz * vx - kx * vz) * sinA + ky * dot * (1 - cosA);
+    const rz = vz * cosA + (kx * vy - ky * vx) * sinA + kz * dot * (1 - cosA);
+
+    this.camera.setPosition(focalPoint[0] + rx, focalPoint[1] + ry, focalPoint[2] + rz);
+    VtkApp.Instance.getRenderer().resetCameraClippingRange();
+    VtkApp.Instance.getRenderWindow().render();
   }
 
   private activateSizeUpdate(): void {

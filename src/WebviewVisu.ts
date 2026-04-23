@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { getScreenshotsDir } from './projectPaths';
+import { getScreenshotsDir, getRecordingsDir } from './projectPaths';
 
 /**
  * Provides basic dialog semantics over a VS Code webview panel for mesh visualization.
@@ -130,6 +130,9 @@ export class WebviewVisu implements vscode.Disposable {
             'showBoundingBox',
             'showWireframe',
             'dreamBackground',
+            'autoRotate',
+            'autoRotateSpeed',
+            'autoRotateReverse',
           ];
           for (const key of settingKeys) {
             if (e.settings[key] !== undefined) {
@@ -143,6 +146,18 @@ export class WebviewVisu implements vscode.Disposable {
             const buffer = Buffer.from(base64, 'base64');
             const screenshotsDir = getScreenshotsDir(this.sourceDir);
             const filePath = path.join(screenshotsDir, e.filename as string);
+            fs.writeFileSync(filePath, buffer);
+          }
+          break;
+        }
+        case 'saveRecording': {
+          if (this.sourceDir) {
+            const dataUrl = e.dataUrl as string;
+            const commaIdx = dataUrl.indexOf(';base64,');
+            const base64 = commaIdx >= 0 ? dataUrl.slice(commaIdx + ';base64,'.length) : dataUrl;
+            const buffer = Buffer.from(base64, 'base64');
+            const recordingsDir = getRecordingsDir(this.sourceDir);
+            const filePath = path.join(recordingsDir, e.filename as string);
             fs.writeFileSync(filePath, buffer);
           }
           break;
@@ -207,7 +222,10 @@ export class WebviewVisu implements vscode.Disposable {
       showOrientationWidget: config.get<boolean>('viewer.showOrientationWidget', true),
       showBoundingBox: config.get<boolean>('viewer.showBoundingBox', false),
       showWireframe: config.get<boolean>('viewer.showWireframe', false),
-      dreamBackground: config.get<boolean>('viewer.dreamBackground', false),
+      dreamBackground: config.get<boolean>('viewer.dreamBackground', true),
+      autoRotate: config.get<boolean>('viewer.autoRotate', false),
+      autoRotateSpeed: config.get<number>('viewer.autoRotateSpeed', 15),
+      autoRotateReverse: config.get<boolean>('viewer.autoRotateReverse', false),
     };
     this.panel.webview.postMessage({
       type: 'init',

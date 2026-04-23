@@ -362,8 +362,28 @@
         "vs-code-aster.viewer.dreamBackground": {
           "order": 22,
           "type": "boolean",
-          "default": false,
+          "default": true,
           "markdownDescription": "Cosmetic animated EDF orange and blue light blobs slowly breathing behind the mesh. Purely decorative — does not affect mesh lighting."
+        },
+        "vs-code-aster.viewer.autoRotate": {
+          "order": 23,
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Automatically rotate the view around the current vertical axis like a turntable."
+        },
+        "vs-code-aster.viewer.autoRotateSpeed": {
+          "order": 24,
+          "type": "number",
+          "default": 15,
+          "minimum": 5,
+          "maximum": 180,
+          "markdownDescription": "Default auto-rotation speed in degrees per second (between `5` and `180`). Transient overrides from the toolbar popover are not persisted."
+        },
+        "vs-code-aster.viewer.autoRotateReverse": {
+          "order": 25,
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Default auto-rotation direction. When enabled, the view rotates the opposite way by default. Transient overrides from the toolbar popover are not persisted."
         },
         "vs-code-aster.enableTelemetry": {
           "order": 100,

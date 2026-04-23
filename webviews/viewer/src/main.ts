@@ -5,7 +5,15 @@ import { VisibilityManager } from './lib/commands/VisibilityManager';
 import { CameraManager } from './lib/interaction/CameraManager';
 import { VtkApp } from './lib/core/VtkApp';
 import { GlobalSettings } from './lib/settings/GlobalSettings';
-import { settings, errorMessage } from './lib/state';
+import {
+  settings,
+  errorMessage,
+  sessionShowBoundingBox,
+  sessionShowWireframe,
+  sessionAutoRotate,
+  autoRotateSessionSpeed,
+  autoRotateSessionReverse,
+} from './lib/state';
 import type { EdgeMode, SidebarSort } from './lib/state';
 import './app.css';
 
@@ -52,6 +60,16 @@ window.addEventListener('message', async (e) => {
         if (s.showWireframe !== undefined) GlobalSettings.Instance.showWireframe = s.showWireframe;
         if (s.dreamBackground !== undefined)
           GlobalSettings.Instance.dreamBackground = s.dreamBackground;
+        if (s.autoRotate !== undefined) GlobalSettings.Instance.autoRotate = s.autoRotate;
+        if (s.autoRotateSpeed !== undefined)
+          GlobalSettings.Instance.autoRotateSpeed = s.autoRotateSpeed;
+        if (s.autoRotateReverse !== undefined)
+          GlobalSettings.Instance.autoRotateReverse = s.autoRotateReverse;
+        sessionShowBoundingBox.set(GlobalSettings.Instance.showBoundingBox);
+        sessionShowWireframe.set(GlobalSettings.Instance.showWireframe);
+        sessionAutoRotate.set(GlobalSettings.Instance.autoRotate);
+        autoRotateSessionSpeed.set(GlobalSettings.Instance.autoRotateSpeed);
+        autoRotateSessionReverse.set(GlobalSettings.Instance.autoRotateReverse);
         settings.update((cur) => ({
           hiddenObjectOpacity: s.hiddenObjectOpacity ?? cur.hiddenObjectOpacity,
           edgeMode: (s.edgeMode ?? cur.edgeMode) as EdgeMode,
@@ -66,6 +84,9 @@ window.addEventListener('message', async (e) => {
           showBoundingBox: s.showBoundingBox ?? cur.showBoundingBox,
           showWireframe: s.showWireframe ?? cur.showWireframe,
           dreamBackground: s.dreamBackground ?? cur.dreamBackground,
+          autoRotate: s.autoRotate ?? cur.autoRotate,
+          autoRotateSpeed: s.autoRotateSpeed ?? cur.autoRotateSpeed,
+          autoRotateReverse: s.autoRotateReverse ?? cur.autoRotateReverse,
         }));
         VisibilityManager.Instance.applyHiddenObjectOpacity();
         CameraManager.Instance.refreshEdgeVisibility();

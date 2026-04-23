@@ -1,24 +1,17 @@
 <script lang="ts">
-  import { settings } from '../../lib/state';
-  import { GlobalSettings } from '../../lib/settings/GlobalSettings';
+  import { sessionShowBoundingBox } from '../../lib/state';
   import { CameraManager } from '../../lib/interaction/CameraManager';
-  import { Controller } from '../../lib/Controller';
   import BoundingBoxIcon from '../../icons/BoundingBoxIcon.svelte';
 
   function toggle() {
-    const showBoundingBox = !$settings.showBoundingBox;
-    GlobalSettings.Instance.showBoundingBox = showBoundingBox;
-    settings.update((s) => ({ ...s, showBoundingBox }));
-    CameraManager.Instance.setBoundingBoxVisible(showBoundingBox);
-    Controller.Instance.getVSCodeAPI().postMessage({
-      type: 'saveSettings',
-      settings: { showBoundingBox },
-    });
+    const next = !$sessionShowBoundingBox;
+    sessionShowBoundingBox.set(next);
+    CameraManager.Instance.setBoundingBoxVisible(next);
   }
 </script>
 
 <button
-  class="group relative size-6 p-1 flex items-center justify-center cursor-pointer stroke-[1.75] {$settings.showBoundingBox
+  class="group relative size-6 p-1 flex items-center justify-center cursor-pointer stroke-[1.75] {$sessionShowBoundingBox
     ? 'bg-ui-elem text-ui-link'
     : 'text-ui-text-secondary hover:bg-ui-elem'}"
   onclick={toggle}
