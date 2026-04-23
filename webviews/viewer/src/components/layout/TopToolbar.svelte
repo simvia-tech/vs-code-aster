@@ -1,7 +1,9 @@
 <script lang="ts">
   import BoundingBoxButton from '../viewer/BoundingBoxButton.svelte';
   import WireframeButton from '../viewer/WireframeButton.svelte';
+  import AutoRotateButton from '../viewer/AutoRotateButton.svelte';
   import ScreenshotButton from '../viewer/ScreenshotButton.svelte';
+  import RecordButton from '../viewer/RecordButton.svelte';
 </script>
 
 <div
@@ -12,5 +14,9 @@
   <div class="w-px bg-ui-border"></div>
   <WireframeButton />
   <div class="w-px bg-ui-border"></div>
+  <AutoRotateButton />
+  <div class="w-px bg-ui-border"></div>
   <ScreenshotButton />
+  <div class="w-px bg-ui-border"></div>
+  <RecordButton />
 </div>

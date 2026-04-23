@@ -31,6 +31,10 @@ export function getScreenshotsDir(projectDir: string): string {
   return ensureDir(path.join(getProjectDir(projectDir), 'screenshots'));
 }
 
+export function getRecordingsDir(projectDir: string): string {
+  return ensureDir(path.join(getProjectDir(projectDir), 'recordings'));
+}
+
 export function getRunLogsDir(projectDir: string): string {
   const dir = ensureDir(path.join(getProjectDir(projectDir), 'run_logs'));
   migrateLegacyRunLog(projectDir, dir);

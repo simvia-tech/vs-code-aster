@@ -35,6 +35,9 @@ export interface Settings {
   showBoundingBox: boolean;
   showWireframe: boolean;
   dreamBackground: boolean;
+  autoRotate: boolean;
+  autoRotateSpeed: number;
+  autoRotateReverse: boolean;
 }
 
 export const groupHierarchy = writable<GroupHierarchy>({});
@@ -55,8 +58,19 @@ export const settings = writable<Settings>({
   showOrientationWidget: true,
   showBoundingBox: false,
   showWireframe: false,
-  dreamBackground: false,
+  dreamBackground: true,
+  autoRotate: false,
+  autoRotateSpeed: 15,
+  autoRotateReverse: false,
 });
+
+export const openToolbarPopover = writable<string | null>(null);
+
+export const sessionShowBoundingBox = writable<boolean>(false);
+export const sessionShowWireframe = writable<boolean>(false);
+export const sessionAutoRotate = writable<boolean>(false);
+export const autoRotateSessionSpeed = writable<number>(15);
+export const autoRotateSessionReverse = writable<boolean>(false);
 
 // Map<objectKey, Set<groupName>> — groups NOT shown in sidebar (hidden)
 export const sidebarHiddenGroups = writable<Map<string, Set<string>>>(new Map());

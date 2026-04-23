@@ -1,5 +1,12 @@
 <script lang="ts">
-  import { settings } from '../../lib/state';
+  import {
+    settings,
+    sessionShowBoundingBox,
+    sessionShowWireframe,
+    sessionAutoRotate,
+    autoRotateSessionSpeed,
+    autoRotateSessionReverse,
+  } from '../../lib/state';
   import { GlobalSettings } from '../../lib/settings/GlobalSettings';
   import { CameraManager } from '../../lib/interaction/CameraManager';
   import { VtkApp } from '../../lib/core/VtkApp';
@@ -12,9 +19,9 @@
 
   let { onclose }: { onclose: () => void } = $props();
 
-  const tabs = ['Mesh edges', 'Groups', 'Visibility', 'Display'] as const;
+  const tabs = ['Rendering', 'Groups', 'Visibility', 'Toolbar'] as const;
   type Tab = (typeof tabs)[number];
-  let activeTab = $state<Tab>('Mesh edges');
+  let activeTab = $state<Tab>('Rendering');
 
   const edgeModeOptions = [
     { value: 'threshold', label: 'Show mesh edges when zooming (threshold)' },
@@ -169,6 +176,66 @@
     });
   }
 
+  function toggleDefaultBoundingBox() {
+    const showBoundingBox = !$settings.showBoundingBox;
+    GlobalSettings.Instance.showBoundingBox = showBoundingBox;
+    settings.update((s) => ({ ...s, showBoundingBox }));
+    sessionShowBoundingBox.set(showBoundingBox);
+    CameraManager.Instance.setBoundingBoxVisible(showBoundingBox);
+    Controller.Instance.getVSCodeAPI().postMessage({
+      type: 'saveSettings',
+      settings: { showBoundingBox },
+    });
+  }
+
+  function toggleDefaultWireframe() {
+    const showWireframe = !$settings.showWireframe;
+    GlobalSettings.Instance.showWireframe = showWireframe;
+    settings.update((s) => ({ ...s, showWireframe }));
+    sessionShowWireframe.set(showWireframe);
+    CameraManager.Instance.setWireframeMode(showWireframe);
+    Controller.Instance.getVSCodeAPI().postMessage({
+      type: 'saveSettings',
+      settings: { showWireframe },
+    });
+  }
+
+  function toggleDefaultAutoRotate() {
+    const autoRotate = !$settings.autoRotate;
+    GlobalSettings.Instance.autoRotate = autoRotate;
+    settings.update((s) => ({ ...s, autoRotate }));
+    sessionAutoRotate.set(autoRotate);
+    CameraManager.Instance.setAutoRotate(autoRotate);
+    Controller.Instance.getVSCodeAPI().postMessage({
+      type: 'saveSettings',
+      settings: { autoRotate },
+    });
+  }
+
+  function onAutoRotateSpeedInput(e: Event) {
+    const speed = parseInt((e.target as HTMLInputElement).value, 10);
+    GlobalSettings.Instance.autoRotateSpeed = speed;
+    settings.update((s) => ({ ...s, autoRotateSpeed: speed }));
+    autoRotateSessionSpeed.set(speed);
+    CameraManager.Instance.setAutoRotateSpeed(speed);
+    Controller.Instance.getVSCodeAPI().postMessage({
+      type: 'saveSettings',
+      settings: { autoRotateSpeed: speed },
+    });
+  }
+
+  function toggleAutoRotateReverse() {
+    const reverse = !$settings.autoRotateReverse;
+    GlobalSettings.Instance.autoRotateReverse = reverse;
+    settings.update((s) => ({ ...s, autoRotateReverse: reverse }));
+    autoRotateSessionReverse.set(reverse);
+    CameraManager.Instance.setAutoRotateReverse(reverse);
+    Controller.Instance.getVSCodeAPI().postMessage({
+      type: 'saveSettings',
+      settings: { autoRotateReverse: reverse },
+    });
+  }
+
   function toggleOrientationWidget() {
     const showOrientationWidget = !$settings.showOrientationWidget;
     GlobalSettings.Instance.showOrientationWidget = showOrientationWidget;
@@ -195,16 +262,31 @@
     hiddenObjectOpacity: 0,
     groupTransparency: 0.2,
   };
-  const DISPLAY_DEFAULTS = { showOrientationWidget: true, dreamBackground: false };
+  const DISPLAY_DEFAULTS = {
+    showOrientationWidget: true,
+    dreamBackground: true,
+  };
+  const TOOLBAR_DEFAULTS = {
+    showBoundingBox: false,
+    showWireframe: false,
+    autoRotate: false,
+    autoRotateSpeed: 15,
+    autoRotateReverse: false,
+  };
 
-  function resetMeshEdgesTab() {
-    GlobalSettings.Instance.edgeMode = EDGE_DEFAULTS.edgeMode;
-    GlobalSettings.Instance.edgeThresholdMultiplier = EDGE_DEFAULTS.edgeThresholdMultiplier;
-    settings.update((s) => ({ ...s, ...EDGE_DEFAULTS }));
+  function resetRenderingTab() {
+    const RENDERING_DEFAULTS = { ...EDGE_DEFAULTS, ...DISPLAY_DEFAULTS };
+    GlobalSettings.Instance.edgeMode = RENDERING_DEFAULTS.edgeMode;
+    GlobalSettings.Instance.edgeThresholdMultiplier = RENDERING_DEFAULTS.edgeThresholdMultiplier;
+    GlobalSettings.Instance.showOrientationWidget = RENDERING_DEFAULTS.showOrientationWidget;
+    GlobalSettings.Instance.dreamBackground = RENDERING_DEFAULTS.dreamBackground;
+    settings.update((s) => ({ ...s, ...RENDERING_DEFAULTS }));
     CameraManager.Instance.refreshEdgeVisibility();
+    CameraManager.Instance.setOrientationWidgetVisible(RENDERING_DEFAULTS.showOrientationWidget);
+    VtkApp.Instance.setTransparentBackground(RENDERING_DEFAULTS.dreamBackground);
     Controller.Instance.getVSCodeAPI().postMessage({
       type: 'saveSettings',
-      settings: EDGE_DEFAULTS,
+      settings: RENDERING_DEFAULTS,
     });
   }
 
@@ -237,14 +319,26 @@
     });
   }
 
-  function resetDisplayTab() {
-    GlobalSettings.Instance.showOrientationWidget = DISPLAY_DEFAULTS.showOrientationWidget;
-    GlobalSettings.Instance.dreamBackground = DISPLAY_DEFAULTS.dreamBackground;
-    settings.update((s) => ({ ...s, ...DISPLAY_DEFAULTS }));
-    CameraManager.Instance.setOrientationWidgetVisible(true);
+  function resetToolbarTab() {
+    GlobalSettings.Instance.showBoundingBox = TOOLBAR_DEFAULTS.showBoundingBox;
+    GlobalSettings.Instance.showWireframe = TOOLBAR_DEFAULTS.showWireframe;
+    GlobalSettings.Instance.autoRotate = TOOLBAR_DEFAULTS.autoRotate;
+    GlobalSettings.Instance.autoRotateSpeed = TOOLBAR_DEFAULTS.autoRotateSpeed;
+    GlobalSettings.Instance.autoRotateReverse = TOOLBAR_DEFAULTS.autoRotateReverse;
+    settings.update((s) => ({ ...s, ...TOOLBAR_DEFAULTS }));
+    sessionShowBoundingBox.set(TOOLBAR_DEFAULTS.showBoundingBox);
+    sessionShowWireframe.set(TOOLBAR_DEFAULTS.showWireframe);
+    sessionAutoRotate.set(TOOLBAR_DEFAULTS.autoRotate);
+    autoRotateSessionSpeed.set(TOOLBAR_DEFAULTS.autoRotateSpeed);
+    autoRotateSessionReverse.set(TOOLBAR_DEFAULTS.autoRotateReverse);
+    CameraManager.Instance.setBoundingBoxVisible(TOOLBAR_DEFAULTS.showBoundingBox);
+    CameraManager.Instance.setWireframeMode(TOOLBAR_DEFAULTS.showWireframe);
+    CameraManager.Instance.setAutoRotate(TOOLBAR_DEFAULTS.autoRotate);
+    CameraManager.Instance.setAutoRotateSpeed(TOOLBAR_DEFAULTS.autoRotateSpeed);
+    CameraManager.Instance.setAutoRotateReverse(TOOLBAR_DEFAULTS.autoRotateReverse);
     Controller.Instance.getVSCodeAPI().postMessage({
       type: 'saveSettings',
-      settings: DISPLAY_DEFAULTS,
+      settings: TOOLBAR_DEFAULTS,
     });
   }
 
@@ -254,6 +348,7 @@
       ...GROUPS_DEFAULTS,
       ...VISIBILITY_DEFAULTS,
       ...DISPLAY_DEFAULTS,
+      ...TOOLBAR_DEFAULTS,
     };
     GlobalSettings.Instance.hiddenObjectOpacity = defaults.hiddenObjectOpacity;
     GlobalSettings.Instance.edgeMode = defaults.edgeMode;
@@ -266,7 +361,17 @@
     GlobalSettings.Instance.groupTransparency = defaults.groupTransparency;
     GlobalSettings.Instance.showOrientationWidget = defaults.showOrientationWidget;
     GlobalSettings.Instance.dreamBackground = defaults.dreamBackground;
+    GlobalSettings.Instance.showBoundingBox = defaults.showBoundingBox;
+    GlobalSettings.Instance.showWireframe = defaults.showWireframe;
+    GlobalSettings.Instance.autoRotate = defaults.autoRotate;
+    GlobalSettings.Instance.autoRotateSpeed = defaults.autoRotateSpeed;
+    GlobalSettings.Instance.autoRotateReverse = defaults.autoRotateReverse;
     settings.update((s) => ({ ...s, ...defaults }));
+    sessionShowBoundingBox.set(defaults.showBoundingBox);
+    sessionShowWireframe.set(defaults.showWireframe);
+    sessionAutoRotate.set(defaults.autoRotate);
+    autoRotateSessionSpeed.set(defaults.autoRotateSpeed);
+    autoRotateSessionReverse.set(defaults.autoRotateReverse);
     VisibilityManager.Instance.applyHiddenObjectOpacity();
     VisibilityManager.Instance.applyGroupTransparency();
     VisibilityManager.Instance.applyEdgeGroupThickness();
@@ -274,6 +379,11 @@
     CameraManager.Instance.refreshEdgeVisibility();
     CameraManager.Instance.refreshNodeGroupSize();
     CameraManager.Instance.setOrientationWidgetVisible(true);
+    CameraManager.Instance.setBoundingBoxVisible(defaults.showBoundingBox);
+    CameraManager.Instance.setWireframeMode(defaults.showWireframe);
+    CameraManager.Instance.setAutoRotate(defaults.autoRotate);
+    CameraManager.Instance.setAutoRotateSpeed(defaults.autoRotateSpeed);
+    CameraManager.Instance.setAutoRotateReverse(defaults.autoRotateReverse);
     Controller.Instance.applySortOrder();
     Controller.Instance.getVSCodeAPI().postMessage({
       type: 'saveSettings',
@@ -282,10 +392,10 @@
   }
 
   const tabResets: Record<Tab, () => void> = {
-    'Mesh edges': resetMeshEdgesTab,
+    Rendering: resetRenderingTab,
     Groups: resetGroupsTab,
     Visibility: resetVisibilityTab,
-    Display: resetDisplayTab,
+    Toolbar: resetToolbarTab,
   };
 </script>
 
@@ -332,7 +442,7 @@
 
   <div class="relative z-10 flex flex-col flex-1 min-w-0 px-6 pt-6 pb-4">
     <div class="grow overflow-y-auto min-h-0 pr-1">
-      {#if activeTab === 'Mesh edges'}
+      {#if activeTab === 'Rendering'}
         <div class="flex flex-col space-y-2">
           <span class="text-xs text-ui-text-secondary pb-1">
             Controls the wireframe edges drawn on every cell of the mesh. For the display of edge
@@ -392,6 +502,44 @@
               >
             </div>
           {/if}
+
+          <div class="flex items-center gap-3 pt-2">
+            <Toggle
+              checked={$settings.showOrientationWidget}
+              onclick={toggleOrientationWidget}
+              ariaLabel="Show orientation widget"
+            />
+            <div class="flex flex-col gap-0.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-medium">Orientation widget</span>
+                {@render tip(
+                  'Toggle the XYZ axes indicator in the bottom-right corner of the viewport.'
+                )}
+              </div>
+              <span class="text-xs text-ui-text-secondary"
+                >Show the axes widget in the bottom-right corner.</span
+              >
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <Toggle
+              checked={$settings.dreamBackground}
+              onclick={toggleDreamBackground}
+              ariaLabel="Dream background"
+            />
+            <div class="flex flex-col gap-0.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-medium">Dream background</span>
+                {@render tip(
+                  'Cosmetic only: animated EDF orange and blue light blobs slowly breathing behind the mesh. Does not affect lighting on the mesh itself.'
+                )}
+              </div>
+              <span class="text-xs text-ui-text-secondary"
+                >Animated colored glows behind the mesh, purely decorative.</span
+              >
+            </div>
+          </div>
         </div>
       {:else if activeTab === 'Groups'}
         <div class="flex flex-col space-y-3">
@@ -564,43 +712,119 @@
             >
           </div>
         </div>
-      {:else if activeTab === 'Display'}
-        <div class="flex flex-col space-y-3">
-          <div class="flex items-center gap-3">
-            <Toggle
-              checked={$settings.showOrientationWidget}
-              onclick={toggleOrientationWidget}
-              ariaLabel="Show orientation widget"
-            />
-            <div class="flex flex-col gap-0.5">
-              <div class="flex items-center gap-1.5">
-                <span class="text-xs font-medium">Orientation widget</span>
-                {@render tip(
-                  'Toggle the XYZ axes indicator in the bottom-right corner of the viewport.'
-                )}
+      {:else if activeTab === 'Toolbar'}
+        <div class="flex flex-col space-y-4">
+          <span class="text-xs text-ui-text-secondary pb-1">
+            Defaults for the toolbar at the top of the viewport. Toggling a toolbar button directly
+            only affects the current view — only changes made here are remembered.
+          </span>
+
+          <div class="flex flex-col space-y-2">
+            <span class="text-xs font-semibold text-ui-text-primary">Bounding box</span>
+            <div class="flex items-center gap-3">
+              <Toggle
+                checked={$settings.showBoundingBox}
+                onclick={toggleDefaultBoundingBox}
+                ariaLabel="Enable bounding box by default"
+              />
+              <div class="flex flex-col gap-0.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-medium">Enable bounding box</span>
+                  {@render tip(
+                    'Show the bounding box by default on every viewer. Toolbar overrides are not persisted.'
+                  )}
+                </div>
+                <span class="text-xs text-ui-text-secondary"
+                  >Show the axis-aligned bounding box around meshes on load.</span
+                >
               </div>
-              <span class="text-xs text-ui-text-secondary"
-                >Show the axes widget in the bottom-right corner.</span
-              >
             </div>
           </div>
 
-          <div class="flex items-center gap-3">
-            <Toggle
-              checked={$settings.dreamBackground}
-              onclick={toggleDreamBackground}
-              ariaLabel="Dream background"
-            />
-            <div class="flex flex-col gap-0.5">
-              <div class="flex items-center gap-1.5">
-                <span class="text-xs font-medium">Dream background</span>
-                {@render tip(
-                  'Cosmetic only: animated EDF orange and blue light blobs slowly breathing behind the mesh. Does not affect lighting on the mesh itself.'
-                )}
+          <div class="flex flex-col space-y-2">
+            <span class="text-xs font-semibold text-ui-text-primary">Wireframe</span>
+            <div class="flex items-center gap-3">
+              <Toggle
+                checked={$settings.showWireframe}
+                onclick={toggleDefaultWireframe}
+                ariaLabel="Enable wireframe by default"
+              />
+              <div class="flex flex-col gap-0.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-medium">Enable wireframe</span>
+                  {@render tip(
+                    'Render meshes as wireframes by default. Toolbar overrides are not persisted.'
+                  )}
+                </div>
+                <span class="text-xs text-ui-text-secondary"
+                  >Render meshes in wireframe mode on load.</span
+                >
               </div>
-              <span class="text-xs text-ui-text-secondary"
-                >Animated colored glows behind the mesh, purely decorative.</span
-              >
+            </div>
+          </div>
+
+          <div class="flex flex-col space-y-2">
+            <span class="text-xs font-semibold text-ui-text-primary">Auto-rotate</span>
+            <div class="flex items-center gap-3">
+              <Toggle
+                checked={$settings.autoRotate}
+                onclick={toggleDefaultAutoRotate}
+                ariaLabel="Enable auto-rotate by default"
+              />
+              <div class="flex flex-col gap-0.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-medium">Enable auto-rotate</span>
+                  {@render tip(
+                    'Start auto-rotate by default on every viewer. Toolbar overrides are not persisted.'
+                  )}
+                </div>
+                <span class="text-xs text-ui-text-secondary"
+                  >Spin the camera around the scene on load.</span
+                >
+              </div>
+            </div>
+
+            <div class="flex flex-col space-y-1.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                  <label for="autoRotateSpeedRange" class="text-xs font-medium"
+                    >Default auto-rotate speed</label
+                  >
+                  {@render tip(
+                    'Default rotation speed in degrees per second. Overrides set from the toolbar popover are not persisted.'
+                  )}
+                </div>
+                <span class="text-xs text-ui-text-secondary">{$settings.autoRotateSpeed}°/s</span>
+              </div>
+              <input
+                id="autoRotateSpeedRange"
+                type="range"
+                min="5"
+                max="180"
+                step="1"
+                value={$settings.autoRotateSpeed}
+                class="w-full cursor-pointer focus:outline-none [accent-color:var(--vscode-textLink-foreground,#0078d4)]"
+                oninput={onAutoRotateSpeedInput}
+              />
+            </div>
+
+            <div class="flex items-center gap-3">
+              <Toggle
+                checked={$settings.autoRotateReverse}
+                onclick={toggleAutoRotateReverse}
+                ariaLabel="Default reverse auto-rotate"
+              />
+              <div class="flex flex-col gap-0.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-medium">Default reverse auto-rotate</span>
+                  {@render tip(
+                    'Default rotation direction. When enabled, the view rotates the opposite way by default. Overrides set from the toolbar popover are not persisted.'
+                  )}
+                </div>
+                <span class="text-xs text-ui-text-secondary"
+                  >Rotate the opposite way by default.</span
+                >
+              </div>
             </div>
           </div>
         </div>

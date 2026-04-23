@@ -14,6 +14,8 @@
   import ObjectIcon from '../../icons/ObjectIcon.svelte';
   import MouseScrollIcon from '../../icons/MouseScrollIcon.svelte';
   import ResetIcon from '../../icons/ResetIcon.svelte';
+  import AutoRotateIcon from '../../icons/AutoRotateIcon.svelte';
+  import RecordIcon from '../../icons/RecordIcon.svelte';
   import ScreenshotIcon from '../../icons/ScreenshotIcon.svelte';
   import VolumeIcon from '../../icons/VolumeIcon.svelte';
   import WireframeIcon from '../../icons/WireframeIcon.svelte';
@@ -133,14 +135,49 @@
           >
 
           <span
+            class="inline-flex items-center justify-center size-6 rounded-sm bg-ui-muted border border-ui-border text-ui-text-secondary"
+          >
+            <AutoRotateIcon class="size-3.5" />
+          </span>
+          <span
+            ><strong>Auto-rotate</strong> the view like a turntable.
+            <strong>Right click</strong> to open a popover with a speed slider and a
+            <strong>reverse direction</strong> toggle — changes there apply to the current session
+            only; set the remembered defaults in <em>Settings → Toolbar</em>.</span
+          >
+
+          <span
             class="inline-flex items-center justify-center size-6 rounded-sm bg-ui-muted border border-ui-border text-ui-text-secondary stroke-[1.75]"
           >
             <ScreenshotIcon class="size-3.5" />
           </span>
           <span
-            ><strong>Left click</strong> — save the 3D view as PNG next to your file &amp; copy to
-            clipboard. <strong>Right click</strong> — capture the full viewer including the sidebar.</span
+            ><strong>Screenshot</strong> the 3D view as PNG (saved next to your mesh &amp; copied to
+            clipboard). <strong>Left click</strong> — canvas only. <strong>Right click</strong> —
+            menu with <em>Screenshot whole screen</em> to include the toolbar and sidebar.</span
           >
+
+          <span
+            class="inline-flex items-center justify-center size-6 rounded-sm bg-ui-muted border border-ui-border text-ui-text-secondary stroke-[1.75]"
+          >
+            <RecordIcon class="size-3.5" />
+          </span>
+          <span
+            ><strong>Record</strong> a video of the 3D view (mp4 when the webview's Chromium
+            supports h264, webm otherwise; saved to <code>.vs-code-aster/recordings/</code>). The
+            button pulses red with an elapsed timer while recording. <strong>Left click</strong> —
+            start / stop a canvas-only recording. <strong>Right click</strong> — menu with
+            <em>Record whole webview</em> (bakes the toolbar, sidebar, popups, and labels into the
+            video) or <em>Record without sidebar</em>. The whole-webview mode rasterizes the DOM on
+            every real UI change, which can briefly freeze the viewer on each update — expect short
+            hitches when you click a toolbar button or toggle a group during recording. Skip the
+            sidebar if you have hundreds of groups and the hitches feel too long.</span
+          >
+
+          <span class="col-span-2 text-ui-text-secondary pt-1">
+            Toolbar toggles (bounding box, wireframe, auto-rotate) affect only the current viewer —
+            persistent defaults live in <em>Settings → Toolbar</em>.
+          </span>
         </div>
       {:else if activeTab === 'Objects'}
         <div class="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3 items-center">

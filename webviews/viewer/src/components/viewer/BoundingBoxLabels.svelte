@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { settings, boundingBoxDimensions } from '../../lib/state';
+  import { sessionShowBoundingBox, boundingBoxDimensions } from '../../lib/state';
 
   function fmt(v: number): string {
     if (!isFinite(v)) return '—';
@@ -10,7 +10,7 @@
   }
 
   let dims = $derived($boundingBoxDimensions);
-  let hidden = $derived(!($settings.showBoundingBox && dims));
+  let hidden = $derived(!($sessionShowBoundingBox && dims));
 </script>
 
 {#if dims}
