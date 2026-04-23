@@ -1,7 +1,7 @@
 <p align="center"><img src="https://raw.githubusercontent.com/simvia-tech/vs-code-aster/main/media/images/simvia.png" alt="Simvia Logo" width="50%" /></p>
 
 <p align="center">
-  <a href="/"><img src="https://img.shields.io/badge/version-1.9.1-blue" alt="Version" /></a>
+  <a href="/"><img src="https://img.shields.io/badge/version-1.9.2-blue" alt="Version" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL%203.0-green" alt="License" /></a>
   <a href="https://github.com/simvia-tech/vs-code-aster/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/simvia-tech/vs-code-aster/ci.yml?branch=main&label=CI" alt="CI Status" /></a>
   <a href="https://github.com/simvia-tech/vs-code-aster/issues"><img src="https://img.shields.io/github/issues/simvia-tech/vs-code-aster?label=issues" alt="GitHub issues" /></a>

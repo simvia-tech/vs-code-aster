@@ -5,6 +5,17 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.2] - 2026-04-23
+
+Better rendering for 1D meshes and a flatter, more readable face shading.
+
+### Added
+- **Standalone 1D edges** (edges not shared with any face, e.g. beam elements) now render by default in the object color with a thin black contour. Line style adapts to parent opacity, wireframe mode, and the face-edge visibility rules (hide / show / threshold / gradual).
+
+### Fixed
+- User-defined face groups whose name contains `all_` (e.g. `all_plates`) are no longer mistakenly treated as file-level object actors.
+- Face specular highlight removed, so colors no longer shift toward white (e.g. blue → turquoise) at camera-facing angles.
+
 ## [1.9.1] - 2026-04-23
 
 New viewer toolbar actions (auto-rotate, video recording), a reorganized settings popup with a dedicated Toolbar tab, and a round of `.export` editor fixes.
