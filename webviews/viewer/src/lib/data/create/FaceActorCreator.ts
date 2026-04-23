@@ -104,8 +104,7 @@ export class FaceActorCreator {
     prop.setLineWidth(0.3);
     prop.setInterpolationToPhong();
     prop.setAmbient(GlobalSettings.Instance.ambientIntensity);
-    prop.setSpecular(GlobalSettings.Instance.specular);
-    prop.setSpecularPower(GlobalSettings.Instance.specularPower);
+    prop.setSpecular(0);
 
     return { colorIndex, isObjectActor };
   }
