@@ -118,16 +118,16 @@ export class VisibilityManager {
     const fileGroup = this.groups[object];
     if (fileGroup) {
       if (nowVisible) {
-        fileGroup.actor.setVisibility(true);
+        fileGroup.setVisibility(true);
         const opacity =
           this.visibleGroupsByObject[object] > 0 ? GlobalSettings.Instance.groupTransparency : 1.0;
         fileGroup.setOpacity(opacity);
       } else {
         const hiddenOpacity = GlobalSettings.Instance.hiddenObjectOpacity;
         if (hiddenOpacity === 0) {
-          fileGroup.actor.setVisibility(false);
+          fileGroup.setVisibility(false);
         } else {
-          fileGroup.actor.setVisibility(true);
+          fileGroup.setVisibility(true);
           fileGroup.setOpacity(hiddenOpacity);
         }
       }
@@ -165,8 +165,9 @@ export class VisibilityManager {
   applyEdgeGroupThickness(): void {
     const thickness = GlobalSettings.Instance.edgeGroupThickness;
     for (const group of Object.values(this.groups)) {
-      if (group.kind !== 'edge') continue;
-      group.actor.getProperty().setLineWidth(thickness);
+      if (group.kind === 'edge') {
+        group.actor.getProperty().setLineWidth(thickness);
+      }
     }
     VtkApp.Instance.getRenderWindow().render();
   }
@@ -174,8 +175,9 @@ export class VisibilityManager {
   applyEdgeGroupDepthOffset(): void {
     const enabled = GlobalSettings.Instance.edgeGroupDepthOffset;
     for (const group of Object.values(this.groups)) {
-      if (group.kind !== 'edge') continue;
-      EdgeActorCreator.applyDepthOffset(group.actor.getMapper(), enabled);
+      if (group.kind === 'edge') {
+        EdgeActorCreator.applyDepthOffset(group.actor.getMapper(), enabled);
+      }
     }
     VtkApp.Instance.getRenderWindow().render();
   }
@@ -213,9 +215,9 @@ export class VisibilityManager {
       const fileGroup = this.groups[object];
       if (!fileGroup) continue;
       if (hiddenOpacity === 0) {
-        fileGroup.actor.setVisibility(false);
+        fileGroup.setVisibility(false);
       } else {
-        fileGroup.actor.setVisibility(true);
+        fileGroup.setVisibility(true);
         fileGroup.setOpacity(hiddenOpacity);
       }
     }
