@@ -8,13 +8,16 @@ import * as path from 'path';
 import { VisuManager } from './VisuManager';
 import { ExportEditor } from './ExportEditor';
 import { ExportFormatter } from './ExportFormatter';
+import { CommFormatter, offerInstallRuff } from './CommFormatter';
 import { RunAster } from './RunAster';
 import { LspServer } from './LspServer';
 import { StatusBar } from './StatusBar';
+import { CaveStatusBar } from './CaveStatusBar';
 import { activateMedLanguageSync } from './MedLanguageSync';
 import { MedEditorProvider, STATIC_MED_EXTS } from './MedEditorProvider';
 import { activateMedAutoDetect, isExtensionConfigured, openAsMedMesh } from './MedAutoDetect';
 import { setTelemetryContext } from './telemetry';
+import { clearCatalogCache, getCatalogChannel, getCatalogInfo } from './CatalogResolver';
 
 /**
  * Main activation function for the extension. Registers all commands.
@@ -45,6 +48,31 @@ export async function activate(context: vscode.ExtensionContext) {
     )
   );
 
+  const commFormatter = new CommFormatter();
+  context.subscriptions.push(
+    vscode.languages.registerDocumentFormattingEditProvider({ language: 'comm' }, commFormatter),
+    vscode.languages.registerDocumentRangeFormattingEditProvider(
+      { language: 'comm' },
+      commFormatter
+    )
+  );
+
+  // Offer to install ruff the first time a .comm file is opened, so the user
+  // doesn't discover the dependency only when trying to format.
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument((doc) => {
+      if (doc.languageId === 'comm') {
+        void offerInstallRuff(context);
+      }
+    })
+  );
+  for (const doc of vscode.workspace.textDocuments) {
+    if (doc.languageId === 'comm') {
+      void offerInstallRuff(context);
+      break;
+    }
+  }
+
   const createMesh = vscode.commands.registerCommand('vs-code-aster.meshViewer', () => {
     VisuManager.instance.createOrShowMeshViewer();
   });
@@ -54,7 +82,28 @@ export async function activate(context: vscode.ExtensionContext) {
     LspServer.instance.restart();
   });
 
+  const showCatalogInfo = vscode.commands.registerCommand(
+    'vs-code-aster.showCatalogInfo',
+    async () => {
+      const info = await getCatalogInfo();
+      const choice = await vscode.window.showInformationMessage(
+        info,
+        { modal: true },
+        'Show log',
+        'Clear cache & restart LSP'
+      );
+      if (choice === 'Show log') {
+        getCatalogChannel().show();
+      } else if (choice === 'Clear cache & restart LSP') {
+        clearCatalogCache();
+        await LspServer.instance.restart();
+      }
+    }
+  );
+  context.subscriptions.push(showCatalogInfo);
+
   StatusBar.instance.activate(context);
+  CaveStatusBar.instance.activate(context);
 
   activateMedLanguageSync(context);
 

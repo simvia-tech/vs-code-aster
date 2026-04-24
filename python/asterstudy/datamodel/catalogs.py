@@ -122,10 +122,36 @@ class Catalogs:
         if not version:
             version = 'stable'
         debug_message("Loading catalog for {0!r}".format(version))
-        # A FAIRE MODIFIER, : changer le chemin
-        import pathlib as pl 
-        version_path = pl.Path(__file__).parent.parent / "code_aster_version" / "code_aster"
-        debug_message("from path {0!r}".format(version_path))
+        import pathlib as pl
+        vendored_path = pl.Path(__file__).parent.parent / "code_aster_version" / "code_aster"
+        import sys as _sys
+        def _clog(msg):
+            # Log to stderr only — stdout is the LSP JSON-RPC transport
+            # and any pollution breaks the protocol.
+            _sys.stderr.write("[catalog] " + msg + "\n")
+            _sys.stderr.flush()
+
+        env_path = os.environ.get("VS_CODE_ASTER_CATA_PATH")
+        if env_path:
+            candidate = pl.Path(env_path)
+            if candidate.is_dir() and (candidate / "Cata").is_dir():
+                version_path = candidate
+                source = "env"
+                # Make the extracted `code_aster` package importable by
+                # putting its PARENT on sys.path. Without this, the loader
+                # would silently fall back to the vendored catalog already
+                # on sys.path (added by python/lsp/__init__.py).
+                parent = str(candidate.parent)
+                if parent not in _sys.path:
+                    _sys.path.insert(0, parent)
+            else:
+                _clog("VS_CODE_ASTER_CATA_PATH={0!r} is not a valid code_aster directory, falling back to vendored".format(env_path))
+                version_path = vendored_path
+                source = "vendored (env invalid)"
+        else:
+            version_path = vendored_path
+            source = "vendored"
+        _clog("Loading catalog from {0} (source: {1})".format(version_path, source))
 
         # Enable marker
         AsterStudySession.set_cata()

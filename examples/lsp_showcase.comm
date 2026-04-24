@@ -1,0 +1,125 @@
+# ---------------------------------------------------------------------------
+# LSP showcase — small linear-elastic cantilever in a single file.
+#
+# What to try in this file (each section is annotated):
+#   * Hover a COMMAND name   → full Python-fence signature + docstring + rules
+#                              + documentation link.
+#   * Hover a KEYWORD inside a call → keyword-scoped card with type, default,
+#                              allowed values, range, required/optional.
+#   * Hover a keyword inside a conditional BLOC (e.g. NOM_MED under FORMAT='MED')
+#                           → only the active branch is offered.
+#   * Trigger completion at an empty line  → list of all commands.
+#   * Trigger completion inside a call (after "(" or ",") → keyword list,
+#                              filtered by active BLOCs given what you've
+#                              already typed in the call.
+#   * Trigger signature help with "(" or "," → argument hints.
+#   * Save the file (or open alongside a .mess) → diagnostics in Problems panel.
+#   * Bottom-left status bar shows which family steps (Mesh / Material /
+#     Loads / Analysis / Output) are filled in this file.
+#   * Bottom-right status bar shows the active code_aster version (cave or
+#     "(bundled)"); click it to switch, install, or remove versions.
+# ---------------------------------------------------------------------------
+
+DEBUT()
+
+# 1. Mesh --------------------------------------------------------------------
+# Try: hover LIRE_MAILLAGE → command signature
+#      hover FORMAT         → keyword card (default="MED", into=(ASTER, ...))
+#      hover NOM_MED        → only visible because FORMAT='MED' is active
+MESH = LIRE_MAILLAGE(
+    FORMAT='MED',
+    UNITE=20,
+    NOM_MED='Cantilever',
+    INFO_MED=0,
+)
+
+# 2. Model -------------------------------------------------------------------
+# AFFE_MODELE has a `regles` rule: at least one of MAILLAGE / MODELE_IN ...
+# Hover AFFE_MODELE → see the rendered "Rules" list in the hover.
+MODEL = AFFE_MODELE(
+    MAILLAGE=MESH,
+    AFFE=_F(
+        TOUT='OUI',
+        PHENOMENE='MECANIQUE',
+        MODELISATION='3D',
+    ),
+)
+
+# 3. Material ----------------------------------------------------------------
+# Hover DEFI_MATERIAU → factor keywords ELAS, ECRO_LINE ...
+# Hover ELAS           → required sub-keywords E, NU get "# required".
+STEEL = DEFI_MATERIAU(
+    ELAS=_F(
+        E=210000.0,         # Young's modulus [MPa]
+        NU=0.3,             # Poisson's ratio
+        RHO=7.85e-9,        # density [t/mm^3] — optional, shown with default
+    ),
+)
+
+CHMAT = AFFE_MATERIAU(
+    MAILLAGE=MESH,
+    AFFE=_F(
+        TOUT='OUI',
+        MATER=STEEL,
+    ),
+)
+
+# 4. Boundary conditions & loads --------------------------------------------
+# AFFE_CHAR_MECA is the richest call for hover features:
+#   - required MODELE
+#   - many optional factor keywords: DDL_IMPO, FORCE_NODALE, PRES_REP, ...
+#   - rules like AT_LEAST_ONE on several sub-factors
+CLIM = AFFE_CHAR_MECA(
+    MODELE=MODEL,
+    DDL_IMPO=_F(
+        GROUP_MA='FIX',
+        DX=0.0,
+        DY=0.0,
+        DZ=0.0,
+    ),
+    FORCE_NODALE=_F(
+        GROUP_NO='TIP',
+        FZ=-1000.0,
+    ),
+)
+
+# 5. Analysis ----------------------------------------------------------------
+# MECA_STATIQUE: EXCIT is a repeatable FACT (max="**") — hover EXCIT to see
+# the factor block's required sub-keywords.
+RESU = MECA_STATIQUE(
+    MODELE=MODEL,
+    CHAM_MATER=CHMAT,
+    EXCIT=_F(CHARGE=CLIM),
+)
+
+# Post-processing: request stresses at nodes & Von Mises-equivalent.
+RESU = CALC_CHAMP(
+    reuse=RESU,
+    RESULTAT=RESU,
+    CONTRAINTE=('SIGM_NOEU',),
+    CRITERES=('SIEQ_NOEU',),
+)
+
+# 6. Output ------------------------------------------------------------------
+# IMPR_RESU shows BLOC filtering by FORMAT:
+#   FORMAT='MED'   → UNITE, NOM_MED, ... are active
+#   FORMAT='RESULTAT' → different sub-keywords
+# Change FORMAT below and re-hover the keywords to see the BLOC swap.
+IMPR_RESU(
+    FORMAT='MED',
+    UNITE=80,
+    RESU=_F(
+        RESULTAT=RESU,
+        NOM_CHAM=('DEPL', 'SIGM_NOEU', 'SIEQ_NOEU'),
+    ),
+)
+
+# Intentional typo / invalid argument demonstrations ------------------------
+# Uncomment any line below to see LSP surface a warning:
+#
+# BAD1 = LIRE_MAILLAGE(FORMAT='ASCII')     # 'ASCII' not in allowed values
+# BAD2 = DEFI_MATERIAU(ELAS=_F(NU=0.3))    # missing required E
+# BAD3 = MECA_STATIQUE()                   # missing required MODELE / CHAM_MATER
+# FOO                                      # hover a random word — no tooltip
+
+FIN()

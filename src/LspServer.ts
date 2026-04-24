@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -8,6 +9,13 @@ import {
 } from 'vscode-languageclient/node';
 import { StatusBar } from './StatusBar';
 import { SUPPORTED_COMM_EXTENSIONS } from './VisuManager';
+import { spawn } from 'child_process';
+import {
+  caveFilePath,
+  resolveCatalogPath,
+  getCatalogChannel,
+  reconcileCatalogCache,
+} from './CatalogResolver';
 /**
  * Singleton class to manage the Python LSP client for Code-Aster.
  * Handles client creation, start, restart, notifications, and editor listeners.
@@ -15,6 +23,9 @@ import { SUPPORTED_COMM_EXTENSIONS } from './VisuManager';
 export class LspServer {
   private static _instance: LspServer;
   private _client?: LanguageClient;
+  private _context?: vscode.ExtensionContext;
+  private _caveWatcher?: fs.FSWatcher;
+  private _caveDebounce?: NodeJS.Timeout;
 
   private constructor() {}
 
@@ -36,19 +47,32 @@ export class LspServer {
    * Starts the LSP client
    */
   public async start(context: vscode.ExtensionContext) {
+    this._context = context;
+    // Reconcile on-disk caches against what docker currently has. If an
+    // image was removed externally (docker rmi, cave internal cleanup), the
+    // matching extracted catalog lingers and our resolver would still serve
+    // it. Clear orphans before resolveCatalogPath runs.
+    await reconcileOnStartup();
     if (!this._client) {
       this._client = await this.createClient(context);
     }
 
-    this._client
-      .start()
-      .then(() => {
-        vscode.window.showInformationMessage('LSP Python Code-Aster ready!');
-        this.attachEditorListeners();
-      })
-      .catch((err: any) => {
-        vscode.window.showErrorMessage('Error starting LSP Python: ' + err.message);
-      });
+    this.watchCaveFile();
+
+    void vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Window,
+        title: 'Starting code_aster language server…',
+      },
+      () =>
+        this._client!.start()
+          .then(() => {
+            this.attachEditorListeners();
+          })
+          .catch((err: any) => {
+            vscode.window.showErrorMessage('Error starting LSP Python: ' + err.message);
+          })
+    );
 
     this._client.onDidChangeState((e) => console.log('LSP client state changed:', e));
 
@@ -78,16 +102,23 @@ export class LspServer {
     // Build file system watcher patterns
     const watchPatterns = commFileExtensions.map((ext) => `**/*${ext}`);
 
+    const resolved = await resolveCatalogPath();
+    const env: NodeJS.ProcessEnv = {
+      ...process.env,
+      PYTHONPATH: context.asAbsolutePath('python'),
+    };
+    if (resolved.path) {
+      env.VS_CODE_ASTER_CATA_PATH = resolved.path;
+    }
+    getCatalogChannel().appendLine(
+      `[catalog] LSP will start with source=${resolved.source}, path=${resolved.path ?? '(vendored)'}`
+    );
+
     const serverOptions: ServerOptions = {
       command: pythonExecutablePath,
       args: [serverModule],
       transport: TransportKind.stdio,
-      options: {
-        env: {
-          ...process.env,
-          PYTHONPATH: context.asAbsolutePath('python'),
-        },
-      },
+      options: { env },
     };
 
     const clientOptions: LanguageClientOptions = {
@@ -135,13 +166,50 @@ export class LspServer {
     if (this._client && this._client.isRunning()) {
       await this._client.stop();
     }
+    // Rebuild the client so a fresh catalog path is resolved and injected
+    // into the server process env (handles `cave use` changes).
+    if (this._context) {
+      this._client = await this.createClient(this._context);
+    }
 
-    this._client
-      ?.start()
-      .then(() => vscode.window.showInformationMessage('LSP Python Code-Aster restarted!'))
-      .catch((err: any) =>
-        vscode.window.showErrorMessage('Error restarting LSP Python: ' + err.message)
-      );
+    const client = this._client;
+    if (!client) {
+      return;
+    }
+    void vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Window,
+        title: 'Restarting code_aster language server…',
+      },
+      () =>
+        client
+          .start()
+          .catch((err: any) =>
+            vscode.window.showErrorMessage('Error restarting LSP Python: ' + err.message)
+          )
+    );
+  }
+
+  private watchCaveFile() {
+    if (this._caveWatcher) {
+      return;
+    }
+    const cavePath = caveFilePath();
+    const channel = getCatalogChannel();
+    try {
+      this._caveWatcher = fs.watch(cavePath, () => {
+        if (this._caveDebounce) {
+          clearTimeout(this._caveDebounce);
+        }
+        this._caveDebounce = setTimeout(() => {
+          channel.appendLine(`[catalog] ~/.cave changed, restarting LSP`);
+          void this.restart();
+        }, 500);
+      });
+      channel.appendLine(`[catalog] watching ${cavePath}`);
+    } catch (err: any) {
+      channel.appendLine(`[catalog] cannot watch ${cavePath}: ${err?.message ?? err}`);
+    }
   }
 
   /**
@@ -153,4 +221,42 @@ export class LspServer {
     }
     return this._client.stop();
   }
+}
+
+async function reconcileOnStartup(): Promise<void> {
+  const installed = await new Promise<string[]>((resolve) => {
+    const child = spawn('docker', ['images', '--format', '{{.Tag}}', 'simvia/code_aster'], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    let out = '';
+    const timer = setTimeout(() => child.kill('SIGKILL'), 5_000);
+    child.stdout.on('data', (d) => (out += d.toString()));
+    child.on('error', () => {
+      clearTimeout(timer);
+      resolve([]);
+    });
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      if (code !== 0) {
+        return resolve([]);
+      }
+      resolve(
+        Array.from(
+          new Set(
+            out
+              .split(/\r?\n/)
+              .map((s) => s.trim())
+              .filter((s) => s && s !== '<none>')
+          )
+        )
+      );
+    });
+  });
+  if (installed.length === 0) {
+    // Don't reconcile against an empty list — if docker is simply unavailable
+    // we'd nuke all caches and force re-extraction next time docker comes
+    // back. Treat "no info" as "keep what we have".
+    return;
+  }
+  reconcileCatalogCache(installed);
 }
