@@ -68,6 +68,14 @@
         "icon": "$(sync~spin)"
       },
       {
+        "command": "vs-code-aster.showCatalogInfo",
+        "title": "Show code_aster catalog info"
+      },
+      {
+        "command": "vs-code-aster.selectCaveVersion",
+        "title": "Select code_aster version (cave)"
+      },
+      {
         "command": "vs-code-aster.addToMedExtensions",
         "title": "Open as MED mesh",
         "icon": {
@@ -80,7 +88,7 @@
       {
         "id": "comm",
         "aliases": [
-          "Aster Commands"
+          "code_aster (comm)"
         ],
         "extensions": [
           ".comm",
@@ -105,7 +113,7 @@
       {
         "id": "export",
         "aliases": [
-          "Aster Export"
+          "code_aster (export)"
         ],
         "extensions": [
           ".export"
@@ -249,6 +257,18 @@
           "type": "string",
           "default": "python3",
           "markdownDescription": "Specifies the python executable used to run the language server."
+        },
+        "vs-code-aster.formatter": {
+          "order": 2.6,
+          "type": "string",
+          "default": "ruff",
+          "markdownDescription": "Formatter for `.comm` files. Use `ruff` (default) to format via `python -m ruff format` using the interpreter at `#vs-code-aster.pythonExecutablePath#`, `off` to disable formatting, or any custom shell command (e.g. `black - -q`) that reads source on stdin and writes the formatted result to stdout."
+        },
+        "vs-code-aster.asterCatalogPath": {
+          "order": 2.5,
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Optional path to a local `code_aster` directory (must contain a `Cata/` subdirectory) whose catalog should be used by the language server. When empty, the extension auto-detects the cave-selected version and extracts the catalog from the corresponding Docker image; if that fails, it falls back to the bundled catalog."
         },
         "vs-code-aster.maxRunLogs": {
           "order": 3,
