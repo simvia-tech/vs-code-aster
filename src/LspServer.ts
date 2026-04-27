@@ -29,6 +29,12 @@ export class LspServer {
   // Kept as a class field so `restart()` can mutate `options.env` before
   // bouncing the server — `LanguageClient` re-reads it on the next spawn.
   private _serverOptions?: { command: string; args: string[]; options: { env: NodeJS.ProcessEnv } };
+  // Fires every time the language server transitions into a usable
+  // state (after start() resolves and after restart() finishes). The
+  // sidebar and status bar listen to this so they retry their LSP-
+  // backed probes that ran too early on activation.
+  private _readyEmitter = new vscode.EventEmitter<void>();
+  public readonly onReady = this._readyEmitter.event;
 
   private constructor() {}
 
@@ -71,6 +77,7 @@ export class LspServer {
         this._client!.start()
           .then(() => {
             this.attachEditorListeners();
+            this._readyEmitter.fire();
           })
           .catch((err: any) => {
             vscode.window.showErrorMessage(
@@ -266,6 +273,7 @@ export class LspServer {
         }
         try {
           await client.start();
+          this._readyEmitter.fire();
         } catch (err: any) {
           vscode.window.showErrorMessage(
             'Error restarting code_aster language server: ' + (err?.message ?? err)
