@@ -421,7 +421,7 @@
         "vs-code-aster.viewer.dreamBackground": {
           "order": 22,
           "type": "boolean",
-          "default": true,
+          "default": false,
           "markdownDescription": "Cosmetic animated EDF orange and blue light blobs slowly breathing behind the mesh. Purely decorative — does not affect mesh lighting."
         },
         "vs-code-aster.viewer.autoRotate": {

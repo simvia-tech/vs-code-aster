@@ -48,7 +48,7 @@ export class GlobalSettings {
   showOrientationWidget = true;
   showBoundingBox = false;
   showWireframe = false;
-  dreamBackground = true;
+  dreamBackground = false;
   autoRotate = false;
   autoRotateSpeed = 15;
   autoRotateReverse = false;

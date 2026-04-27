@@ -222,7 +222,7 @@ export class WebviewVisu implements vscode.Disposable {
       showOrientationWidget: config.get<boolean>('viewer.showOrientationWidget', true),
       showBoundingBox: config.get<boolean>('viewer.showBoundingBox', false),
       showWireframe: config.get<boolean>('viewer.showWireframe', false),
-      dreamBackground: config.get<boolean>('viewer.dreamBackground', true),
+      dreamBackground: config.get<boolean>('viewer.dreamBackground', false),
       autoRotate: config.get<boolean>('viewer.autoRotate', false),
       autoRotateSpeed: config.get<number>('viewer.autoRotateSpeed', 15),
       autoRotateReverse: config.get<boolean>('viewer.autoRotateReverse', false),
