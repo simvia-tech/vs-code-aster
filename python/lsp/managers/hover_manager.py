@@ -522,13 +522,15 @@ def _render_command(cmd_obj, context) -> str:
 
 
 def _append_doc_link(out: list[str], command_name: str) -> None:
-    """Always the last block. Preceded by a horizontal rule so it reads as a
-    footer separate from the content above it."""
+    """Always the last block. A blank line keeps the link visually
+    separated from the body above; we deliberately don't emit a `---`
+    HR — when VS Code stacks multiple hover contributions (e.g. our
+    hover + a diagnostic), our HR would be only as wide as our block,
+    not the popup, which looks broken."""
     url = _doc_url(command_name)
     if not url:
         return
     out.append("")
-    out.append("---")
     out.append(f"[📘 {_t('search_doc', name=command_name)}]({url})")
 
 

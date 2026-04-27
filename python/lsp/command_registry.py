@@ -29,6 +29,26 @@ class CommandInfo:
         return self.start_line <= line <= self.zone_end
 
 
+@dataclass
+class KwargPosition:
+    """A top-level `KEY=VALUE` pair as it appears in the source.
+
+    Coordinates are 0-based (LSP convention). All four positions are
+    inside the original document — `value` is the raw source slice
+    (whitespace stripped, trailing comma stripped) used by the
+    diagnostics layer to reason about the literal the user typed.
+    """
+
+    name: str
+    value: str
+    name_line: int
+    name_col_start: int
+    name_col_end: int
+    value_line: int
+    value_col_start: int
+    value_col_end: int
+
+
 class CommandRegistry:
     """
     Command registry with incremental updates (Unique for each .comm file)
@@ -374,6 +394,186 @@ class CommandRegistry:
                 params[key] = "(_F(...), ...)"
 
         return params
+
+    def parse_keyword_positions(
+        self, lines: list[str], cmd_info: CommandInfo
+    ) -> list[KwargPosition]:
+        """Walk the call's character stream tracking line/column to
+        produce per-kwarg ranges. Top-level only (skips inside `_F(...)`
+        and other nested calls). String- and comment-aware.
+
+        Returns an empty list on any parse failure so diagnostics never
+        crash the LSP."""
+        try:
+            return self._parse_keyword_positions(lines, cmd_info)
+        except Exception:
+            return []
+
+    def _parse_keyword_positions(
+        self, lines: list[str], cmd_info: CommandInfo
+    ) -> list[KwargPosition]:
+        out: list[KwargPosition] = []
+        start_idx = max(0, cmd_info.start_line - 1)
+        end_idx = min(len(lines) - 1, cmd_info.zone_end - 1)
+        if start_idx > end_idx:
+            return out
+
+        # Find the call's opening `(`.
+        line_idx = start_idx
+        col = 0
+        found_open = False
+        while line_idx <= end_idx:
+            line = lines[line_idx]
+            paren_pos = line.find("(", col)
+            if paren_pos != -1:
+                col = paren_pos + 1
+                found_open = True
+                break
+            line_idx += 1
+            col = 0
+        if not found_open:
+            return out
+
+        depth = 0  # depth INSIDE the call (excluding the call's own `(`)
+        in_string: str | None = None
+
+        # Scanner state for the current pending kwarg (we collect chars
+        # one at a time and snapshot ranges at delimiter boundaries).
+        pending_name = ""
+        pending_name_start = (-1, -1)  # (line, col)
+        kwarg_name: str | None = None
+        kwarg_name_range: tuple[int, int, int] | None = None  # (line, col_start, col_end)
+        value_start: tuple[int, int] | None = None  # (line, col)
+        value_chars: list[str] = []  # accumulated source chars of the current value
+
+        def flush_kwarg(end_line: int, end_col: int) -> None:
+            nonlocal kwarg_name, kwarg_name_range, value_start, value_chars
+            if kwarg_name and value_start and kwarg_name_range:
+                value = "".join(value_chars).strip().rstrip(",").strip()
+                vl, vc = value_start
+                # Trim trailing whitespace from the value's column range
+                # so squiggles don't include the comma the user just typed.
+                vc_end = end_col
+                out.append(
+                    KwargPosition(
+                        name=kwarg_name,
+                        value=value,
+                        name_line=kwarg_name_range[0],
+                        name_col_start=kwarg_name_range[1],
+                        name_col_end=kwarg_name_range[2],
+                        value_line=vl,
+                        value_col_start=vc,
+                        value_col_end=vc_end,
+                    )
+                )
+            kwarg_name = None
+            kwarg_name_range = None
+            value_start = None
+            value_chars = []
+
+        while line_idx <= end_idx:
+            line = lines[line_idx]
+            while col < len(line):
+                ch = line[col]
+
+                if in_string:
+                    if value_start is not None:
+                        value_chars.append(ch)
+                    if ch == in_string and (col == 0 or line[col - 1] != "\\"):
+                        in_string = None
+                    col += 1
+                    continue
+
+                if ch in ("'", '"'):
+                    if value_start is not None:
+                        value_chars.append(ch)
+                    in_string = ch
+                    col += 1
+                    continue
+
+                if ch == "#":
+                    # Inline comment runs to end of line.
+                    break  # break inner while; outer advances line
+
+                if ch == "(":
+                    depth += 1
+                    if value_start is not None:
+                        value_chars.append(ch)
+                    col += 1
+                    continue
+
+                if ch == ")":
+                    if depth == 0:
+                        # End of the call.
+                        flush_kwarg(line_idx, col)
+                        return out
+                    depth -= 1
+                    if value_start is not None:
+                        value_chars.append(ch)
+                    col += 1
+                    continue
+
+                if ch == "," and depth == 0:
+                    flush_kwarg(line_idx, col)
+                    pending_name = ""
+                    pending_name_start = (-1, -1)
+                    col += 1
+                    continue
+
+                if depth > 0:
+                    if value_start is not None:
+                        value_chars.append(ch)
+                    col += 1
+                    continue
+
+                # Top-level scope: track identifiers and `=`.
+                if ch.isalnum() or ch == "_":
+                    if pending_name == "":
+                        pending_name_start = (line_idx, col)
+                    pending_name += ch
+                    if value_start is not None:
+                        value_chars.append(ch)
+                    col += 1
+                    continue
+
+                if ch == "=" and pending_name and (col + 1 >= len(line) or line[col + 1] != "="):
+                    # `KEY=` boundary — flush any prior kwarg, start a new one.
+                    flush_kwarg(line_idx, col)
+                    kwarg_name = pending_name
+                    kwarg_name_range = (
+                        pending_name_start[0],
+                        pending_name_start[1],
+                        pending_name_start[1] + len(pending_name),
+                    )
+                    pending_name = ""
+                    pending_name_start = (-1, -1)
+                    col += 1
+                    # skip whitespace before value
+                    while col < len(line) and line[col].isspace():
+                        col += 1
+                    value_start = (line_idx, col)
+                    value_chars = []
+                    continue
+
+                # any other char (whitespace, operator…) — keep value running
+                if value_start is not None:
+                    value_chars.append(ch)
+                if ch.isspace():
+                    pending_name = ""
+                    pending_name_start = (-1, -1)
+                col += 1
+
+            # next line
+            line_idx += 1
+            col = 0
+            if value_start is not None:
+                value_chars.append("\n")
+            pending_name = ""
+            pending_name_start = (-1, -1)
+
+        # Document ended before the call closed — flush whatever we have.
+        flush_kwarg(line_idx if line_idx <= end_idx else end_idx, 0)
+        return out
 
     def _reparse_command(self, lines: list[str], cmd_key: str):
         """Re-parse a specific command after modification"""

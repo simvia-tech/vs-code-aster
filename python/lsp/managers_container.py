@@ -1,5 +1,7 @@
 from managers import (
+    CodeActionManager,
     CompletionManager,
+    DiagnosticsManager,
     HoverManager,
     SignatureManager,
     StatusBarManager,
@@ -19,3 +21,5 @@ class ManagerContainer:
         self.update = UpdateManager()
         self.signature = SignatureManager()
         self.completion = CompletionManager()
+        self.diagnostics = DiagnosticsManager()
+        self.code_action = CodeActionManager()
