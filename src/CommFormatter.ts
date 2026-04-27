@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { spawn } from 'child_process';
 
-const CHANNEL_NAME = 'VS Code Aster — Formatter';
+const CHANNEL_NAME = 'code_aster: Formatter';
 let channel: vscode.OutputChannel | undefined;
 let missingToolWarned = false;
 let ruffPromptShown = false;
