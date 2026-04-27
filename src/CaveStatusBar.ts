@@ -61,7 +61,7 @@ function compareVersionsDesc(a: string, b: string): number {
   return b.localeCompare(a);
 }
 
-async function listInstalledVersions(): Promise<string[]> {
+export async function listInstalledVersions(): Promise<string[]> {
   const r = await exec('docker', ['images', '--format', '{{.Tag}}', 'simvia/code_aster']);
   if (r.code !== 0) {
     return [];
@@ -125,7 +125,16 @@ export class CaveStatusBar {
   public activate(context: vscode.ExtensionContext) {
     this.context = context;
     context.subscriptions.push(
-      vscode.commands.registerCommand(COMMAND_ID, () => this.pickVersion())
+      vscode.commands.registerCommand(COMMAND_ID, () => this.pickVersion()),
+      vscode.commands.registerCommand('vs-code-aster.installCaveVersion', () =>
+        this.openInstallVersion()
+      ),
+      vscode.commands.registerCommand('vs-code-aster.switchCaveVersion', (tag?: string) => {
+        if (typeof tag === 'string' && tag) {
+          return this.switchTo(tag);
+        }
+        return this.pickVersion();
+      })
     );
 
     this.disposables.push(
@@ -188,14 +197,16 @@ export class CaveStatusBar {
       const bundled = this.context ? getBundledVersion(this.context) : null;
       const label = bundled ? `${bundled} (bundled)` : 'bundled';
       this.item.text = `$(warning) ${label}`;
-      this.item.tooltip = new vscode.MarkdownString(
+      const md = new vscode.MarkdownString(
         `**No cave-installed code_aster version selected.**\n\n` +
           `Language features (completion, hover, signatures) are served from ` +
           `the **bundled ${bundled ?? '?'} catalog**, which is enough for ` +
           `editing but **\`cave run\` will not work** until you install and ` +
           `select a version.\n\n` +
-          `Click to install or select a version.`
+          `Click to install or select a version, or [run setup checks](command:vs-code-aster.runSetup).`
       );
+      md.isTrusted = true;
+      this.item.tooltip = md;
       this.item.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
     }
     this.item.show();
@@ -344,6 +355,44 @@ export class CaveStatusBar {
         void LspServer.instance.restart();
       }
     });
+  }
+
+  /**
+   * Public entry point for the install-version picker (the "available
+   * from DockerHub" list). Used by the SetupOnboarding flow and the
+   * sidebar view's "Install another version…" row.
+   */
+  public async openInstallVersion() {
+    return this.installNewVersion(getSelectedCaveVersion());
+  }
+
+  /**
+   * Switch the active code_aster version to `tag` (running `cave use`)
+   * without going through the picker. No-op if `tag` is already current
+   * or not in the installed list.
+   */
+  public async switchTo(tag: string): Promise<void> {
+    if (!this.cachedVersions.includes(tag)) {
+      // Make sure we're up-to-date before bailing.
+      await this.refreshVersions();
+      if (!this.cachedVersions.includes(tag)) {
+        vscode.window.showWarningMessage(`code_aster ${tag} is not installed.`);
+        return;
+      }
+    }
+    if (tag === getSelectedCaveVersion()) {
+      return;
+    }
+    const r = await exec('cave', ['use', tag], 10_000);
+    if (r.code !== 0) {
+      vscode.window.showErrorMessage(
+        `cave use ${tag} failed: ${r.stderr.trim() || r.stdout.trim()}`
+      );
+      return;
+    }
+    this.refresh(vscode.window.activeTextEditor);
+    void LspServer.instance.restart();
+    vscode.window.showInformationMessage(`code_aster version set to ${tag}.`);
   }
 
   private async installNewVersion(rawCurrent: string | null) {

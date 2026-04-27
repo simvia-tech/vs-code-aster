@@ -111,7 +111,7 @@ function run(
   });
 }
 
-async function dockerAvailable(): Promise<boolean> {
+export async function dockerAvailable(): Promise<boolean> {
   const r = await run('docker', ['version', '--format', '{{.Server.Version}}'], 5_000);
   return r.code === 0;
 }

@@ -8,7 +8,9 @@ import * as path from 'path';
 import { VisuManager } from './VisuManager';
 import { ExportEditor } from './ExportEditor';
 import { ExportFormatter } from './ExportFormatter';
-import { CommFormatter, offerInstallRuff } from './CommFormatter';
+import { CommFormatter } from './CommFormatter';
+import { runSetupProbes } from './SetupOnboarding';
+import { registerSidebar } from './SidebarView';
 import { RunAster } from './RunAster';
 import { LspServer } from './LspServer';
 import { StatusBar } from './StatusBar';
@@ -48,7 +50,7 @@ export async function activate(context: vscode.ExtensionContext) {
     )
   );
 
-  const commFormatter = new CommFormatter();
+  const commFormatter = new CommFormatter(context);
   context.subscriptions.push(
     vscode.languages.registerDocumentFormattingEditProvider({ language: 'comm' }, commFormatter),
     vscode.languages.registerDocumentRangeFormattingEditProvider(
@@ -57,21 +59,30 @@ export async function activate(context: vscode.ExtensionContext) {
     )
   );
 
-  // Offer to install ruff the first time a .comm file is opened, so the user
-  // doesn't discover the dependency only when trying to format.
+  // Run the full setup chain (Python deps → ruff → Docker → cave → image)
+  // the first time a .comm or .export file is opened. Each step is opt-in
+  // via toast; "Don't ask again" answers persist in globalState.
+  const ASTER_LANGS = new Set(['comm', 'export']);
   context.subscriptions.push(
     vscode.workspace.onDidOpenTextDocument((doc) => {
-      if (doc.languageId === 'comm') {
-        void offerInstallRuff(context);
+      if (ASTER_LANGS.has(doc.languageId)) {
+        void runSetupProbes(context);
       }
     })
   );
   for (const doc of vscode.workspace.textDocuments) {
-    if (doc.languageId === 'comm') {
-      void offerInstallRuff(context);
+    if (ASTER_LANGS.has(doc.languageId)) {
+      void runSetupProbes(context);
       break;
     }
   }
+  const sidebar = registerSidebar(context);
+  context.subscriptions.push(
+    vscode.commands.registerCommand('vs-code-aster.runSetup', async () => {
+      await runSetupProbes(context, { force: true });
+      sidebar.refresh();
+    })
+  );
 
   const createMesh = vscode.commands.registerCommand('vs-code-aster.meshViewer', () => {
     VisuManager.instance.createOrShowMeshViewer();
