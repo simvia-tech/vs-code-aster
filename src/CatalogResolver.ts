@@ -20,7 +20,7 @@ let channel: vscode.OutputChannel | undefined;
 
 function log(line: string) {
   if (!channel) {
-    channel = vscode.window.createOutputChannel('VS Code Aster — Catalog');
+    channel = vscode.window.createOutputChannel('code_aster: Catalog');
   }
   const stamp = new Date().toISOString().slice(11, 23);
   channel.appendLine(`${stamp} ${LOG_PREFIX} ${line}`);
@@ -28,7 +28,7 @@ function log(line: string) {
 
 export function getCatalogChannel(): vscode.OutputChannel {
   if (!channel) {
-    channel = vscode.window.createOutputChannel('VS Code Aster — Catalog');
+    channel = vscode.window.createOutputChannel('code_aster: Catalog');
   }
   return channel;
 }

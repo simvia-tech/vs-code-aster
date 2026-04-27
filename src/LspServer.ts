@@ -70,7 +70,9 @@ export class LspServer {
             this.attachEditorListeners();
           })
           .catch((err: any) => {
-            vscode.window.showErrorMessage('Error starting LSP Python: ' + err.message);
+            vscode.window.showErrorMessage(
+              'Error starting code_aster language server: ' + err.message
+            );
           })
     );
 
@@ -129,8 +131,10 @@ export class LspServer {
     };
 
     return new LanguageClient(
+      // Internal id stays for backward-compat with any user-saved trace
+      // settings; only the display name (next arg) is user-visible.
       'pythonLanguageServer',
-      'Python Language Server',
+      'code_aster: Language Server',
       serverOptions,
       clientOptions
     );
@@ -225,7 +229,9 @@ export class LspServer {
         client
           .start()
           .catch((err: any) =>
-            vscode.window.showErrorMessage('Error restarting LSP Python: ' + err.message)
+            vscode.window.showErrorMessage(
+              'Error restarting code_aster language server: ' + err.message
+            )
           )
     );
   }
