@@ -26,6 +26,9 @@ export class LspServer {
   private _context?: vscode.ExtensionContext;
   private _caveWatcher?: fs.FSWatcher;
   private _caveDebounce?: NodeJS.Timeout;
+  // Kept as a class field so `restart()` can mutate `options.env` before
+  // bouncing the server — `LanguageClient` re-reads it on the next spawn.
+  private _serverOptions?: { command: string; args: string[]; options: { env: NodeJS.ProcessEnv } };
 
   private constructor() {}
 
@@ -122,6 +125,12 @@ export class LspServer {
       transport: TransportKind.stdio,
       options: { env },
     };
+    // Save so restart() can refresh env without rebuilding the client.
+    this._serverOptions = {
+      command: pythonExecutablePath,
+      args: [serverModule],
+      options: { env },
+    };
 
     const clientOptions: LanguageClientOptions = {
       documentSelector: [{ scheme: 'file', language: 'comm' }],
@@ -207,32 +216,62 @@ export class LspServer {
    * Restarts the LSP server
    */
   public async restart() {
-    if (this._client && this._client.isRunning()) {
-      await this._client.stop();
+    // Reuse the same LanguageClient instance — constructing a new one
+    // would (a) re-register hover/completion/code-action providers
+    // (duplicate tooltips), (b) leave the old client's registrations in
+    // VS Code's provider list (the "Client got disposed and can't be
+    // restarted" error). stop() + start() on the same client avoids
+    // both. We still need fresh env vars on `cave use`; LanguageClient
+    // re-reads `serverOptions.options.env` on each spawn, so mutating
+    // it in place is enough.
+    if (!this._client || !this._context) {
+      // First-time start path — defer to start().
+      if (this._context) {
+        await this.start(this._context);
+      }
+      return;
     }
-    // Rebuild the client so a fresh catalog path is resolved and injected
-    // into the server process env (handles `cave use` changes).
-    if (this._context) {
-      this._client = await this.createClient(this._context);
+
+    try {
+      const resolved = await resolveCatalogPath();
+      if (this._serverOptions) {
+        const env = this._serverOptions.options.env;
+        delete env.VS_CODE_ASTER_CATA_PATH;
+        if (resolved.path) {
+          env.VS_CODE_ASTER_CATA_PATH = resolved.path;
+        }
+      }
+      getCatalogChannel().appendLine(
+        `[catalog] LSP will restart with source=${resolved.source}, path=${resolved.path ?? '(vendored)'}`
+      );
+    } catch (err: any) {
+      getCatalogChannel().appendLine(
+        `[catalog] failed to resolve before restart: ${err?.message ?? err}`
+      );
     }
 
     const client = this._client;
-    if (!client) {
-      return;
-    }
     void vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Window,
         title: 'Restarting code_aster language server…',
       },
-      () =>
-        client
-          .start()
-          .catch((err: any) =>
-            vscode.window.showErrorMessage(
-              'Error restarting code_aster language server: ' + err.message
-            )
-          )
+      async () => {
+        try {
+          if (client.isRunning()) {
+            await client.stop();
+          }
+        } catch (err: any) {
+          getCatalogChannel().appendLine(`[lsp] stop() during restart: ${err?.message ?? err}`);
+        }
+        try {
+          await client.start();
+        } catch (err: any) {
+          vscode.window.showErrorMessage(
+            'Error restarting code_aster language server: ' + (err?.message ?? err)
+          );
+        }
+      }
     );
   }
 
