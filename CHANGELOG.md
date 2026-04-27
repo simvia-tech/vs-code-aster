@@ -5,6 +5,40 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2026-04-27
+
+A broad LSP and IDE-experience pass: cave-driven catalog resolution, a TypeScript-style hover layer, context-aware autocompletion, edit-time diagnostics with quick fixes, a `.comm` formatter, a guided setup flow, and a new activity-bar panel that doubles as a command dictionary. The status bar slims to an icon and Output channels are grouped under a single `code_aster:` prefix.
+
+### Added
+
+- **Catalog from cave** — the language server now reads its catalog directly from the Docker image of the cave-selected code_aster version (extracted on demand to `~/.cache/vs-code-aster/catalogs/<version>/` and cached). A bundled 16.7 catalog ships as a zero-config fallback, so the editor still works when Docker / cave aren't installed. The selection follows `~/.cave` live and an in-memory reconcile clears orphan caches when an image is removed.
+- **Cave version picker** — right-aligned status-bar item modeled on VS Code's Python interpreter chip. Shows the current version, click to switch / install / remove. Install runs `cave use <v>` with `y` piped in and reports progress through phases (Pulling / Downloading / Extracting / Finalizing). Cancellable.
+- **Guided setup flow** — a one-shot toast chain on first `.comm` / `.export` open walks the user through Python LSP deps (auto-installed into a managed venv at `<globalStorage>/.venv`), ruff, Docker, cave, and a code_aster image. Each step is opt-in with `Install` / `Not now` / `Don't ask again`, and the new `code_aster: Run setup checks` command re-fires the chain.
+- **Activity-bar sidebar panel** with seven groups: Setup (`Setup (n/5)`, top when failing, bottom when healthy), Quick actions (filtered per active editor), Command browser (only when a `.comm` is active), Versions, Settings, External links, and the bottom Setup. The brand mark gets a tightened monochrome icon for the activity bar plus light/dark variants for in-tree use.
+- **Command browser** — five canonical families (Mesh / Material / BC & Loads / Analysis / Output), each listing the file's commands first (✓) then the rest of the catalog dim. Title-bar action runs a fuzzy `Cmd+P`-style QuickPick over every catalog command. Reads from `CommandRegistry` so it updates live without saving.
+- **Hover rewrite** — TypeScript-style cards inside a `python` code fence (signature → description → details → doc link). Required vs optional read as Python defaults, BLOC branches filter by the parameters already typed at the call site, `regles` rules render as a bullet list, and the doc link points at `demo-docaster.simvia-app.fr/versions/v17/`. Surfaces the `translation={...}` short labels when present and is locale-aware (FR / EN via `LANG`). Variants for command, keyword, allowed-value literal, factor marker, plain-Python variable assignment, and legacy-command notes.
+- **Context-aware autocompletion** — forward scanner replaces the old backward one (no longer confused by mid-edit unmatched quotes). Detects nested `_F(...)` scopes, suggests allowed `into` values when the cursor is in a value position, suggests previously-defined variables compatible with the SIMP's expected class (resolves callable `sd_prod` via `__all__=True`), and filters already-typed kwargs at every depth (not just the outer call). Snippet inserts: `LIRE_MAILLAGE($0)`, `KEY=$0`, `KEY=_F($0)` — each retriggers the popup. Trigger characters expanded to `(`, `,`, `=`, space; client-side hide-then-trigger keeps the suggest widget from sticking on "No suggestions".
+- **Edit-time diagnostics** for `.comm` files with quick-fix code actions: unknown command, unknown keyword, value not in `into`, missing required keyword, `regles` violations, undefined variable, type mismatch, and a soft information note for legacy commands. Quick fixes offer fuzzy-matched replacements (Levenshtein) and allowed-value swaps. Wrapped end-to-end so a CATA quirk can never block hover, completion, or formatting.
+- **`.comm` formatter** via `python -m ruff format --quote-style=preserve --line-length=100`. First-open prompt offers to install ruff with one click into the managed venv; PEP-668 retry with `--user`.
+- **`.comm` syntax grammar overhaul** — TextMate rules rewritten around a `function-call` begin/end block with a nested `parens` sub-block so `_F(...)`, tuples, and multi-line kwargs all color correctly. Lowercase scientific notation, Python constants (`None`/`True`/`False`), and lowercase kwarg names are now recognized. Single-quote auto-close added; `wordPattern` keeps `_` attached.
+- **External links group** in the sidebar (Star on GitHub, Rate on Marketplace, Browse code_aster website / documentation, Visit simvia.tech). Always at the bottom, always expanded.
+
+### Changed
+
+- **Status bar** down to a single icon: `$(symbol-namespace)` neutral when 3+ command families are present in the file, `$(circle-outline)` warning-tinted otherwise. Click opens and expands the sidebar's Command browser group.
+- **Output channels** unified under a `code_aster:` prefix — `code_aster: Language Server` (replaces the misleading `Python Language Server`), `code_aster: Catalog`, `code_aster: Formatter`. LSP error toasts updated accordingly.
+- **Language aliases** are now `code_aster (comm)` and `code_aster (export)`.
+- **Hover layout**: signature first, then italic description, then details and rules, then doc-link footer. Drops the per-keyword inline `# …` doc strings to keep the signature scannable.
+- **Dream background** off by default for new users (existing explicit-on choices preserved).
+
+### Fixed
+
+- LSP `restart()` no longer recreates the `LanguageClient`, so hover / completion / code-action providers don't duplicate after `cave use`. Server env (catalog path) is refreshed by mutating `serverOptions.options.env` in place before bouncing.
+- Sidebar and status bar wait for an `LspServer.onReady` event to re-probe, so the Command browser populates without a file switch even when the LSP starts after activation.
+- Stale `~/.cave` selections (image removed via `docker rmi`) now correctly fall back to the bundled catalog. The trash button on the version picker also clears the matching extracted-catalog cache.
+- `.comm` `CommandRegistry` falls back to a full reparse when a single-line edit is outside any tracked command, so newly-typed top-level commands register immediately.
+- `pip install` for ruff / LSP deps no longer passes `--user` unconditionally (broke venv installs); retried with `--user` only on PEP-668 errors.
+
 ## [1.9.2] - 2026-04-23
 
 Better rendering for 1D meshes and a flatter, more readable face shading.
