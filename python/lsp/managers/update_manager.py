@@ -1,5 +1,12 @@
+import sys
+
 from command_core import CommandCore
 from command_registry import CommandRegistry
+
+
+def _log(msg: str) -> None:
+    sys.stderr.write(msg + "\n")
+    sys.stderr.flush()
 
 
 class UpdateManager:
@@ -20,10 +27,9 @@ class UpdateManager:
         self.core.set_registry(doc_uri, registry)
 
         commands = registry.get_all_commands()
-        lines = [f"Document opened: {doc_uri}, {len(commands)} commands detected"]
+        _log(f"[registry] init {doc_uri}: {len(commands)} commands; ranges={registry.ranges}")
         for key, value in commands.items():
-            lines.append(f"  - {key} → {value}")
-        self.core.log("\n".join(lines))
+            _log(f"[registry]   - {key} → {value}")
 
     def update_registry(self, doc, doc_uri, changes):
         """
@@ -44,8 +50,11 @@ class UpdateManager:
 
                 # Handle multi-line deletions or additions
                 if end_line - start_line > 0 or text.count("\n") > 0 or text == "(":
-                    self.core.log("on reload entierement")
                     registry.initialize(ls, doc.lines)
+                    _log(
+                        f"[registry] full reparse on multi-line change: "
+                        f"{len(registry.get_all_commands())} commands"
+                    )
                     continue
 
                 # Update the affected command (single line change)
@@ -53,3 +62,7 @@ class UpdateManager:
 
             else:
                 registry.initialize(ls, doc.lines)
+                _log(
+                    f"[registry] full reparse (no range): "
+                    f"{len(registry.get_all_commands())} commands"
+                )

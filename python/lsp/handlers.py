@@ -26,7 +26,10 @@ def register_handlers(server: LanguageServer):
         return {
             "capabilities": {
                 "textDocumentSync": 1,
-                "completionProvider": {"resolveProvider": False, "triggerCharacters": [" ", "."]},
+                "completionProvider": {
+                    "resolveProvider": False,
+                    "triggerCharacters": ["(", ",", "=", " "],
+                },
                 "hoverProvider": True,
                 "definitionProvider": True,
             }
