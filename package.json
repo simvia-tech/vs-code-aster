@@ -76,6 +76,15 @@
         "title": "Select code_aster version (cave)"
       },
       {
+        "command": "vs-code-aster.runSetup",
+        "title": "Run code_aster setup checks"
+      },
+      {
+        "command": "vs-code-aster.sidebar.refresh",
+        "title": "Refresh code_aster panel",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "vs-code-aster.addToMedExtensions",
         "title": "Open as MED mesh",
         "icon": {
@@ -151,6 +160,24 @@
         "path": "./syntaxes/export.tmLanguage.json"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "vs-code-aster",
+          "title": "code_aster",
+          "icon": "./media/images/activity-bar-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "vs-code-aster": [
+        {
+          "id": "vs-code-aster.sidebar",
+          "name": "code_aster",
+          "icon": "./media/images/activity-bar-icon.svg"
+        }
+      ]
+    },
     "customEditors": [
       {
         "viewType": "vs-code-aster.medViewer",
@@ -177,6 +204,13 @@
       }
     ],
     "menus": {
+      "view/title": [
+        {
+          "command": "vs-code-aster.sidebar.refresh",
+          "when": "view == vs-code-aster.sidebar",
+          "group": "navigation"
+        }
+      ],
       "editor/title": [
         {
           "command": "vs-code-aster.exportDoc",
