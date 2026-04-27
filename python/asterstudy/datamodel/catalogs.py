@@ -602,8 +602,12 @@ class Catalogs:
                 "name": key,
                 "required": (statut == "o"),
                 "type": typ_str,
+                "type_obj": typ,  # raw class / tuple / validator for cross-type matching
                 "default": defaut,
                 "allowed": into,
+                "val_min": kwd.definition.get("val_min"),
+                "val_max": kwd.definition.get("val_max"),
+                "doc": (getattr(kwd, "udocstring", "") or "").strip(),
                 "children": [],
                 "bloc": None
             }

@@ -151,10 +151,50 @@ export class LspServer {
         return;
       }
 
-      //activate signature and completion triggers
-      const lastChange = changes[changes.length - 1];
-      if (['(', ','].includes(lastChange.text) && editor.document.languageId === 'comm') {
+      if (editor.document.languageId !== 'comm') {
+        return;
+      }
+
+      // Auto-closing pairs collapse a `(` keystroke into a single change
+      // whose text is `()`, so element-equality on the change list misses
+      // it. Use substring matching across all changes.
+      const typed = changes.map((c) => c.text).join('');
+
+      // Hide-then-trigger: VS Code's suggest widget can lock into a
+      // sticky "No suggestions" state when an LSP returns an empty list,
+      // and `triggerSuggest` alone won't re-open it. Explicitly hiding
+      // first guarantees a fresh query.
+      const popSuggest = () => {
+        vscode.commands.executeCommand('hideSuggestWidget');
+        setTimeout(() => vscode.commands.executeCommand('editor.action.triggerSuggest'), 0);
+      };
+
+      if (typed.includes('(')) {
         vscode.commands.executeCommand('editor.action.triggerParameterHints');
+        popSuggest();
+        return;
+      }
+      if (typed.includes(',')) {
+        popSuggest();
+        return;
+      }
+      if (typed.includes('=')) {
+        popSuggest();
+        return;
+      }
+      if (typed.includes('\n')) {
+        popSuggest();
+        return;
+      }
+      if (typed === ' ') {
+        const pos = editor.selection.active;
+        const before = editor.document
+          .lineAt(pos.line)
+          .text.slice(0, pos.character)
+          .replace(/\s+$/, '');
+        if (before.endsWith(',')) {
+          popSuggest();
+        }
       }
     });
   }

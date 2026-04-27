@@ -207,6 +207,11 @@
         }
       ]
     },
+    "configurationDefaults": {
+      "[comm]": {
+        "editor.wordBasedSuggestions": "off"
+      }
+    },
     "configuration": {
       "title": "VS Code Aster",
       "type": "object",

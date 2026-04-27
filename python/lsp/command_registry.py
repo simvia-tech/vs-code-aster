@@ -90,15 +90,41 @@ class CommandRegistry:
         affected_cmd_key = self._find_command_at_line(change_start_line)
 
         if affected_cmd_key is None:
-            self.ls.send_notification("logParser", {"text": "Change outside a command"})
+            # The change is on a line that wasn't part of any tracked
+            # command — most commonly the user is just starting to type a
+            # NEW command on an empty line. Re-parse the whole document so
+            # the new call gets tracked.
+            self._full_reparse(lines)
             return
 
-        # Check if we are inside the command (needs updating end_char)
-        self.ls.send_notification(
-            "logParser", {"text": f"Command: {affected_cmd_key}, change: {text_change}"}
-        )
-
         self._reparse_command(lines, affected_cmd_key)
+        # Whether or not we just touched a tracked command, the user may
+        # also have invalidated its end paren on this keystroke (e.g. typed
+        # past it, or deleted into a sibling). Cheap safety net: rebuild
+        # the global ranges so a new top-level command typed *after* an
+        # existing one becomes findable.
+        self._full_reparse(lines)
+
+    def _full_reparse(self, lines: list[str]) -> None:
+        """Re-run _parse_all_commands and rebuild the range index."""
+        raw_commands = self._parse_all_commands(lines)
+        new_commands: dict[str, CommandInfo] = {}
+        for cmd_data in raw_commands:
+            cmd_info = CommandInfo(
+                name=cmd_data["name"],
+                var_name=cmd_data["var_name"],
+                start_line=cmd_data["start_line"],
+                end_line=cmd_data["end_line"],
+                zone_end=cmd_data["zone_end"],
+                end_char=cmd_data["end_char"],
+                is_complete=cmd_data["is_complete"],
+            )
+            cmd_info.parsed_params = self._parse_params_level1(
+                lines, cmd_info.start_line, cmd_info.zone_end
+            )
+            new_commands[cmd_info.get_key()] = cmd_info
+        self.commands = new_commands
+        self._rebuild_ranges()
 
     def get_command_at_line(self, line: int) -> CommandInfo | None:
         """
