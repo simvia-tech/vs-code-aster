@@ -264,7 +264,7 @@
   };
   const DISPLAY_DEFAULTS = {
     showOrientationWidget: true,
-    dreamBackground: true,
+    dreamBackground: false,
   };
   const TOOLBAR_DEFAULTS = {
     showBoundingBox: false,
