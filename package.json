@@ -85,6 +85,19 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "vs-code-aster.commandBrowser.search",
+        "title": "Search code_aster commands",
+        "icon": "$(search)"
+      },
+      {
+        "command": "vs-code-aster.commandBrowser.openDoc",
+        "title": "Open code_aster command documentation"
+      },
+      {
+        "command": "vs-code-aster.commandBrowser.focus",
+        "title": "Focus code_aster command browser"
+      },
+      {
         "command": "vs-code-aster.addToMedExtensions",
         "title": "Open as MED mesh",
         "icon": {
@@ -206,9 +219,14 @@
     "menus": {
       "view/title": [
         {
+          "command": "vs-code-aster.commandBrowser.search",
+          "when": "view == vs-code-aster.sidebar",
+          "group": "navigation@1"
+        },
+        {
           "command": "vs-code-aster.sidebar.refresh",
           "when": "view == vs-code-aster.sidebar",
-          "group": "navigation"
+          "group": "navigation@2"
         }
       ],
       "editor/title": [
