@@ -26,6 +26,7 @@ from validators import (
     find_param,
     is_bare_identifier,
     required_keywords,
+    simp_defaults,
     types_compatible,
     value_in_into,
     visible_keywords,
@@ -98,6 +99,19 @@ class DiagnosticsManager:
                     var_index[ci.var_name] = (ci.start_line, ci.name)
             except Exception:
                 continue
+            # `CO("name")` inside a macro declares a future output bound
+            # to `name`. Register those so later references resolve.
+            try:
+                end = ci.end_line if ci.end_line is not None else ci.zone_end
+                start_idx = max(0, ci.start_line - 1)
+                end_idx = min(len(doc.lines), end)
+                body = "\n".join(doc.lines[start_idx:end_idx])
+                for m in re.finditer(r"\bCO\s*\(\s*['\"]([A-Za-z_]\w*)['\"]", body):
+                    name = m.group(1)
+                    if name not in var_index:
+                        var_index[name] = (ci.start_line, ci.name)
+            except Exception:
+                pass
 
         for ci in registry.commands.values():
             try:
@@ -139,11 +153,14 @@ class DiagnosticsManager:
         except Exception:
             pairs = []
 
-        context = {}
         try:
-            context = ci.parsed_params.copy()
+            context = simp_defaults(cmd_obj.definition)
         except Exception:
             context = {}
+        try:
+            context.update(ci.parsed_params or {})
+        except Exception:
+            pass
 
         try:
             cmd_def_params = self.core.get_command_def(ci.name).get("params", [])

@@ -85,6 +85,28 @@ def required_keywords(definition, context):
             continue
 
 
+def simp_defaults(definition) -> dict:
+    """Collect ``{name: defaut}`` for top-level SIMP keywords that declare a
+    `defaut`. Used to seed BLOC-evaluation context with values the user
+    didn't type but the catalog assumes."""
+    out: dict = {}
+    try:
+        for key, kwd in definition.items():
+            if not hasattr(kwd, "definition"):
+                continue
+            if _is_bloc(kwd) or _is_factor(kwd):
+                continue
+            try:
+                d = kwd.definition.get("defaut")
+            except Exception:
+                d = None
+            if d is not None:
+                out[key] = d
+    except Exception:
+        return out
+    return out
+
+
 def find_param(params: list[dict], name: str) -> dict | None:
     """Find a parsed-param dict (the shape produced by
     `Catalogs.parse_kwd`) by name, descending into BLOC children."""

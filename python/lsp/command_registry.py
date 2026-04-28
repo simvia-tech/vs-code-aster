@@ -673,12 +673,6 @@ class CommandRegistry:
             line = lines[i]
             line_clean = self._remove_inline_comment(line)
 
-            # Check for new command
-            if i > start_idx:
-                new_cmd = self._find_command_start(line)
-                if new_cmd is not None:
-                    return {"end_line": i, "complete": False}
-
             in_string = False
             string_char = None
 
