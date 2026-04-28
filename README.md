@@ -105,6 +105,11 @@ If you'd like to run simulations, you need to have **cave** installed on your sy
 
 You're now ready to use **VS Code Aster** !
 
+### Video tutorials
+
+- [Installing VS Code Aster on Linux](https://www.youtube.com/watch?v=hfgOAKXF4d8)
+- [Installing and configuring VS Code Aster on Windows (native code_aster)](https://www.youtube.com/watch?v=-Nmcb2MnmHU)
+
 ## Features overview
 
 ### 1. Creating and managing .export files
