@@ -17,6 +17,42 @@ import {
   reconcileCatalogCache,
 } from './CatalogResolver';
 /**
+ * Crude paren-balance check: are we inside an unclosed `(` at this position?
+ * Skips string literals and `#` comments. Good enough to distinguish "inside
+ * a function call" from "top level" without round-tripping to the LSP.
+ */
+function isInsideCall(doc: vscode.TextDocument, pos: vscode.Position): boolean {
+  let depth = 0;
+  let inString: string | null = null;
+  for (let line = 0; line <= pos.line; line++) {
+    const text = doc.lineAt(line).text;
+    const max = line === pos.line ? pos.character : text.length;
+    for (let i = 0; i < max; i++) {
+      const c = text[i];
+      if (inString) {
+        if (c === inString && text[i - 1] !== '\\') {
+          inString = null;
+        }
+        continue;
+      }
+      if (c === '"' || c === "'") {
+        inString = c;
+        continue;
+      }
+      if (c === '#') {
+        break;
+      }
+      if (c === '(') {
+        depth++;
+      } else if (c === ')') {
+        depth = Math.max(0, depth - 1);
+      }
+    }
+  }
+  return depth > 0;
+}
+
+/**
  * Singleton class to manage the Python LSP client for Code-Aster.
  * Handles client creation, start, restart, notifications, and editor listeners.
  */
@@ -189,21 +225,31 @@ export class LspServer {
         setTimeout(() => vscode.commands.executeCommand('editor.action.triggerSuggest'), 0);
       };
 
-      if (typed.includes('(')) {
+      // Use exact equality (not `includes`) so multi-char insertions like
+      // accepted snippets — whose body may contain `(`, `\n`, etc. — don't
+      // re-fire the suggest widget on every accept.
+      if (typed === '(' || typed === '()') {
         vscode.commands.executeCommand('editor.action.triggerParameterHints');
         popSuggest();
         return;
       }
-      if (typed.includes(',')) {
+      if (typed === ',') {
         popSuggest();
         return;
       }
-      if (typed.includes('=')) {
+      if (typed === '=') {
         popSuggest();
         return;
       }
-      if (typed.includes('\n')) {
-        popSuggest();
+      if (typed === '\n') {
+        // Only re-open the popup if Enter was pressed inside an unbalanced
+        // call. At top level a brand-new line has no useful suggestions and
+        // an empty server response would latch VS Code's "No suggestions"
+        // session — quickSuggestions on the first letter typed will fire a
+        // fresh request and open the popup naturally.
+        if (isInsideCall(editor.document, editor.selection.active)) {
+          popSuggest();
+        }
         return;
       }
       if (typed === ' ') {

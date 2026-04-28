@@ -139,13 +139,19 @@ class CompletionManager:
     def _suggest_commands(self) -> CompletionList:
         items = []
         for cmd in self.core.get_CATA_commands():
+            if cmd["name"] == "DEBUT":
+                insert = "DEBUT()\n$0\nFIN()"
+                retrigger = None
+            else:
+                insert = cmd["name"] + "($0)"
+                retrigger = _retrigger_command()
             items.append(
                 CompletionItem(
                     label=cmd["name"],
                     kind=CompletionItemKind.Function,
-                    insert_text=cmd["name"] + "($0)",
+                    insert_text=insert,
                     insert_text_format=InsertTextFormat.Snippet,
-                    command=_retrigger_command(),
+                    command=retrigger,
                     documentation=_md(cmd.get("doc", "")),
                 )
             )
