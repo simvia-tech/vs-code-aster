@@ -64,6 +64,10 @@ _I18N = {
         "en": "Assigned by `{cmd}` at line {line}",
         "fr": "Assigné par `{cmd}` à la ligne {line}",
     },
+    "declared_by_co": {
+        "en": "Declared via `CO(...)` inside `{cmd}` at line {line}",
+        "fr": "Déclaré via `CO(...)` dans `{cmd}` à la ligne {line}",
+    },
     "assigned_at_line": {
         "en": "Assigned at line {line}",
         "fr": "Assigné à la ligne {line}",
@@ -205,6 +209,12 @@ class HoverManager:
             if assignment is not None:
                 return _hover(_render_variable_reference(word, assignment, cata))
 
+            # `CO("name")` inside a macro body declares `name` as a future
+            # output. Treat it like a regular assignment for hover purposes.
+            co_info = _nearest_co_declaration(registry, doc.lines, word, position.line + 1)
+            if co_info is not None:
+                return _hover(_render_variable_reference(word, co_info, cata, via_co=True))
+
         # (1b) Plain Python assignments (e.g. `TempRef = 20.0`) aren't
         # tracked by CommandRegistry. Scan the doc for the nearest preceding
         # line-level `WORD = <rhs>` and infer a simple Python type.
@@ -229,6 +239,28 @@ def _escape_italic(text: str) -> str:
 # ---------- variable-reference helper -------------------------------------
 
 
+def _nearest_co_declaration(registry, doc_lines, var_name: str, cursor_line: int):
+    """Find the nearest preceding command whose body contains a
+    `CO("var_name")` declaration. Returns the CommandInfo of the macro
+    that will produce `var_name` as one of its outputs."""
+    try:
+        pattern = re.compile(r"\bCO\s*\(\s*['\"]" + re.escape(var_name) + r"['\"]")
+    except re.error:
+        return None
+    best = None
+    for info in registry.commands.values():
+        if info.start_line > cursor_line:
+            continue
+        end = info.end_line if info.end_line is not None else info.zone_end
+        start_idx = max(0, info.start_line - 1)
+        end_idx = min(len(doc_lines), end)
+        body = "\n".join(doc_lines[start_idx:end_idx])
+        if pattern.search(body):
+            if best is None or info.start_line > best.start_line:
+                best = info
+    return best
+
+
 def _nearest_assignment(registry, var_name: str, cursor_line: int):
     """Walk all tracked commands; return the CommandInfo whose `var_name`
     matches and whose assignment line is on or before the cursor. Prefers
@@ -244,7 +276,7 @@ def _nearest_assignment(registry, var_name: str, cursor_line: int):
     return best
 
 
-def _render_variable_reference(name: str, info, cata) -> str:
+def _render_variable_reference(name: str, info, cata, via_co: bool = False) -> str:
     cmd_obj = cata.get_command_obj(info.name) if info.name else None
     type_str = _return_type_hint(cmd_obj) if cmd_obj else None
     header = f"{name}: {type_str}" if type_str else name
@@ -254,7 +286,8 @@ def _render_variable_reference(name: str, info, cata) -> str:
     out.append(header)
     out.append("```")
     out.append("")
-    out.append("*" + _escape_italic(_t("assigned_by", cmd=info.name, line=info.start_line)) + "*")
+    label_key = "declared_by_co" if via_co else "assigned_by"
+    out.append("*" + _escape_italic(_t(label_key, cmd=info.name, line=info.start_line)) + "*")
     # Footer still points at the command that produced it.
     if info.name:
         _append_doc_link(out, info.name)

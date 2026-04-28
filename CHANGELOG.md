@@ -5,6 +5,22 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.1] - 2026-04-28
+
+A round of LSP polish: completion no longer auto-opens on top-level newlines or sticks on "No suggestions", and edit-time diagnostics stop crying wolf on macros that take `CO("name")` outputs or commands whose keywords live behind a `BLOC` gate.
+
+### Added
+
+- `DEBUT` autocompletion now inserts a paired `FIN()` block with the cursor parked between them.
+- Hovering a `CO("name")`-declared variable shows which macro will produce it and on what line, matching the regular variable hover.
+
+### Fixed
+
+- Suggest widget no longer auto-opens on a brand-new top-level line, no longer latches on accepted snippet bodies, and still pops parameter suggestions on Enter inside a function call.
+- `CO("name")` inside a macro is recognised as a future-output declaration, so later references to `name` no longer flag as undefined.
+- `ASSE_ELEM_SSD` and similar commands no longer report `SOUS_STRUC` / `LIAISON` missing when the keyword's value contains another call (`MODELE=CO(...)`).
+- `CALC_MODES` keywords gated by `BLOC(condition=...)` on defaulted catalog values are no longer reported as unknown.
+
 ## [1.10.0] - 2026-04-27
 
 A broad LSP and IDE-experience pass: cave-driven catalog resolution, a TypeScript-style hover layer, context-aware autocompletion, edit-time diagnostics with quick fixes, a `.comm` formatter, a guided setup flow, and a new activity-bar panel that doubles as a command dictionary. The status bar slims to an icon and Output channels are grouped under a single `code_aster:` prefix.
