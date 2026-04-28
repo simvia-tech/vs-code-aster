@@ -55,7 +55,7 @@ The **VS Code Aster** extension is now available on the [VS Code Marketplace](ht
 
 ### 2. Required dependencies
 
-This extension requires **Python 3.8 or later** and the following packages :
+This extension requires **Python 3.10 or later** and the following packages :
 
 - `numpy`
 - `pygls==1.3.1`
