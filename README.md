@@ -22,6 +22,8 @@ It offers:
 - Advanced features for editing `.comm` files
 - A fully integrated 3D Visualizer to explore your meshs
 
+![VS Code Aster demo](media/images/vscode_aster.gif)
+
 ## Installation
 
 ### 1. Installing the extension
