@@ -5,6 +5,15 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.2] - 2026-04-30
+
+A small round of LSP fixes targeting catalogs that declare the same SIMP under mutually-exclusive `BLOC`s (most visibly `DEFI_CONTACT`), plus a long-standing race in the suggestion retrigger.
+
+### Fixed
+
+- Value validation and value completion now resolve duplicate-named SIMPs by `BLOC` context. In `DEFI_CONTACT(FORMULATION='CONTINUE', ...)`, `'NEWTON'` is no longer flagged as not allowed for `ALGO_RESO_GEOM`/`ALGO_RESO_CONT`/`ALGO_RESO_FROT`, and the value popup now offers it alongside `POINT_FIXE`.
+- Typing `var = ` quickly at top level no longer latches VS Code's "No suggestions" widget. The `=` retrigger now matches the `\n` behavior — only fires inside an unclosed call, where `KEY=` still pops the value list.
+
 ## [1.10.1] - 2026-04-28
 
 A round of LSP polish: completion no longer auto-opens on top-level newlines or sticks on "No suggestions", and edit-time diagnostics stop crying wolf on macros that take `CO("name")` outputs or commands whose keywords live behind a `BLOC` gate.
