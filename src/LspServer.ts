@@ -238,7 +238,14 @@ export class LspServer {
         return;
       }
       if (typed === '=') {
-        popSuggest();
+        // Same rationale as the `\n` branch below: at top level `var = ` has
+        // no useful completion items, and a stale request (e.g. when the
+        // user types `=` then a space rapidly) latches VS Code's
+        // "No suggestions" session. Inside a call, `KEY=` should still
+        // retrigger so allowed-value popups appear immediately.
+        if (isInsideCall(editor.document, editor.selection.active)) {
+          popSuggest();
+        }
         return;
       }
       if (typed === '\n') {
