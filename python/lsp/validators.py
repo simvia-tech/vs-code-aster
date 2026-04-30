@@ -161,12 +161,16 @@ def command_return_types(cmd_obj) -> tuple:
     return ()
 
 
-def expected_classes(param: dict) -> tuple:
-    """Pull the raw class(es) the SIMP keyword expects (stored as
-    `type_obj` by `parse_kwd`). Returns () when the type is a string tag
+def expected_classes(source) -> tuple:
+    """Pull the raw class(es) the SIMP keyword expects. Accepts either a
+    parsed-param dict (with `type_obj`) or a CATA kwd object (with
+    `.definition["typ"]`). Returns () when the type is a string tag
     (like "R"/"I"/"TXM"), a validator instance, or None."""
     try:
-        typ = param.get("type_obj")
+        if isinstance(source, dict):
+            typ = source.get("type_obj")
+        else:
+            typ = source.definition.get("typ")
     except Exception:
         return ()
     if typ is None:

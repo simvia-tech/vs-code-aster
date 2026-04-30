@@ -92,7 +92,11 @@ class CompletionManager:
 
         # Value position takes precedence over keyword listing.
         if scan.value_keyword is not None:
-            target = _find_param(params_list, scan.value_keyword)
+            # Use the registry's parsed top-level params as BLOC context so
+            # duplicate-named SIMPs in different BLOCs (e.g. ALGO_RESO_GEOM
+            # in DEFI_CONTACT) resolve to the one actually active.
+            value_ctx = cmd_info.parsed_params if not scan.factor_path else None
+            target = _find_param(params_list, scan.value_keyword, value_ctx)
             items: list[CompletionItem] = []
             if target is not None:
                 remaining = _remaining_keyword_count(
@@ -195,12 +199,23 @@ class CompletionManager:
 # ===================== helpers ============================================
 
 
-def _find_param(params, name):
+def _find_param(params, name, context=None):
+    """Find a parsed-param dict by name, descending into BLOC children.
+    When `context` is given, BLOCs whose condition is not satisfied by
+    `context` are skipped — this is essential for catalogs (e.g.
+    DEFI_CONTACT) where the same SIMP name is declared under
+    mutually-exclusive BLOCs with different `into=(...)` lists."""
     for p in params:
         if p.get("name") == name:
             return p
         if p.get("bloc"):
-            inner = _find_param(p.get("children", []), name)
+            if context is not None:
+                try:
+                    if not p["bloc"].isEnabled(context):
+                        continue
+                except Exception:
+                    pass
+            inner = _find_param(p.get("children", []), name, context)
             if inner:
                 return inner
     return None

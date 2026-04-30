@@ -23,7 +23,6 @@ from validators import (
     command_return_types,
     expected_classes,
     find_keyword,
-    find_param,
     is_bare_identifier,
     required_keywords,
     simp_defaults,
@@ -162,16 +161,11 @@ class DiagnosticsManager:
         except Exception:
             pass
 
-        try:
-            cmd_def_params = self.core.get_command_def(ci.name).get("params", [])
-        except Exception:
-            cmd_def_params = []
-
         typed_names: set[str] = set()
         for pair in pairs:
             try:
                 typed_names.add(pair.name)
-                self._check_pair(pair, cmd_obj, cmd_def_params, context, var_index, ci, diags)
+                self._check_pair(pair, cmd_obj, context, var_index, ci, diags)
             except Exception as exc:
                 _log(f"[diagnostics] pair {pair.name} in {ci.name} crashed: {exc!r}")
 
@@ -200,7 +194,7 @@ class DiagnosticsManager:
 
     # -------------------------------------------------------- per pair
 
-    def _check_pair(self, pair, cmd_obj, cmd_def_params, context, var_index, ci, diags) -> None:
+    def _check_pair(self, pair, cmd_obj, context, var_index, ci, diags) -> None:
         # -- 2. unknown keyword -----------------------------------------
         kwd = find_keyword(cmd_obj.definition, pair.name, context)
         if kwd is None:
@@ -209,11 +203,13 @@ class DiagnosticsManager:
             return  # rest of the pair's checks don't apply
 
         # -- 3. value not in `into` (SIMP scalars only) -----------------
-        param = find_param(cmd_def_params, pair.name)
-        if param is not None:
+        try:
+            into = kwd.definition.get("into")
+        except Exception:
+            into = None
+        if into:
             try:
-                into = param.get("allowed")
-                if into and not is_factor_value(pair.value):
+                if not is_factor_value(pair.value):
                     if not value_in_into(pair.value, into):
                         diags.append(self._diag_value_not_in_into(pair, into))
                         # don't double-flag with type mismatch
@@ -233,7 +229,7 @@ class DiagnosticsManager:
                 return
             # type compatibility (only when we have classes on both sides)
             try:
-                expected = expected_classes(param) if param else ()
+                expected = expected_classes(kwd)
                 if expected:
                     src_obj = None
                     try:
