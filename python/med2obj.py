@@ -26,9 +26,7 @@ if sys.platform == "win32" and python_version >= (3, 8):
 
     if ca_external_dir.exists():
         ### Attach to code_aster windows install
-        python_path = (
-            rf"{ca_external_dir}\medcoupling-9.11.0\lib\python3.10\site-packages"
-        )
+        python_path = rf"{ca_external_dir}\medcoupling-9.11.0\lib\python3.10\site-packages"
         sys.path.append(python_path)
 
         ld_library_path = [
