@@ -18,12 +18,10 @@ if sys.platform == "win32" and python_version >= (3, 8):
     # This is necessary for Python 3.8+ on Windows to find the DLLs.
     # To simplify we use the LD_LIBRARY_PATH environment variable like on Unix systems.
     # ld_library_path = os.getenv("LD_LIBRARY_PATH", "")
-    
     ## appdata = os.environ["LOCALAPPDATA"]
-    ## we cannot use the APPDATA because in some cases users made code_aster installation in non standard folder 
-
+    ## we cannot use the APPDATA because in some cases users made code_aster installation in non standard folder
     python_exe = pl.Path(sys.executable)
-    ca_install_dir = python_exe.parent.parent.parent 
+    ca_install_dir = python_exe.parent.parent.parent
     ca_external_dir = ca_install_dir / "external"
 
     if ca_external_dir.exists():
