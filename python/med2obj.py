@@ -18,24 +18,28 @@ if sys.platform == "win32" and python_version >= (3, 8):
     # This is necessary for Python 3.8+ on Windows to find the DLLs.
     # To simplify we use the LD_LIBRARY_PATH environment variable like on Unix systems.
     # ld_library_path = os.getenv("LD_LIBRARY_PATH", "")
+    
+    ## appdata = os.environ["LOCALAPPDATA"]
+    ## we cannot use the APPDATA because in some cases users made code_aster installation in non standard folder 
 
-    appdata = os.environ["LOCALAPPDATA"]
+    python_exe = pl.Path(sys.executable)
+    ca_install_dir = python_exe.parent.parent.parent 
+    ca_external_dir = ca_install_dir / "external"
 
-    if (pl.Path(appdata) / "code_aster").exists():
+    if ca_external_dir.exists():
         ### Attach to code_aster windows install
         python_path = (
-            rf"{appdata}\code_aster\external\medcoupling-9.11.0\lib\python3.10\site-packages"
+            rf"{ca_external_dir}\medcoupling-9.11.0\lib\python3.10\site-packages"
         )
         sys.path.append(python_path)
 
         ld_library_path = [
-            rf"{appdata}\code_aster\Python3.10",
-            rf"{appdata}\code_aster\external\hdf51.10.5\bin",
-            rf"{appdata}\code_aster\external\hdf51.10.5\lib",
-            rf"{appdata}\code_aster\external\MED-4.4.1\lib",
-            rf"{appdata}\code_aster\external\medcoupling-9.11.0\lib",
-            rf"{appdata}\code_aster\external\medcoupling-9.11.0\libpython3.10\site-packages",
-            rf"{appdata}\code_aster\external",
+            rf"{ca_external_dir}\hdf51.10.5\bin",
+            rf"{ca_external_dir}\hdf51.10.5\lib",
+            rf"{ca_external_dir}\MED-4.4.1\lib",
+            rf"{ca_external_dir}\medcoupling-9.11.0\lib",
+            rf"{ca_external_dir}\medcoupling-9.11.0\libpython3.10\site-packages",
+            rf"{ca_external_dir}",
         ]
 
         if ld_library_path:
