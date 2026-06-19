@@ -6,6 +6,7 @@
   import ActionButtons from '../sidebar/ActionButtons.svelte';
   import AxisButtons from '../viewer/AxisButtons.svelte';
   import GroupSearch from '../ui/GroupSearch.svelte';
+  import ElementsCounter from '../viewer/ElementsCounter.svelte';
 
   let { onOpenGroups }: { onOpenGroups: () => void } = $props();
 
@@ -35,4 +36,6 @@
   <div class="w-3/4 h-px my-2 mx-auto bg-ui-border"></div>
 
   <AxisButtons />
+
+  <ElementsCounter />
 </div>

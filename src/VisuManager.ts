@@ -8,7 +8,7 @@ import { TextDecoder } from 'util';
 import { getMeshCacheDir } from './projectPaths';
 import { medcouplingUnavailable, pythonVersion } from './PythonEnv';
 
-const EXPECTED_MED2OBJ_VERSION = 2;
+const EXPECTED_MED2OBJ_VERSION = 3;
 
 function readObjVersion(objFilePath: string): number | null {
   try {

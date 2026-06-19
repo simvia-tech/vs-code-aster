@@ -16,6 +16,7 @@ export interface ObjLoaderResult {
     string,
     { faces: string[]; nodes: string[]; volumes: string[]; edges: string[] }
   >;
+  meshStats: { elements: number; nodes: number };
 }
 
 const YIELD_EVERY_LINES = 5_000;
@@ -48,6 +49,11 @@ export class ObjLoader {
     let nodeGroupId = -1;
     let edgeGroupId = -1;
 
+    // True FEA counts, parsed from the `# elements:` / `# nodes:` headers that
+    // med2obj.py writes. Summed across all loaded files.
+    let totalElements = 0;
+    let totalNodes = 0;
+
     const yield_ = () => new Promise<void>((r) => setTimeout(r, 0));
 
     for (let i = 0; i < fileContexts.length; i++) {
@@ -72,6 +78,15 @@ export class ObjLoader {
 
           const line = lines[lineIdx];
           if (line.startsWith('#')) {
+            const elementsMatch = line.match(/^#\s*elements:\s*(\d+)/);
+            if (elementsMatch) {
+              totalElements += Number.parseInt(elementsMatch[1], 10);
+            } else {
+              const nodesMatch = line.match(/^#\s*nodes:\s*(\d+)/);
+              if (nodesMatch) {
+                totalNodes += Number.parseInt(nodesMatch[1], 10);
+              }
+            }
             continue;
           }
           const ss = line.split(' ').filter((p) => p.length !== 0);
@@ -174,6 +189,7 @@ export class ObjLoader {
       volumeGroups,
       edgeGroups,
       groupHierarchy,
+      meshStats: { elements: totalElements, nodes: totalNodes },
     };
   }
 }

@@ -208,6 +208,7 @@ export class CreateGroups {
     post(`actors : ${Object.keys(this.groups).length}`);
 
     Controller.Instance.saveGroups(this.groups, groupHierarchy);
+    Controller.Instance.saveMeshStats(result.meshStats);
   }
 
   private computeSize(actor: any): number {

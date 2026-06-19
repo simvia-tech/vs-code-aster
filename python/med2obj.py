@@ -50,7 +50,7 @@ import medcoupling as mc  # noqa E402
 
 # Bump when the .obj output format changes in a breaking way. The extension
 # reads the `# med2obj-version:` header and regenerates on mismatch.
-MED2OBJ_VERSION = 2
+MED2OBJ_VERSION = 3
 
 
 def parse_args():
@@ -84,9 +84,15 @@ def write_obj(
     skin_level=-1,
     node_level=1,
     edge_level=-2,
+    n_elements=0,
+    n_nodes=0,
 ):
     with open(output_path, "w") as f:
         f.write(f"# med2obj-version: {MED2OBJ_VERSION}\n")
+        # True FEA counts from the full mesh (the geometry below is only the
+        # rendered skin, so these can't be derived from it client-side).
+        f.write(f"# elements: {n_elements}\n")
+        f.write(f"# nodes: {n_nodes}\n")
         coords = skin_mesh.getCoords().toNumPyArray()
         for coord in coords:
             # Ensure 2D coordinates are converted to 3D by adding z=0 if missing
@@ -144,6 +150,9 @@ def main():
     # med_file = med_file.quadraticToLinear()
     mesh = med_file.getMeshAtLevel(0)
 
+    n_elements = mesh.getNumberOfCells()
+    n_nodes = mesh.getNumberOfNodes()
+
     node_level = 1
     available_levels = set(med_file.getNonEmptyLevels())
     if mesh.getMeshDimension() == 3:  ## Volumic 3d mesh
@@ -181,6 +190,8 @@ def main():
         skin_level=surface_level,
         node_level=node_level,
         edge_level=edge_level if edge_level is not None else -2,
+        n_elements=n_elements,
+        n_nodes=n_nodes,
     )
 
 

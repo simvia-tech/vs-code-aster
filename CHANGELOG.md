@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Mesh viewer: a counter in the viewport corner shows the mesh's total element and node counts (the true FEA counts from the `.med`, not the rendered surface).
 - Mesh viewer: search group names in the sidebar and the "Sidebar groups" popup. The list filters to matching groups as you type, making it easy to locate a specific group (e.g. `M34522`) in large meshes.
 - Mesh viewer: the sidebar and "Sidebar groups" group lists now keep a visible scrollbar for top-to-bottom navigation of large meshes.
 
@@ -81,9 +82,11 @@ A broad LSP and IDE-experience pass: cave-driven catalog resolution, a TypeScrip
 Better rendering for 1D meshes and a flatter, more readable face shading.
 
 ### Added
+
 - **Standalone 1D edges** (edges not shared with any face, e.g. beam elements) now render by default in the object color with a thin black contour. Line style adapts to parent opacity, wireframe mode, and the face-edge visibility rules (hide / show / threshold / gradual).
 
 ### Fixed
+
 - User-defined face groups whose name contains `all_` (e.g. `all_plates`) are no longer mistakenly treated as file-level object actors.
 - Face specular highlight removed, so colors no longer shift toward white (e.g. blue → turquoise) at camera-facing angles.
 
@@ -92,6 +95,7 @@ Better rendering for 1D meshes and a flatter, more readable face shading.
 New viewer toolbar actions (auto-rotate, video recording), a reorganized settings popup with a dedicated Toolbar tab, and a round of `.export` editor fixes.
 
 ### Added
+
 - **Auto-rotate** toolbar button with a right-click popover for session-only speed and reverse-direction; persistent defaults in `Settings → Toolbar`.
 - **Record** toolbar button (mp4/h264 when supported, else webm, saved to `.vs-code-aster/recordings/`). Right-click menu offers whole-webview or without-sidebar variants. Whole-webview rasterizes the DOM and may briefly freeze the viewer on UI changes.
 - **Settings → Toolbar tab** grouping each toolbar action with its persisted defaults.
@@ -100,6 +104,7 @@ New viewer toolbar actions (auto-rotate, video recording), a reorganized setting
 - `.export` split basename / extension inputs, smarter default unit, and preservation of unknown lines.
 
 ### Changed
+
 - **Viewer settings** reorganized into `Rendering`, `Groups`, `Visibility`, `Toolbar` tabs.
 - **Dream background** on by default.
 - **Screenshot right-click** now opens a menu (was a direct full-webview capture).
@@ -107,6 +112,7 @@ New viewer toolbar actions (auto-rotate, video recording), a reorganized setting
 - **Export form error/warning panel** merged into one clickable list with per-field jumps.
 
 ### Fixed
+
 - `.export` file name / extension inputs no longer silently revert due to a state-sync feedback loop.
 - Optional integer parameters no longer flagged as invalid when left empty.
 
@@ -115,6 +121,7 @@ New viewer toolbar actions (auto-rotate, video recording), a reorganized setting
 Volume and edge groups now appear in the viewer alongside face and node groups, a new "Groups" settings tab exposes per-kind display tweaks, the bundled vtk.js is replaced by the tree-shaken npm package, and an optional animated background adds a cosmetic touch.
 
 ### Added
+
 - **Volume groups** — `med2obj.py` now computes the skin of every volume group in a 3D `.med` mesh and writes it into the `.obj` as a dedicated group. The viewer renders them as their own category with a filled isometric cube icon, toggle-able independently from face groups.
 - **Edge groups** — level -2 groups (1D named cells) are extracted too and rendered as lines via a new `EdgeActorCreator`. Line width and depth offset (to avoid z-fighting with the skin) are user-controllable.
 - **Groups settings tab** — new tab in the viewer Settings popup covering:
@@ -128,11 +135,13 @@ Volume and edge groups now appear in the viewer alongside face and node groups, 
 - **Dream background** — optional cosmetic viewer setting (`vs-code-aster.viewer.dreamBackground`) that drifts four EDF orange/blue blobs behind the mesh via a WebGL fragment shader. Theme-aware: blob intensity adapts to light vs dark themes, peak intensity is capped so overlapping blobs never fully replace the theme color. Does not affect mesh lighting.
 
 ### Changed
+
 - **vtk.js migrated to `@kitware/vtk.js` npm package** — the 2.6 MB bundled script is gone, replaced by tree-shaken ES-module imports and real TypeScript types. Opens the door to regular version upgrades.
 - **Settings popup**: the "Edges" tab is renamed to "Mesh edges" and its copy rewritten to distinguish the wireframe edges drawn on each cell from the new edge groups. Tab content now scrolls when it overflows instead of clipping.
 - **Sidebar groups** now bucket volumes, faces, edges, and nodes in that order, each with its own icon.
 
 ### Fixed
+
 - Mesh edge colors now repaint immediately on theme switch instead of waiting for the next camera move.
 - Translucent meshes (highlighted parent behind a selected sub-group) no longer wash out on light themes — vtk.js 35's Order-Independent Transparency pass is bypassed in favor of plain SRC_ALPHA blending.
 - `.obj` files cached under `.vs-code-aster/mesh_cache/` from older extension versions are invalidated when the converter changes (via the bumped `med2obj-version: 2` header).
@@ -143,6 +152,7 @@ Volume and edge groups now appear in the viewer alongside face and node groups, 
 Follow-up polish on the `.export` editor form: smarter autocomplete suggestions and the saved file now opens automatically after create/save.
 
 ### Added
+
 - **Type-aware autocomplete** — file name suggestions in the export form are now filtered by the selected F-line type so irrelevant files are hidden:
   - `mmed` / `rmed` rows accept `.med`, `.mmed`, `.rmed`, and any custom extension registered in `vs-code-aster.medFileExtensions` (so user-added MED extensions like `.71` show up).
   - `comm` rows accept `.com*` (covers `.comm`, `.com0`, `.com1`, ...).
@@ -152,6 +162,7 @@ Follow-up polish on the `.export` editor form: smarter autocomplete suggestions 
 - **Reveal on save** — creating or saving an `.export` file from the form now opens the file in a text editor (or focuses the existing tab if it's already open), so you immediately see the formatted result. Stale tabs left over from a rename are closed automatically.
 
 ### Fixed
+
 - The hidden `.vs-code-aster/` folder no longer appears in the export form's autocomplete suggestions.
 
 ## [1.8.0] - 2026-04-20
@@ -159,6 +170,7 @@ Follow-up polish on the `.export` editor form: smarter autocomplete suggestions 
 Full rewrite of the `.export` form in Svelte + Tailwind, first-class language support for `.export` files (syntax highlighting, formatter, format-on-save), and a batch of UX upgrades.
 
 ### Added
+
 - **Redesigned export form** — rewritten in Svelte 5 + Tailwind 4, styled with VS Code theme tokens (`--vscode-input-*`, `--vscode-focusBorder`, `--vscode-editorWarning-foreground`, ...), so it looks native in every theme.
   - Tab icon is a blue pencil; tab title lives-updates to match the filename (falls back to `untitled`).
   - Titles inside the form adapt to mode: "Create a new export file" vs "Edit an export file".
@@ -184,15 +196,18 @@ Full rewrite of the `.export` form in Svelte + Tailwind, first-class language su
 - Refreshed Simvia logo (new SVG), separate light/dark variants for both Simvia and code_aster logos in the form header.
 
 ### Changed
+
 - Editing a file and changing its name now _renames_ the file on disk (old file is deleted after the new one is written). A warning panel previews the rename before the user saves.
 - When writing a file, the output is always formatted (P/F grouping, section headers, shoutout) — so files stay clean across multiple save cycles.
 
 ### Fixed
+
 - Loading an existing `.export` into the form (e.g. after a tab switch) no longer clobbers the pre-filled data with the seeded default.
 - Removing the last row no longer leaves stale autocomplete suggestions keyed to the dead row.
 - Missing parent directories no longer cause save to fail silently when the filename contains a path separator.
 
 ### Removed
+
 - The legacy vanilla HTML/CSS/JS export form (`webviews/export/export.{html,css,js}`) and its hardcoded blue-on-light styling.
 - Unused media assets: `media/images/aster.png`, `media/icons/3d.svg`, `media/icons/3d_light.svg`.
 
@@ -201,6 +216,7 @@ Full rewrite of the `.export` form in Svelte + Tailwind, first-class language su
 Centralize extension-generated files under a single `.vs-code-aster/` folder per project, with timestamped run logs and automatic migration from legacy locations.
 
 ### Added
+
 - Project-local `.vs-code-aster/` folder grouping all extension-generated files:
   - `mesh_cache/` — converted `.obj` files (previously `.visu_data/`)
   - `screenshots/` — PNGs saved from the viewer's screenshot button (previously next to source files)
@@ -214,6 +230,7 @@ Centralize extension-generated files under a single `.vs-code-aster/` folder per
 New viewer toolbar with bounding box, wireframe, and screenshot tools.
 
 ### Added
+
 - Top toolbar in the mesh viewer with three new tools:
   - **Bounding box**: toggleable wireframe cube with colored axes (X red, Y green, Z blue), corner dots, a "0" origin marker, and dimension labels anchored in 3D
   - **Wireframe mode**: toggle between solid surface and wireframe rendering to inspect mesh density
@@ -223,6 +240,7 @@ New viewer toolbar with bounding box, wireframe, and screenshot tools.
 - Updated README with diagnostics, terminal reuse, direct `.med` opening, and toolbar features
 
 ### Fixed
+
 - Popup z-order: help and settings popups no longer render behind the sidebar
 - Sidebar tooltip z-order: filter/clear tooltips no longer hidden behind the top toolbar
 
@@ -231,6 +249,7 @@ New viewer toolbar with bounding box, wireframe, and screenshot tools.
 Standalone mesh visualization: click any `.med` file to open the viewer directly, even without a `.comm`/`.export` pair.
 
 ### Added
+
 - Click a `.med` / `.mmed` / `.rmed` file in the explorer to open it straight in the mesh viewer, via a custom editor registered with `priority: "default"` that bypasses the "file is binary" warning
 - Automatic MED detection: when a tab opens a file whose first bytes match the HDF5 signature, a notification offers to register the extension (e.g. `.71`) and open it in the viewer in one click
 - "Open as MED mesh" action exposed as an editor-title button (on auto-detected MED files) and as a right-click entry in the explorer
@@ -243,6 +262,7 @@ Standalone mesh visualization: click any `.med` file to open the viewer directly
 Run workflow overhaul: terminal reuse, automatic diagnostics in the Problems panel, and refreshed toolbar icons.
 
 ### Added
+
 - Run diagnostics: `<A>` warnings and `<E>`/`<F>` errors from code_aster, Python tracebacks, `SyntaxError`s, fatal errors (e.g. segfaults), and MED/Fortran errors now surface automatically in the VS Code Problems panel — no `F mess` entry required in the `.export`
 - Diagnostics attached to the originating `.comm`/`.com1` line when possible (via CMDTAG markers and Python tracebacks), and cleared between runs
 - The existing `code-aster runner` terminal is now reused across runs instead of spawning a new one each time
@@ -253,6 +273,7 @@ Run workflow overhaul: terminal reuse, automatic diagnostics in the Problems pan
 File icon improvements and language support for `.export` and MED files.
 
 ### Added
+
 - Dedicated file icons for `.export` files (blue rocket) and `.med` / `.mmed` / `.rmed` files (orange cube)
 - Refreshed code_aster logo, now bundled with its SVG source
 - `vs-code-aster.medFileExtensions` setting to register arbitrary extensions (e.g. `.21`, `.71`) as MED files, which code_aster writes under the I/O unit number
@@ -262,6 +283,7 @@ File icon improvements and language support for `.export` and MED files.
 Comment toggle support and Windows debugging improvements.
 
 ### Added
+
 - Language configuration and keybindings for toggling line comments in `.comm` files
 - Support for attaching to code_aster embedded Python on Windows installations
 
@@ -270,10 +292,12 @@ Comment toggle support and Windows debugging improvements.
 Various fixes and improvements.
 
 ### Added
+
 - Export form now auto-increments unit numbers to avoid duplicates when adding new files
 - Files named `export` (without extension) are now detected as export files
 
 ### Fixed
+
 - Mesh viewer now correctly resolves .med file paths containing subdirectories (e.g. `Mesh/mesh.med`) relative to the .export file location ([#13](https://github.com/simvia-tech/vs-code-aster/issues/13))
 - Selecting text no longer resets manually hidden objects in the mesh viewer ([#14](https://github.com/simvia-tech/vs-code-aster/issues/14))
 - Fixed issues when two meshes share groups with the same name ([#15](https://github.com/simvia-tech/vs-code-aster/issues/15))
@@ -285,10 +309,12 @@ Various fixes and improvements.
 Various fixes and optimizations.
 
 ### Added
+
 - Selecting object names in text editors hides all other objects (hence highlighting selected object)
 - Progress bar for mesh loading
 
 ### Fixed
+
 - Text selection now highlights groups again
 - Group sorting order now handles alphanumerical sorting
 
@@ -297,15 +323,16 @@ Various fixes and optimizations.
 Rewrote the mesh viewer UI with Svelte, and added new viewer features.
 
 ### Added
+
 - Migrated the mesh viewer frontend from vanilla JS/HTML to Svelte with TypeScript
 - Mesh viewer UI now follows the VS Code user theme
 - Object file names are shown in the webview tab titles
 - Focusing a `.comm` file now focuses its corresponding mesh viewer webview
 - Revamped help popup with tabs and more tips
 - New settings popup with various settings
-    - Edge rendering settings
-    - Object visibility settings
-    - UI settings
+  - Edge rendering settings
+  - Object visibility settings
+  - UI settings
 - Improved various UI components in the mesh viewer
 - Show/hide toggle button per object in the sidebar
 - Per-object color display
@@ -316,9 +343,11 @@ Rewrote the mesh viewer UI with Svelte, and added new viewer features.
 Updated dependencies.
 
 ### Added
+
 - More recent versions for a lot of dependencies
 
 ### Removed
+
 - Unused packages
 
 ## [1.4.2] - 2026-03-03
@@ -326,6 +355,7 @@ Updated dependencies.
 Fixed issues when different objects have groups with the same name.
 
 ### Fixed
+
 - Clicking on a group who has a name shared with other groups will now properly highlight the correct group.
 
 ## [1.4.1] - 2026-03-03
@@ -333,16 +363,19 @@ Fixed issues when different objects have groups with the same name.
 Improved med file detection.
 
 ### Fixed
-- Med files that do not have a .*med extension are now properly detected as med files for the med viewer.
+
+- Med files that do not have a .\*med extension are now properly detected as med files for the med viewer.
 
 ## [1.4.0] - 2026-02-04
 
 Added support for more comm file extensions
 
 ### Added
+
 - .com, .com[0-9] file extensions are now supported.
 
 ### Fixed
+
 - [It can only read .comm files #7](https://github.com/simvia-tech/vs-code-aster/issues/7)
 
 ## [1.2.0] - 2026-01-21
@@ -350,9 +383,11 @@ Added support for more comm file extensions
 Added support for 2D meshes in the visualizer
 
 ### Added
+
 - 2D meshes are now supported by the visualizer.
 
 ### Fixed
+
 - [Mesh viewer fail on astest SSLP106a #4](https://github.com/simvia-tech/vs-code-aster/issues/4)
 
 ## [1.1.0] - 2026-01-08
@@ -360,9 +395,11 @@ Added support for 2D meshes in the visualizer
 Added support for quadratic nodes in the visualizer
 
 ### Added
+
 - Quadratic nodes are now correctly displayed in the visualization
 
 ### Fixed
+
 - [Wrong numbering for the mesh viewer #1](https://github.com/simvia-tech/vs-code-aster/issues/1)
 
 ## [1.0.2] - 2026-01-07
@@ -370,6 +407,7 @@ Added support for quadratic nodes in the visualizer
 Micro-patch to fix Python < 3.10 issues.
 
 ### Fixed
+
 - Removed modern typing and use legacy one to be compatible with older Python version. Python 3.8 or later is still required.
 
 ## [1.0.1] - 2025-12-18
@@ -377,6 +415,7 @@ Micro-patch to fix Python < 3.10 issues.
 Micro-patch to fix README issues.
 
 ### Fixed
+
 - **Simvia logo** in the README now uses an absolute link rather than a relative link
 
 ## [1.0.0] - 2025-12-17

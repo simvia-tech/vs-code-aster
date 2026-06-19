@@ -3,7 +3,13 @@ import { CreateGroups } from './data/CreateGroups';
 import { VisibilityManager } from './commands/VisibilityManager';
 import { CameraManager } from './interaction/CameraManager';
 import { GlobalSettings } from './settings/GlobalSettings';
-import { groupHierarchy as groupHierarchyStore, loadingProgress, loadingMessage } from './state';
+import {
+  groupHierarchy as groupHierarchyStore,
+  loadingProgress,
+  loadingMessage,
+  meshStats as meshStatsStore,
+} from './state';
+import type { MeshStats } from './state';
 import type { Group, GroupKind } from './data/Group';
 
 export class Controller {
@@ -40,6 +46,7 @@ export class Controller {
     }
     loadingProgress.set(0);
     loadingMessage.set('');
+    meshStatsStore.set(null);
     const lfr = new CreateGroups(fileContexts, fileNames);
     await lfr.do(
       (progress) => loadingProgress.set(progress),
@@ -50,6 +57,10 @@ export class Controller {
       groupList: this.getGroupNames(),
       objectList: this.getObjectNames(),
     });
+  }
+
+  saveMeshStats(stats: MeshStats): void {
+    meshStatsStore.set(stats);
   }
 
   saveGroups(groups: Record<string, Group>, groupHierarchy: Record<string, any>): void {

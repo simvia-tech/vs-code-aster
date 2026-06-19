@@ -91,3 +91,7 @@ export const errorMessage = writable<string>('');
 
 export type BoundingBoxDimensions = { x: number; y: number; z: number } | null;
 export const boundingBoxDimensions = writable<BoundingBoxDimensions>(null);
+
+// Total FEA element/node counts of the loaded mesh (summed across objects).
+export type MeshStats = { elements: number; nodes: number } | null;
+export const meshStats = writable<MeshStats>(null);
