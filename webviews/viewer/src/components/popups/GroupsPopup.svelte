@@ -1,36 +1,51 @@
 <script lang="ts">
-  import { groupHierarchy, settings, sidebarHiddenGroups } from '../../lib/state';
+  import {
+    groupHierarchy,
+    groupNameMatches,
+    groupSearchTerm,
+    settings,
+    sidebarHiddenGroups,
+  } from '../../lib/state';
   import FaceIcon from '../../icons/FaceIcon.svelte';
   import NodeIcon from '../../icons/NodeIcon.svelte';
   import VolumeIcon from '../../icons/VolumeIcon.svelte';
   import EdgeIcon from '../../icons/EdgeIcon.svelte';
   import ObjectIcon from '../../icons/ObjectIcon.svelte';
   import Toggle from '../ui/Toggle.svelte';
+  import GroupSearch from '../ui/GroupSearch.svelte';
   import type { GroupKind } from '../../lib/state';
 
   let { onclose }: { onclose: () => void } = $props();
 
+  let searchTerm = $derived($groupSearchTerm.trim());
+
   let objects = $derived(
-    Object.entries($groupHierarchy).map(([key, data]) => {
-      const [r, g, b] = (data as any).color ?? [0.537, 0.529, 0.529];
-      const volumes = data.volumes ?? [];
-      const faces = data.faces;
-      const edges = data.edges ?? [];
-      const nodes = data.nodes;
-      const mixed = data.mixed ?? [];
-      const bucketed: { name: string; kind: GroupKind }[] = [
-        ...volumes.map((name) => ({ name, kind: 'volume' as GroupKind })),
-        ...faces.map((name) => ({ name, kind: 'face' as GroupKind })),
-        ...edges.map((name) => ({ name, kind: 'edge' as GroupKind })),
-        ...nodes.map((name) => ({ name, kind: 'node' as GroupKind })),
-      ];
-      return {
-        key,
-        name: key.replace('all_', '').replace('.obj', ''),
-        color: [r, g, b],
-        allGroups: $settings.groupByKind ? bucketed : mixed,
-      };
-    })
+    Object.entries($groupHierarchy)
+      .map(([key, data]) => {
+        const [r, g, b] = (data as any).color ?? [0.537, 0.529, 0.529];
+        const volumes = data.volumes ?? [];
+        const faces = data.faces;
+        const edges = data.edges ?? [];
+        const nodes = data.nodes;
+        const mixed = data.mixed ?? [];
+        const bucketed: { name: string; kind: GroupKind }[] = [
+          ...volumes.map((name) => ({ name, kind: 'volume' as GroupKind })),
+          ...faces.map((name) => ({ name, kind: 'face' as GroupKind })),
+          ...edges.map((name) => ({ name, kind: 'edge' as GroupKind })),
+          ...nodes.map((name) => ({ name, kind: 'node' as GroupKind })),
+        ];
+        const allGroups = $settings.groupByKind ? bucketed : mixed;
+        const groups = searchTerm
+          ? allGroups.filter((grp) => groupNameMatches(grp.name, searchTerm))
+          : allGroups;
+        return {
+          key,
+          name: key.replace('all_', '').replace('.obj', ''),
+          color: [r, g, b],
+          groups,
+        };
+      })
+      .filter((obj) => obj.groups.length > 0)
   );
 
   function isVisible(objectKey: string, groupName: string): boolean {
@@ -89,49 +104,59 @@
     </span>
   </div>
 
-  <div class="columns-2 gap-6 overflow-y-auto grow">
-    {#each objects as obj (obj.key)}
-      {@const allOff = allUnchecked(obj.key, obj.allGroups)}
-      <div class="break-inside-avoid flex flex-col space-y-1.5 mb-5">
-        <div class="flex items-center justify-between pb-1 border-b border-ui-border">
-          <div class="flex items-center gap-1.5">
-            <span style="color: {colorCss(obj.color)}"><ObjectIcon class="size-4 shrink-0" /></span>
-            <span class="font-semibold text-sm">{obj.name}</span>
-          </div>
-          <button
-            class="text-xs leading-none cursor-pointer px-1.5 py-0.5 rounded-sm hover:bg-ui-elem text-ui-text-secondary"
-            onclick={() => toggleAll(obj.key, obj.allGroups)}
-          >
-            {allOff ? 'Show all' : 'Hide all'}
-          </button>
-        </div>
+  <GroupSearch class="mb-3 shrink-0" />
 
-        {#each obj.allGroups as group}
-          <label class="flex items-center gap-1.5 cursor-pointer select-none">
-            {#if group.kind === 'face'}
-              <FaceIcon class="size-3.5 shrink-0" />
-            {:else if group.kind === 'volume'}
-              <VolumeIcon class="size-3.5 shrink-0" />
-            {:else if group.kind === 'edge'}
-              <EdgeIcon class="size-3.5 shrink-0" />
-            {:else}
-              <NodeIcon class="size-3.5 shrink-0" />
-            {/if}
-            <span class="text-xs truncate -translate-y-px grow" title={group.name}
-              >{group.name}</span
+  {#if objects.length === 0}
+    <div class="grow flex items-center justify-center text-xs text-ui-text-muted">
+      No groups match “{searchTerm}”.
+    </div>
+  {:else}
+    <div class="columns-2 gap-6 overflow-y-auto grow">
+      {#each objects as obj (obj.key)}
+        {@const allOff = allUnchecked(obj.key, obj.groups)}
+        <div class="break-inside-avoid flex flex-col space-y-1.5 mb-5">
+          <div class="flex items-center justify-between pb-1 border-b border-ui-border">
+            <div class="flex items-center gap-1.5">
+              <span style="color: {colorCss(obj.color)}"
+                ><ObjectIcon class="size-4 shrink-0" /></span
+              >
+              <span class="font-semibold text-sm">{obj.name}</span>
+            </div>
+            <button
+              class="text-xs leading-none cursor-pointer px-1.5 py-0.5 rounded-sm hover:bg-ui-elem text-ui-text-secondary"
+              onclick={() => toggleAll(obj.key, obj.groups)}
             >
+              {allOff ? 'Show all' : 'Hide all'}
+            </button>
+          </div>
 
-            <Toggle
-              checked={isVisible(obj.key, group.name)}
-              onclick={() => toggleGroup(obj.key, group.name)}
-              ariaLabel="Toggle group visibility"
-              size="sm"
-            />
-          </label>
-        {/each}
-      </div>
-    {/each}
-  </div>
+          {#each obj.groups as group}
+            <label class="flex items-center gap-1.5 cursor-pointer select-none">
+              {#if group.kind === 'face'}
+                <FaceIcon class="size-3.5 shrink-0" />
+              {:else if group.kind === 'volume'}
+                <VolumeIcon class="size-3.5 shrink-0" />
+              {:else if group.kind === 'edge'}
+                <EdgeIcon class="size-3.5 shrink-0" />
+              {:else}
+                <NodeIcon class="size-3.5 shrink-0" />
+              {/if}
+              <span class="text-xs truncate -translate-y-px grow" title={group.name}
+                >{group.name}</span
+              >
+
+              <Toggle
+                checked={isVisible(obj.key, group.name)}
+                onclick={() => toggleGroup(obj.key, group.name)}
+                ariaLabel="Toggle group visibility"
+                size="sm"
+              />
+            </label>
+          {/each}
+        </div>
+      {/each}
+    </div>
+  {/if}
 
   <div class="mt-4 flex justify-between items-center">
     <button

@@ -1,5 +1,11 @@
 <script lang="ts">
-  import { hiddenObjects, settings, sidebarHiddenGroups } from '../../lib/state';
+  import {
+    groupNameMatches,
+    groupSearchTerm,
+    hiddenObjects,
+    settings,
+    sidebarHiddenGroups,
+  } from '../../lib/state';
   import type { GroupKind } from '../../lib/state';
   import { VisibilityManager } from '../../lib/commands/VisibilityManager';
   import GroupButton from './GroupButton.svelte';
@@ -26,6 +32,29 @@
   } = $props();
 
   let groupByKind = $derived($settings.groupByKind);
+
+  let searchTerm = $derived($groupSearchTerm.trim());
+  let searching = $derived(searchTerm.length > 0);
+  let fVolumes = $derived(
+    searching ? volumes.filter((g) => groupNameMatches(g, searchTerm)) : volumes
+  );
+  let fFaces = $derived(searching ? faces.filter((g) => groupNameMatches(g, searchTerm)) : faces);
+  let fEdges = $derived(searching ? edges.filter((g) => groupNameMatches(g, searchTerm)) : edges);
+  let fNodes = $derived(searching ? nodes.filter((g) => groupNameMatches(g, searchTerm)) : nodes);
+  let fMixed = $derived(
+    searching ? mixed.filter((m) => groupNameMatches(m.name, searchTerm)) : mixed
+  );
+
+  // Matches that would actually render in the sidebar (i.e. not hidden via the
+  // groups popup) — used to drop whole object sections with no visible match.
+  let visibleMatchCount = $derived.by(() => {
+    const hidden = $sidebarHiddenGroups.get(objectKey);
+    const shown = (name: string) => !(hidden?.has(name) ?? false);
+    return groupByKind
+      ? [...fVolumes, ...fFaces, ...fEdges, ...fNodes].filter(shown).length
+      : fMixed.filter((m) => shown(m.name)).length;
+  });
+  let hasVisibleMatches = $derived(visibleMatchCount > 0);
 
   let objectName = $derived(objectKey.replace('all_', '').replace('.obj', ''));
   let colorCss = $derived(
@@ -97,67 +126,90 @@
   </div>
 {/if}
 
-<span
-  role="group"
-  class="h-4.5 w-full self-stretch flex items-center gap-1 pl-1.25 pr-0.5 mb-2 not-nth-of-type-[1]:mt-1 text-xs font-bold text-ui-text-primary"
-  oncontextmenu={onContextMenu}
->
-  <span style="color: {colorCss}"><ObjectIcon class="size-[18px]" /></span>
+{#if !searching || hasVisibleMatches}
   <span
-    class="flex-1 truncate text-center px-2 select-none"
-    style="cursor: {isHidden || allGroupsHiddenFromSidebar ? 'default' : 'pointer'}"
-    onclick={toggleCollapsed}
-    onkeydown={(e) => e.key === 'Enter' && toggleCollapsed()}
-    role="button"
-    tabindex="0"
+    role="group"
+    class="h-4.5 w-full self-stretch flex items-center gap-1 pl-1.25 pr-0.5 mb-2 not-nth-of-type-[1]:mt-1 text-xs font-bold text-ui-text-primary"
+    oncontextmenu={onContextMenu}
   >
-    {objectName}
+    <span style="color: {colorCss}"><ObjectIcon class="size-[18px]" /></span>
+    <span
+      class="flex-1 truncate text-center px-2 select-none"
+      style="cursor: {isHidden || allGroupsHiddenFromSidebar ? 'default' : 'pointer'}"
+      onclick={toggleCollapsed}
+      onkeydown={(e) => e.key === 'Enter' && toggleCollapsed()}
+      role="button"
+      tabindex="0"
+    >
+      {objectName}
+    </span>
+    <button
+      class="size-4.5 shrink-0 flex items-center justify-center cursor-pointer opacity-40 hover:opacity-90"
+      title="Hide/show mesh"
+      onclick={toggleVisibility}
+    >
+      {#if isHidden}
+        <EyeOffIcon class="size-4" />
+      {:else}
+        <EyeIcon class="size-4" />
+      {/if}
+    </button>
   </span>
-  <button
-    class="size-4.5 shrink-0 flex items-center justify-center cursor-pointer opacity-40 hover:opacity-90"
-    title="Hide/show mesh"
-    onclick={toggleVisibility}
-  >
-    {#if isHidden}
-      <EyeOffIcon class="size-4" />
-    {:else}
-      <EyeIcon class="size-4" />
-    {/if}
-  </button>
-</span>
 
-{#if isHidden}
-  <div class="w-full text-center text-[0.7rem] font-normal mb-2 text-ui-text-muted">
-    {groupCount} groups
-  </div>
-{:else if !collapsed}
-  <div class="w-full flex flex-col items-center space-y-1">
-    {#if groupByKind}
-      {#each volumes as groupName}
-        <GroupButton {objectKey} {groupName} kind="volume" />
-      {/each}
-      {#each faces as groupName}
-        <GroupButton {objectKey} {groupName} kind="face" />
-      {/each}
-      {#each edges as groupName}
-        <GroupButton {objectKey} {groupName} kind="edge" />
-      {/each}
-      {#each nodes as groupName}
-        <GroupButton {objectKey} {groupName} kind="node" />
-      {/each}
-    {:else}
-      {#each mixed as { name, kind } (`${name}::${kind}`)}
-        <GroupButton {objectKey} groupName={name} {kind} />
-      {/each}
-    {/if}
-    {#if hiddenGroupCount > 0}
-      <div class="w-full text-center text-[0.7rem] pb-1 text-ui-text-muted">
-        {hiddenGroupCount} hidden
-      </div>
-    {/if}
-  </div>
-{:else}
-  <div class="w-full text-center text-[0.7rem] font-normal mb-2 text-ui-text-muted">
-    {groupCount} groups
-  </div>
+  {#if searching}
+    <div class="w-full flex flex-col items-center space-y-1">
+      {#if groupByKind}
+        {#each fVolumes as groupName}
+          <GroupButton {objectKey} {groupName} kind="volume" />
+        {/each}
+        {#each fFaces as groupName}
+          <GroupButton {objectKey} {groupName} kind="face" />
+        {/each}
+        {#each fEdges as groupName}
+          <GroupButton {objectKey} {groupName} kind="edge" />
+        {/each}
+        {#each fNodes as groupName}
+          <GroupButton {objectKey} {groupName} kind="node" />
+        {/each}
+      {:else}
+        {#each fMixed as { name, kind } (`${name}::${kind}`)}
+          <GroupButton {objectKey} groupName={name} {kind} />
+        {/each}
+      {/if}
+    </div>
+  {:else if isHidden}
+    <div class="w-full text-center text-[0.7rem] font-normal mb-2 text-ui-text-muted">
+      {groupCount} groups
+    </div>
+  {:else if !collapsed}
+    <div class="w-full flex flex-col items-center space-y-1">
+      {#if groupByKind}
+        {#each volumes as groupName}
+          <GroupButton {objectKey} {groupName} kind="volume" />
+        {/each}
+        {#each faces as groupName}
+          <GroupButton {objectKey} {groupName} kind="face" />
+        {/each}
+        {#each edges as groupName}
+          <GroupButton {objectKey} {groupName} kind="edge" />
+        {/each}
+        {#each nodes as groupName}
+          <GroupButton {objectKey} {groupName} kind="node" />
+        {/each}
+      {:else}
+        {#each mixed as { name, kind } (`${name}::${kind}`)}
+          <GroupButton {objectKey} groupName={name} {kind} />
+        {/each}
+      {/if}
+      {#if hiddenGroupCount > 0}
+        <div class="w-full text-center text-[0.7rem] pb-1 text-ui-text-muted">
+          {hiddenGroupCount} hidden
+        </div>
+      {/if}
+    </div>
+  {:else}
+    <div class="w-full text-center text-[0.7rem] font-normal mb-2 text-ui-text-muted">
+      {groupCount} groups
+    </div>
+  {/if}
 {/if}

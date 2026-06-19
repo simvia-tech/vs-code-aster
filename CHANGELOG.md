@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Mesh viewer: search group names in the sidebar and the "Sidebar groups" popup. The list filters to matching groups as you type, making it easy to locate a specific group (e.g. `M34522`) in large meshes.
 - Mesh viewer: the sidebar and "Sidebar groups" group lists now keep a visible scrollbar for top-to-bottom navigation of large meshes.
 
 ### Fixed

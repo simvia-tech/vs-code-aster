@@ -5,6 +5,7 @@
   import ObjectSection from '../sidebar/ObjectSection.svelte';
   import ActionButtons from '../sidebar/ActionButtons.svelte';
   import AxisButtons from '../viewer/AxisButtons.svelte';
+  import GroupSearch from '../ui/GroupSearch.svelte';
 
   let { onOpenGroups }: { onOpenGroups: () => void } = $props();
 
@@ -14,6 +15,7 @@
 </script>
 
 <div id="controls" class="relative h-full flex flex-col z-20 p-2 bg-ui-muted">
+  <GroupSearch class="mb-2 shrink-0" />
   <div id="sidebarGroups" class="flex flex-col items-center space-y-1 grow overflow-y-auto">
     {#each Object.entries($groupHierarchy) as [key, data]}
       <ObjectSection

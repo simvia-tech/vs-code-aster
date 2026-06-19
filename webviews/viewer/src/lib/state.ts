@@ -75,6 +75,16 @@ export const autoRotateSessionReverse = writable<boolean>(false);
 // Map<objectKey, Set<groupName>> — groups NOT shown in sidebar (hidden)
 export const sidebarHiddenGroups = writable<Map<string, Set<string>>>(new Map());
 
+// Search term used to highlight & scroll to matching group names in the
+// sidebar list and the groups popup.
+export const groupSearchTerm = writable<string>('');
+
+/** Case-insensitive substring match of a group name against the search term. */
+export function groupNameMatches(name: string, term: string): boolean {
+  const t = term.trim().toLowerCase();
+  return t.length > 0 && name.toLowerCase().includes(t);
+}
+
 export const loadingProgress = tweened<number>(0, { duration: 300, easing: cubicOut });
 export const loadingMessage = writable<string>('');
 export const errorMessage = writable<string>('');
