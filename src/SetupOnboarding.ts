@@ -74,8 +74,11 @@ async function stepPythonDeps(context: vscode.ExtensionContext, force?: boolean)
   if (probe.ok) {
     return;
   }
+  const medcouplingNote = probe.medcouplingUnavailable
+    ? ' (medcoupling will be skipped — no wheel for Python 3.14+, so the .med mesh viewer stays disabled)'
+    : '';
   const choice = await vscode.window.showInformationMessage(
-    `code_aster language server needs Python packages (${probe.missing.join(', ')}). ` +
+    `code_aster language server needs Python packages (${probe.missing.join(', ')})${medcouplingNote}. ` +
       'Install them now? They will go into a managed virtual environment owned by the extension.',
     'Install',
     'Not now',
@@ -111,9 +114,15 @@ async function stepPythonDeps(context: vscode.ExtensionContext, force?: boolean)
         }
         return;
       }
-      vscode.window.showInformationMessage(
-        'code_aster LSP dependencies installed. Restarting language server…'
-      );
+      if (result.warning) {
+        vscode.window.showWarningMessage(
+          `code_aster LSP dependencies installed. ${result.warning} Restarting language server…`
+        );
+      } else {
+        vscode.window.showInformationMessage(
+          'code_aster LSP dependencies installed. Restarting language server…'
+        );
+      }
       void LspServer.instance.restart();
     }
   );

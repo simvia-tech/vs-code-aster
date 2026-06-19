@@ -6,6 +6,19 @@ import { spawn } from 'child_process';
 
 export const LSP_DEPS = ['pygls==1.3.1', 'numpy', 'medcoupling'] as const;
 
+// medcoupling publishes prebuilt wheels for CPython 3.9–3.13 only (no cp314 yet).
+// On newer interpreters pip falls back to a source build that needs cmake + a
+// full toolchain and fails; we skip it instead and run without the mesh viewer.
+export const MEDCOUPLING_MAX_MINOR = 13;
+
+/** LSP deps that ship wheels for every supported Python (everything but medcoupling). */
+export const CORE_LSP_DEPS = ['pygls==1.3.1', 'numpy'] as const;
+
+const MEDCOUPLING_WARNING =
+  'medcoupling has no prebuilt wheel for Python 3.14+ yet, so it was skipped. ' +
+  'The language server works, but the .med mesh viewer is unavailable — ' +
+  'use a Python 3.10–3.13 interpreter for full functionality.';
+
 export interface RunResult {
   code: number;
   stdout: string;
@@ -29,6 +42,25 @@ export function runProc(cmd: string, args: string[], timeoutMs = 60_000): Promis
       resolve({ code: code ?? -1, stdout, stderr });
     });
   });
+}
+
+/** Query an interpreter's (major, minor) version, or null if it can't be run. */
+export async function pythonVersion(python: string): Promise<[number, number] | null> {
+  const r = await runProc(
+    python,
+    ['-c', 'import sys;print(sys.version_info[0], sys.version_info[1])'],
+    5_000
+  );
+  if (r.code !== 0) {
+    return null;
+  }
+  const m = r.stdout.trim().match(/^(\d+)\s+(\d+)/);
+  return m ? [Number(m[1]), Number(m[2])] : null;
+}
+
+/** True when this interpreter is too new for a prebuilt medcoupling wheel. */
+export function medcouplingUnavailable(v: [number, number] | null): boolean {
+  return !!v && (v[0] > 3 || (v[0] === 3 && v[1] > MEDCOUPLING_MAX_MINOR));
 }
 
 /**
@@ -74,19 +106,35 @@ export function userHasCustomPython(): boolean {
   return userSetting !== '' && userSetting !== 'python3';
 }
 
-/** Probe the LSP's three Python deps via the configured interpreter. */
-export async function probeLspDeps(
-  context: vscode.ExtensionContext
-): Promise<{ ok: boolean; missing: string[] }> {
+export interface DepsProbe {
+  /** True when everything required for the current interpreter is importable. */
+  ok: boolean;
+  /** Packages we want but couldn't import. */
+  missing: string[];
+  /** Interpreter is too new for a medcoupling wheel; it's treated as optional. */
+  medcouplingUnavailable: boolean;
+  pythonVersion: [number, number] | null;
+}
+
+/**
+ * Probe the LSP's Python deps via the configured interpreter. On interpreters
+ * too new for a medcoupling wheel (Python 3.14+), medcoupling is optional: `ok`
+ * only requires pygls + numpy, so we don't nag to install something that can't
+ * install.
+ */
+export async function probeLspDeps(context: vscode.ExtensionContext): Promise<DepsProbe> {
   const python = resolvePythonExecutable(context);
-  const r = await runProc(python, ['-c', 'import pygls, numpy, medcoupling'], 8_000);
+  const v = await pythonVersion(python);
+  const noMedcoupling = medcouplingUnavailable(v);
+  const imports = noMedcoupling ? 'import pygls, numpy' : 'import pygls, numpy, medcoupling';
+  const r = await runProc(python, ['-c', imports], 8_000);
   if (r.code === 0) {
-    return { ok: true, missing: [] };
+    return { ok: true, missing: [], medcouplingUnavailable: noMedcoupling, pythonVersion: v };
   }
   // Parse the ImportError message to figure out which package is missing.
   const m = r.stderr.match(/No module named ['"]([^'"]+)['"]/);
-  const missing = m ? [m[1]] : [...LSP_DEPS];
-  return { ok: false, missing };
+  const missing = m ? [m[1]] : noMedcoupling ? [...CORE_LSP_DEPS] : [...LSP_DEPS];
+  return { ok: false, missing, medcouplingUnavailable: noMedcoupling, pythonVersion: v };
 }
 
 /** Probe ruff via the configured interpreter. Reused by CommFormatter. */
@@ -137,7 +185,7 @@ export async function ensureManagedVenv(context: vscode.ExtensionContext): Promi
 export async function installLspDeps(
   context: vscode.ExtensionContext,
   progress: vscode.Progress<{ message?: string }>
-): Promise<{ ok: boolean; pythonPath: string; error?: string }> {
+): Promise<{ ok: boolean; pythonPath: string; error?: string; warning?: string }> {
   let pythonPath: string;
   if (userHasCustomPython()) {
     pythonPath = resolvePythonExecutable(context);
@@ -155,14 +203,19 @@ export async function installLspDeps(
     pythonPath = venvPython;
   }
 
+  // On Python 3.14+ medcoupling has no wheel and a source build fails on most
+  // machines; install only the wheel-backed deps so the LSP still works.
+  const skipMedcoupling = medcouplingUnavailable(await pythonVersion(pythonPath));
+  const deps = skipMedcoupling ? [...CORE_LSP_DEPS] : [...LSP_DEPS];
+
   progress.report({ message: 'Upgrading pip…' });
   await runProc(pythonPath, ['-m', 'pip', 'install', '--upgrade', 'pip'], 60_000);
 
-  progress.report({ message: `Installing ${LSP_DEPS.join(', ')}…` });
-  let r = await runProc(pythonPath, ['-m', 'pip', 'install', ...LSP_DEPS], 240_000);
+  progress.report({ message: `Installing ${deps.join(', ')}…` });
+  let r = await runProc(pythonPath, ['-m', 'pip', 'install', ...deps], 240_000);
   if (r.code !== 0 && /externally[- ]managed/i.test(r.stderr)) {
     progress.report({ message: 'Retrying with --user (externally-managed env)…' });
-    r = await runProc(pythonPath, ['-m', 'pip', 'install', '--user', ...LSP_DEPS], 240_000);
+    r = await runProc(pythonPath, ['-m', 'pip', 'install', '--user', ...deps], 240_000);
   }
   if (r.code !== 0) {
     return {
@@ -180,7 +233,7 @@ export async function installLspDeps(
       .update('pythonExecutablePath', pythonPath, vscode.ConfigurationTarget.Global);
   }
 
-  return { ok: true, pythonPath };
+  return { ok: true, pythonPath, warning: skipMedcoupling ? MEDCOUPLING_WARNING : undefined };
 }
 
 /** Install ruff into the same interpreter the LSP uses. */

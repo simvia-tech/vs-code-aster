@@ -5,6 +5,12 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Python 3.14+ setup no longer fails on a cryptic `medcoupling` build error. `medcoupling` ships prebuilt wheels for Python 3.10–3.13 only; on newer interpreters it's now skipped automatically so the language server still installs and runs. Onboarding, the sidebar status, and the `.med` viewer error all explain that the mesh viewer needs a Python 3.10–3.13 interpreter.
+
 ## [1.10.2] - 2026-04-30
 
 A small round of LSP fixes targeting catalogs that declare the same SIMP under mutually-exclusive `BLOC`s (most visibly `DEFI_CONTACT`), plus a long-standing race in the suggestion retrigger.

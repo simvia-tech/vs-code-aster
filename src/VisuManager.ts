@@ -6,6 +6,7 @@ import { sendTelemetry, TelemetryType } from './telemetry';
 import { WebviewVisu } from './WebviewVisu';
 import { TextDecoder } from 'util';
 import { getMeshCacheDir } from './projectPaths';
+import { medcouplingUnavailable, pythonVersion } from './PythonEnv';
 
 const EXPECTED_MED2OBJ_VERSION = 2;
 
@@ -341,10 +342,23 @@ export async function getObjFiles(medFiles: string[]): Promise<vscode.Uri[]> {
       const msg = err instanceof Error ? err.message : String(err);
 
       if (msg.includes("No module named 'medcoupling'")) {
-        vscode.window.showErrorMessage(
-          "Python module 'medcoupling' is not installed. " +
-            'Please install it by running `pip install medcoupling` in your Python environment, then retry.'
-        );
+        const python = vscode.workspace
+          .getConfiguration('vs-code-aster')
+          .get<string>('pythonExecutablePath', 'python3');
+        const v = await pythonVersion(python);
+        if (medcouplingUnavailable(v)) {
+          vscode.window.showErrorMessage(
+            `Your Python (${v?.[0]}.${v?.[1]}) has no prebuilt medcoupling wheel — ` +
+              'medcoupling ships wheels for Python 3.10–3.13 only. ' +
+              'Point "vs-code-aster.pythonExecutablePath" at a Python 3.10–3.13 interpreter ' +
+              'with medcoupling installed to use the mesh viewer.'
+          );
+        } else {
+          vscode.window.showErrorMessage(
+            "Python module 'medcoupling' is not installed. " +
+              'Please install it by running `pip install medcoupling` in your Python environment, then retry.'
+          );
+        }
       } else {
         vscode.window.showErrorMessage(
           `Error while searching for .obj file: ${(err as Error).message}`

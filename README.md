@@ -57,11 +57,16 @@ The **VS Code Aster** extension is now available on the [VS Code Marketplace](ht
 
 ### 2. Required dependencies
 
-This extension requires **Python 3.10 or later** and the following packages :
+This extension requires **Python 3.10–3.13** and the following packages :
 
 - `numpy`
 - `pygls==1.3.1`
 - `medcoupling`
+
+> **Note:** `medcoupling` has no prebuilt wheel for **Python 3.14+** yet. On 3.14
+> the language server (completion, diagnostics, hover, formatting) still works,
+> but the `.med` mesh viewer is unavailable. Use a Python 3.10–3.13 interpreter
+> for full functionality.
 
 Here are **two ways** to install these packages :
 

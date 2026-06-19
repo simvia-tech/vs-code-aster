@@ -34,6 +34,7 @@ const EMPTY_FAMILIES: CommandFamilies = {
 interface Probe {
   pythonOk: boolean;
   pythonMissing: string[];
+  pythonMedcouplingUnavailable: boolean;
   ruffOk: boolean;
   dockerOk: boolean;
   caveOk: boolean;
@@ -299,6 +300,7 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
       this.cached ?? {
         pythonOk: false,
         pythonMissing: [],
+        pythonMedcouplingUnavailable: false,
         ruffOk: false,
         dockerOk: false,
         caveOk: false,
@@ -324,6 +326,7 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
     this.cached = {
       pythonOk: pythonResult.ok,
       pythonMissing: pythonResult.missing,
+      pythonMedcouplingUnavailable: pythonResult.medcouplingUnavailable,
       ruffOk,
       dockerOk,
       caveOk,
@@ -411,7 +414,9 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
         'Python LSP dependencies',
         p.pythonOk ? 'ok' : 'warn',
         p.pythonOk
-          ? 'pygls, numpy, medcoupling installed'
+          ? p.pythonMedcouplingUnavailable
+            ? 'pygls, numpy installed (medcoupling unavailable on Python 3.14+ — mesh viewer disabled)'
+            : 'pygls, numpy, medcoupling installed'
           : `missing: ${p.pythonMissing.join(', ') || '?'}`,
         'vs-code-aster.runSetup'
       ),
