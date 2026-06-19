@@ -5,7 +5,7 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.11.0] - 2026-06-19
+## [1.11.0] - 2026-06-22
 
 A mesh-viewer release: group lists are now searchable and filterable with a visible scrollbar, and a counter shows the mesh's element and node totals. Setup is more resilient on Python 3.14, `.med` read failures report clearly, and all dependencies were refreshed to clear known npm advisories.
 
