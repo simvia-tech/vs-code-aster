@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-ui-bg: var(--ui-bg);
@@ -24,7 +24,7 @@
   --ui-btn-fg: var(--vscode-button-foreground, #ffffff);
   --ui-btn-hover-bg: var(--vscode-button-hoverBackground, #005fa3);
   --ui-popup-bg: var(--vscode-editorWidget-background, var(--vscode-editor-background, #f3f3f3));
-  --ui-border: var(--vscode-widget-border, var(--vscode-editorWidget-border, rgba(0,0,0,0.1)));
+  --ui-border: var(--vscode-widget-border, var(--vscode-editorWidget-border, rgba(0, 0, 0, 0.1)));
   --icon-filter: none;
 
   --ui-text-primary: color-mix(in srgb, var(--ui-fg) 90%, transparent);
@@ -48,11 +48,11 @@ kbd {
   background: color-mix(in srgb, var(--ui-bg) 70%, transparent);
 }
 
-input[type="checkbox"].custom-cb:focus {
+input[type='checkbox'].custom-cb:focus {
   outline: none;
 }
 
-input[type="checkbox"].custom-cb {
+input[type='checkbox'].custom-cb {
   appearance: none;
   width: 13px;
   height: 13px;
@@ -61,15 +61,17 @@ input[type="checkbox"].custom-cb {
   border: 1.5px solid var(--ui-text-secondary);
   cursor: pointer;
   position: relative;
-  transition: background 0.1s, border-color 0.1s;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
 }
 
-input[type="checkbox"].custom-cb:checked {
+input[type='checkbox'].custom-cb:checked {
   background: var(--ui-btn-bg);
   border-color: var(--ui-btn-bg);
 }
 
-input[type="checkbox"].custom-cb:checked::after {
+input[type='checkbox'].custom-cb:checked::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -81,16 +83,35 @@ input[type="checkbox"].custom-cb:checked::after {
   transform: translateY(-1px) rotate(45deg);
 }
 
-#sidebarGroups,
 #helpPopup .overflow-y-auto,
-#settingsPopup .overflow-y-auto,
-#groupsPopup .overflow-y-auto {
+#settingsPopup .overflow-y-auto {
   scrollbar-width: none;
 }
 
-#sidebarGroups::-webkit-scrollbar,
 #helpPopup .overflow-y-auto::-webkit-scrollbar,
-#settingsPopup .overflow-y-auto::-webkit-scrollbar,
-#groupsPopup .overflow-y-auto::-webkit-scrollbar {
+#settingsPopup .overflow-y-auto::-webkit-scrollbar {
   display: none;
+}
+
+/* Group lists keep a thin, themed scrollbar so long lists can be navigated. */
+#sidebarGroups,
+#groupsPopup .overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-text-muted) transparent;
+}
+
+#sidebarGroups::-webkit-scrollbar,
+#groupsPopup .overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+#sidebarGroups::-webkit-scrollbar-thumb,
+#groupsPopup .overflow-y-auto::-webkit-scrollbar-thumb {
+  background: var(--ui-text-muted);
+  border-radius: 4px;
+}
+
+#sidebarGroups::-webkit-scrollbar-track,
+#groupsPopup .overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
 }

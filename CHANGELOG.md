@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Mesh viewer: the sidebar and "Sidebar groups" group lists now keep a visible scrollbar for top-to-bottom navigation of large meshes.
+
 ### Fixed
 
 - Python 3.14+ setup no longer fails on a cryptic `medcoupling` build error. `medcoupling` ships prebuilt wheels for Python 3.10–3.13 only; on newer interpreters it's now skipped automatically so the language server still installs and runs. Onboarding, the sidebar status, and the `.med` viewer error all explain that the mesh viewer needs a Python 3.10–3.13 interpreter.
