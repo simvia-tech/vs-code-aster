@@ -511,7 +511,7 @@
     "vscode-languageclient": "^9.0.0"
   },
   "dependencies": {
-    "@kitware/vtk.js": "^35.10.0",
+    "@kitware/vtk.js": "^36.2.1",
     "@tailwindcss/cli": "^4.1.17",
     "tailwindcss": "^4.1.17",
     "uuid": "^13.0.0"
