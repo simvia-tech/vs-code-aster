@@ -508,12 +508,12 @@
     "svelte-dnd-action": "^0.9.69",
     "typescript": "^5.9.3",
     "vite": "^8.0.16",
-    "vscode-languageclient": "^9.0.0"
+    "vscode-languageclient": "^10.0.0"
   },
   "dependencies": {
     "@kitware/vtk.js": "^36.2.1",
     "@tailwindcss/cli": "^4.1.17",
     "tailwindcss": "^4.1.17",
-    "uuid": "^13.0.0"
+    "uuid": "^14.0.0"
   }
 }
