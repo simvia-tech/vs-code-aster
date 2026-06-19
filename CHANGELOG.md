@@ -5,11 +5,13 @@ All notable changes to the **VS Code Aster** extension will be documented in thi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.11.0] - 2026-06-19
+
+A mesh-viewer release: group lists are now searchable and filterable with a visible scrollbar, and a counter shows the mesh's element and node totals. Setup is more resilient on Python 3.14, `.med` read failures report clearly, and all dependencies were refreshed to clear known npm advisories.
 
 ### Added
 
-- Mesh viewer: a counter in the viewport corner shows the mesh's total element and node counts (the true FEA counts from the `.med`, not the rendered surface).
+- Mesh viewer: a counter beside the sidebar shows the mesh's total element and node counts (the true FEA counts from the `.med`, not the rendered surface).
 - Mesh viewer: search group names in the sidebar and the "Sidebar groups" popup. The list filters to matching groups as you type, making it easy to locate a specific group (e.g. `M34522`) in large meshes.
 - Mesh viewer: the sidebar and "Sidebar groups" group lists now keep a visible scrollbar for top-to-bottom navigation of large meshes.
 
@@ -17,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Mesh viewer: when a `.med` file can't be read (e.g. it's still being written or is corrupt), the viewer now shows a clear message instead of a raw HDF5/MED traceback.
 - Python 3.14+ setup no longer fails on a cryptic `medcoupling` build error. `medcoupling` ships prebuilt wheels for Python 3.10–3.13 only; on newer interpreters it's now skipped automatically so the language server still installs and runs. Onboarding, the sidebar status, and the `.med` viewer error all explain that the mesh viewer needs a Python 3.10–3.13 interpreter.
+
+### Changed
+
+- Dependencies updated to their latest versions, clearing all known npm audit advisories (0 vulnerabilities). Notable major bumps: vite 8, `@kitware/vtk.js` 36, eslint 10, and `vscode-languageclient` 10.
 
 ## [1.10.2] - 2026-04-30
 
