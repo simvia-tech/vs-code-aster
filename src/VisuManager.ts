@@ -359,6 +359,12 @@ export async function getObjFiles(medFiles: string[]): Promise<vscode.Uri[]> {
               'Please install it by running `pip install medcoupling` in your Python environment, then retry.'
           );
         }
+      } else if (/unreadable by MED file|impossible to read anything/i.test(msg)) {
+        vscode.window.showErrorMessage(
+          `${path.basename(mmedFilePath)} could not be read — the file may be incomplete ` +
+            '(still being written) or corrupt. If a simulation or file copy is still running, ' +
+            'wait for it to finish and try again.'
+        );
       } else {
         vscode.window.showErrorMessage(
           `Error while searching for .obj file: ${(err as Error).message}`

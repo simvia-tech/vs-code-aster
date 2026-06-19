@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Mesh viewer: when a `.med` file can't be read (e.g. it's still being written or is corrupt), the viewer now shows a clear message instead of a raw HDF5/MED traceback.
 - Python 3.14+ setup no longer fails on a cryptic `medcoupling` build error. `medcoupling` ships prebuilt wheels for Python 3.10–3.13 only; on newer interpreters it's now skipped automatically so the language server still installs and runs. Onboarding, the sidebar status, and the `.med` viewer error all explain that the mesh viewer needs a Python 3.10–3.13 interpreter.
 
 ## [1.10.2] - 2026-04-30
