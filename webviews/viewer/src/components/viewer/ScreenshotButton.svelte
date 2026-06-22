@@ -80,7 +80,55 @@
       ctx.drawImage(vtkImg, -bounds.x, -bounds.y, bounds.vw, bounds.vh);
     }
 
+    // The bounding-box dimension labels and the element/node counter are HTML
+    // overlays that annotate the scene, not part of the VTK canvas. Rasterize
+    // them separately and composite them at their on-screen positions, shifted
+    // by the same crop offset as the canvases.
+    await drawDomOverlay(ctx, dpr, bounds.x, bounds.y, 'bboxLabels');
+    await drawDomOverlay(ctx, dpr, bounds.x, bounds.y, 'elementsCounter');
+
     return new Promise((r) => composite.toBlob(r, 'image/png'));
+  }
+
+  async function drawDomOverlay(
+    ctx: CanvasRenderingContext2D,
+    dpr: number,
+    offsetX: number,
+    offsetY: number,
+    elementId: string
+  ) {
+    const el = document.getElementById(elementId);
+    if (!el || el.classList.contains('hidden')) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    try {
+      // html-to-image rasterizes the node in isolation but honors its own CSS
+      // offsets, so an overlay anchored away from the origin (e.g. `left: 100%`)
+      // would render outside the image bounds. Pin it to the origin at its
+      // measured size; we place it via drawImage below instead.
+      const overlay = await domToBlob(el, {
+        pixelRatio: dpr,
+        width: rect.width,
+        height: rect.height,
+        style: {
+          position: 'absolute',
+          left: '0px',
+          top: '0px',
+          right: 'auto',
+          bottom: 'auto',
+          margin: '0px',
+          transform: 'none',
+          width: `${rect.width}px`,
+          height: `${rect.height}px`,
+        },
+      });
+      if (!overlay) return;
+      const img = new Image();
+      img.src = URL.createObjectURL(overlay);
+      await new Promise<void>((r) => (img.onload = () => r()));
+      ctx.drawImage(img, rect.left - offsetX, rect.top - offsetY, rect.width, rect.height);
+      URL.revokeObjectURL(img.src);
+    } catch {}
   }
 
   async function fullWebviewBlob(): Promise<Blob | null> {

@@ -14,32 +14,30 @@
 </script>
 
 {#if dims}
-  <div
-    id="bboxLabelOrigin"
-    class="absolute pointer-events-none text-[0.7rem] font-mono font-bold text-ui-text-secondary select-none -translate-x-1/2 -translate-y-1/2"
-    class:hidden
-  >
-    0
-  </div>
-  <div
-    id="bboxLabelX"
-    class="absolute pointer-events-none text-[0.7rem] font-mono font-bold text-red-500 select-none -translate-x-1/2 -translate-y-1/2"
-    class:hidden
-  >
-    X: {fmt(dims.x)}
-  </div>
-  <div
-    id="bboxLabelY"
-    class="absolute pointer-events-none text-[0.7rem] font-mono font-bold text-green-500 select-none -translate-x-1/2 -translate-y-1/2"
-    class:hidden
-  >
-    Y: {fmt(dims.y)}
-  </div>
-  <div
-    id="bboxLabelZ"
-    class="absolute pointer-events-none text-[0.7rem] font-mono font-bold text-blue-500 select-none -translate-x-1/2 -translate-y-1/2"
-    class:hidden
-  >
-    Z: {fmt(dims.z)}
+  <div id="bboxLabels" class="absolute inset-0 pointer-events-none" class:hidden>
+    <div
+      id="bboxLabelOrigin"
+      class="absolute pointer-events-none text-[0.7rem] font-mono font-bold text-ui-text-secondary select-none -translate-x-1/2 -translate-y-1/2"
+    >
+      0
+    </div>
+    <div
+      id="bboxLabelX"
+      class="absolute pointer-events-none text-[0.7rem] font-mono font-bold text-red-500 select-none -translate-x-1/2 -translate-y-1/2"
+    >
+      X: {fmt(dims.x)}
+    </div>
+    <div
+      id="bboxLabelY"
+      class="absolute pointer-events-none text-[0.7rem] font-mono font-bold text-green-500 select-none -translate-x-1/2 -translate-y-1/2"
+    >
+      Y: {fmt(dims.y)}
+    </div>
+    <div
+      id="bboxLabelZ"
+      class="absolute pointer-events-none text-[0.7rem] font-mono font-bold text-blue-500 select-none -translate-x-1/2 -translate-y-1/2"
+    >
+      Z: {fmt(dims.z)}
+    </div>
   </div>
 {/if}
