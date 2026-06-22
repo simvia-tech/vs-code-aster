@@ -68,6 +68,10 @@ vsc-extension-quickstart.md
 *.vsix
 .vscode-test
 out/
+out-test/
+
+# Extension run-data created in project folders (run logs, mesh cache, etc.)
+.vs-code-aster/
 
 .claude/
 CLAUDE.md

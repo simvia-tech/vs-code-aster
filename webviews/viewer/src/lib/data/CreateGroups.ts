@@ -21,15 +21,16 @@ export class CreateGroups {
     onProgress: (progress: number) => void,
     onMessage: (message: string) => void
   ): Promise<void> {
+    const post = (text: string) => {
+      Controller.Instance.getVSCodeAPI().postMessage({ type: 'debugPanel', text });
+    };
     const result = await ObjLoader.loadFiles(
       this.fileContexts,
       this.fileNames,
       onProgress,
-      onMessage
+      onMessage,
+      post
     );
-    const post = (text: string) => {
-      Controller.Instance.getVSCodeAPI().postMessage({ type: 'debugPanel', text });
-    };
 
     if (!result) {
       return;

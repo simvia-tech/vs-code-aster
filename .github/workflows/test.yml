@@ -1,0 +1,64 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unit-web:
+    name: TS unit + webview (Vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.15
+      - name: Install npm dependencies
+        run: npm install
+      - name: Vitest (unit + webviews)
+        run: npm run test:vitest
+
+  python:
+    name: Python (pytest)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install Python deps
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      - name: Pytest
+        # medcoupling-gated mesh tests auto-skip; CATA loads from the vendored
+        # catalog with only numpy installed.
+        run: python -m pytest python/tests -q
+
+  integration:
+    name: VS Code integration (headless)
+    runs-on: ubuntu-latest
+    # Electron download + xvfb; kept non-blocking until proven stable in CI.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.15
+      - name: Install system libraries for VS Code
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libgbm1 libasound2t64 xvfb
+      - name: Install npm dependencies
+        run: npm install
+      - name: Cache VS Code download
+        uses: actions/cache@v4
+        with:
+          path: .vscode-test
+          key: vscode-test-${{ runner.os }}
+      - name: Run integration tests
+        run: xvfb-run -a --server-args="-screen 0 1280x1024x24" npm run test:integration

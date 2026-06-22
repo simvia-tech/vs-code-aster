@@ -46,8 +46,6 @@ if sys.platform == "win32" and python_version >= (3, 8):
                     print(os.add_dll_directory(os.path.abspath(path)))
                     sys.path.append(path)
 
-import medcoupling as mc  # noqa E402
-
 # Bump when the .obj output format changes in a breaking way. The extension
 # reads the `# med2obj-version:` header and regenerates on mismatch.
 MED2OBJ_VERSION = 3
@@ -139,6 +137,8 @@ def write_obj(
 
 
 def main():
+    import medcoupling as mc  # deferred so the module imports without medcoupling
+
     args = parse_args()
     input_path = pl.Path(args.input)
     output_path = pl.Path(args.output)
@@ -195,4 +195,5 @@ def main():
     )
 
 
-main()
+if __name__ == "__main__":
+    main()

@@ -93,6 +93,13 @@ export class LspServer {
    */
   public async start(context: vscode.ExtensionContext) {
     this._context = context;
+    // Test/CI escape hatch: skip the eager docker reconcile and the language
+    // client launch so the extension host boots fast and deterministically in
+    // integration tests. The restart command and onReady still work.
+    if (process.env.VS_CODE_ASTER_DISABLE_LSP === '1') {
+      this._readyEmitter.fire();
+      return;
+    }
     // Reconcile on-disk caches against what docker currently has. If an
     // image was removed externally (docker rmi, cave internal cleanup), the
     // matching extracted catalog lingers and our resolver would still serve

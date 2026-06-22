@@ -3,8 +3,14 @@
 .github/**
 .claude/**
 out/**
+out-test/**
 node_modules/**
 src/**
+tests/**
+python/tests/**
+vitest.config.ts
+tsconfig.test.json
+requirements-dev.txt
 .gitignore
 .yarnrc
 .prettierignore

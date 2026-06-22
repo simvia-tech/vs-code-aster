@@ -25,6 +25,28 @@ def bundle(session):
 
 
 @nox.session(python=["3.11", "3.12"])
+def tests(session):
+    """Run the Python test suite (LSP + scripts) against the real catalog."""
+    session.install("-r", "./requirements.txt")
+    session.install("-r", "./requirements-dev.txt")
+    session.run("pytest", "python/tests", "-q")
+
+
+@nox.session(python=["3.11", "3.12"])
+def tests_cov(session):
+    """Run the Python test suite with coverage."""
+    session.install("-r", "./requirements.txt")
+    session.install("-r", "./requirements-dev.txt")
+    session.run(
+        "pytest",
+        "python/tests",
+        "--cov=python/lsp",
+        "--cov-report=term-missing",
+        "--cov-report=xml",
+    )
+
+
+@nox.session(python=["3.11", "3.12"])
 def package(session):
     """Installs the libraries that will be bundled with the extension."""
     session.install("wheel")

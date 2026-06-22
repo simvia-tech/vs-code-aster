@@ -1,0 +1,4 @@
+# Test-only Python dependencies. Kept separate from requirements.txt so the
+# bundled libs shipped in the .vsix stay lean (these are never bundled).
+pytest>=8
+pytest-cov>=5

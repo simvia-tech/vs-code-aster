@@ -1,5 +1,3 @@
-import { Controller } from '../Controller';
-
 export interface ObjLoaderResult {
   vertices: { x: number; y: number; z: number }[];
   cells: number[][];
@@ -26,7 +24,8 @@ export class ObjLoader {
     fileContexts: string[],
     fileNames: string[],
     onProgress: (progress: number) => void,
-    onMessage: (message: string) => void
+    onMessage: (message: string) => void,
+    onDebug?: (text: string) => void
   ): Promise<ObjLoaderResult> {
     const vertices: { x: number; y: number; z: number }[] = [];
     const cells: number[][] = [];
@@ -163,18 +162,14 @@ export class ObjLoader {
         onProgress(((i + 1) / fileContexts.length) * 0.9);
         await yield_();
       } catch (fileError: any) {
-        Controller.Instance.getVSCodeAPI().postMessage({
-          type: 'debugPanel',
-          text: `ERROR: ${fileError.message}`,
-        });
+        onDebug?.(`ERROR: ${fileError.message}`);
         throw fileError;
       }
     }
 
-    Controller.Instance.getVSCodeAPI().postMessage({
-      type: 'debugPanel',
-      text: `TOTAL: ${vertices.length} vertices, ${cells.length} cells, ${nodes.length} nodes, ${edges.length} edges`,
-    });
+    onDebug?.(
+      `TOTAL: ${vertices.length} vertices, ${cells.length} cells, ${nodes.length} nodes, ${edges.length} edges`
+    );
 
     return {
       vertices,
