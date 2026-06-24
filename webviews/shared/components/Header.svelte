@@ -5,11 +5,22 @@
     simviaLogoDarkUrl: string;
     asterLogoUrl: string;
     asterLogoDarkUrl: string;
+    /** Tighter bottom margin (mb-2 vs mb-6). */
+    compact?: boolean;
   }
-  let { title, simviaLogoUrl, simviaLogoDarkUrl, asterLogoUrl, asterLogoDarkUrl }: Props = $props();
+  let {
+    title,
+    simviaLogoUrl,
+    simviaLogoDarkUrl,
+    asterLogoUrl,
+    asterLogoDarkUrl,
+    compact = false,
+  }: Props = $props();
+
+  const marginClass = $derived(compact ? 'mb-2' : 'mb-6');
 </script>
 
-<header class="flex items-center justify-between gap-4 mb-6">
+<header class="flex items-center justify-between gap-4 {marginClass}">
   <h1 class="text-xl font-semibold text-ui-text-primary tracking-tight">{title}</h1>
   <div class="flex items-center gap-4 shrink-0">
     {#if simviaLogoUrl}

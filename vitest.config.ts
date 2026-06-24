@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { svelteTesting } from '@testing-library/svelte/vite';
 import { resolve } from 'path';
 
 // One Vitest install, three projects with isolated environments:
@@ -38,6 +39,20 @@ export default defineConfig({
           name: 'export',
           environment: 'happy-dom',
           include: ['webviews/export/src/**/*.test.ts'],
+          setupFiles: ['tests/setup/svelte.ts'],
+        },
+      },
+      {
+        plugins: [svelte(), svelteTesting()],
+        resolve: {
+          alias: {
+            '@scenario': resolve(__dirname, 'src/scenario'),
+          },
+        },
+        test: {
+          name: 'study',
+          environment: 'happy-dom',
+          include: ['webviews/study/src/**/*.test.ts'],
           setupFiles: ['tests/setup/svelte.ts'],
         },
       },

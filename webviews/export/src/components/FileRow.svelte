@@ -1,6 +1,6 @@
 <script lang="ts">
   import AutocompleteInput from './AutocompleteInput.svelte';
-  import Dropdown from './ui/Dropdown.svelte';
+  import Dropdown from '../../../shared/components/ui/Dropdown.svelte';
   import {
     INPUT_TYPES,
     OUTPUT_TYPES,

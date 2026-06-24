@@ -4,6 +4,12 @@
     submitLabel?: string;
     errorCount?: number;
     warningCount?: number;
+    /**
+     * When true (default) the bar sticks to the bottom of a padded scroll
+     * column and breaks out of its `p-8` padding (the export form layout).
+     * Set false to render a plain flush footer the consumer positions itself.
+     */
+    sticky?: boolean;
     onSubmit: () => void;
     onCancel: () => void;
     onScrollToErrors?: () => void;
@@ -15,15 +21,18 @@
     submitLabel = 'Create',
     errorCount = 0,
     warningCount = 0,
+    sticky = true,
     onSubmit,
     onCancel,
     onScrollToErrors,
     onScrollToWarnings,
   }: Props = $props();
+
+  const positionClass = $derived(sticky ? 'sticky bottom-0 -mx-8 -mb-8 mt-auto z-30' : '');
 </script>
 
 <div
-  class="sticky bottom-0 -mx-8 -mb-8 mt-auto pt-3 px-8 pb-3 z-30 flex items-center justify-between gap-3 border-t border-ui-border"
+  class="{positionClass} flex items-center justify-between gap-3 border-t border-ui-border px-8 pt-3 pb-3"
   style="background: color-mix(in srgb, var(--ui-bg) 92%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px)"
 >
   <div class="flex items-center gap-4 text-xs">

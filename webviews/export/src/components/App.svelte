@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import Header from './Header.svelte';
+  import Header from '../../../shared/components/Header.svelte';
   import FieldRow from './FieldRow.svelte';
   import FileSection from './FileSection.svelte';
-  import SubmitBar from './SubmitBar.svelte';
-  import Dropdown from './ui/Dropdown.svelte';
+  import SubmitBar from '../../../shared/components/SubmitBar.svelte';
+  import Dropdown from '../../../shared/components/ui/Dropdown.svelte';
   import {
     DEFAULT_UNITS,
     getNextAvailableUnit,

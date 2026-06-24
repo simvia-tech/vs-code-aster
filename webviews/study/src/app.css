@@ -65,15 +65,6 @@
   display: none;
 }
 
-/* Strip outlines from the svelte-dnd-action placeholder and the floating
-   clone. The drop-zone outline (on the target section) is enough feedback. */
-[data-is-dnd-shadow-item-internal='true'],
-#dnd-action-dragged-el,
-#dnd-action-dragged-el:focus,
-#dnd-action-dragged-el:focus-visible {
-  outline: none !important;
-}
-
 input::placeholder,
 textarea::placeholder {
   color: var(--ui-input-placeholder);
@@ -87,4 +78,22 @@ select.input-warning {
     --vscode-inputValidation-errorBackground,
     color-mix(in srgb, var(--vscode-inputValidation-errorBorder, #d45858) 15%, transparent)
   ) !important;
+}
+
+/* Transient highlight when a validation error is clicked (focusTarget). */
+@keyframes field-flash {
+  0% {
+    box-shadow: 0 0 0 2px var(--vscode-focusBorder, #0078d4);
+  }
+  70% {
+    box-shadow: 0 0 0 2px var(--vscode-focusBorder, #0078d4);
+  }
+  100% {
+    box-shadow: 0 0 0 2px transparent;
+  }
+}
+
+.field-flash {
+  border-radius: 4px;
+  animation: field-flash 1.2s ease-out;
 }
