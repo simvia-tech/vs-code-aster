@@ -23,14 +23,20 @@
     onChange: (groups: TaggedGroup[]) => void;
   } = $props();
 
-  function toggleByName(name: string) {
-    if (selected.some((g) => g.name === name)) {
-      onChange(selected.filter((g) => g.name !== name));
+  // A group name can repeat across kinds (e.g. a "CloisonSymetrieX" surface AND
+  // node group), so options are keyed by a unique `kind:name`, not the bare
+  // name — otherwise the dropdown's keyed {#each} hits duplicate keys.
+  const keyOf = (g: TaggedGroup) => `${g.kind}:${g.name}`;
+
+  function toggle(key: string) {
+    const candidate = candidates.find((g) => keyOf(g) === key);
+    if (!candidate) {
+      return;
+    }
+    if (selected.some((g) => keyOf(g) === key)) {
+      onChange(selected.filter((g) => keyOf(g) !== key));
     } else {
-      const candidate = candidates.find((g) => g.name === name);
-      if (candidate) {
-        onChange([...selected, candidate]);
-      }
+      onChange([...selected, candidate]);
     }
   }
 
@@ -50,9 +56,9 @@
   </span>
   {#if candidates.length > 0}
     <MultiSelect
-      options={candidates.map((g) => ({ value: g.name, label: g.name, hint: g.kind }))}
-      selected={selected.map((g) => g.name)}
-      onToggle={toggleByName}
+      options={candidates.map((g) => ({ value: keyOf(g), label: g.name, hint: g.kind }))}
+      selected={selected.map(keyOf)}
+      onToggle={toggle}
       placeholder="Select groups…"
     />
   {:else}
