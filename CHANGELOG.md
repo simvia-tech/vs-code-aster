@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.1] - 2026-06-24
+
+A polish release for the **Generate study from scenario** assistant.
+
+### Fixed
+
+- Generate study from scenario: the group dropdowns (most visibly "Constrained groups") now open correctly on meshes that reuse the same group name across topologies — e.g. a name that is both a surface group and a node group. Such meshes previously left the dropdown unresponsive.
+
+### Changed
+
+- Generate study from scenario: group dropdowns now show a topology icon (volume / surface / edge / node) beside each group — the same icons the 3D mesh viewer uses — so the kind of each group is clear at a glance.
+- Generate study from scenario: generating a study now opens both files — the `.export` and the `.comm`, with the `.comm` focused — instead of only the `.comm`.
+
 ## [1.12.0] - 2026-06-23
 
 Adds the **Generate study from scenario** assistant (beta) — a guided webview that turns a MED mesh into a runnable code_aster study (`.comm` + `.export`) for linear static, nonlinear static, and modal analyses — and an extension-wide automated test suite.
