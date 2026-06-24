@@ -36,14 +36,20 @@ jobs:
       - name: TypeScript
         run: npx tsc --noEmit
 
-      - name: svelte-check
+      - name: svelte-check (viewer)
         run: npx svelte-check --tsconfig webviews/viewer/tsconfig.json --fail-on-warnings
 
+      - name: svelte-check (export)
+        run: npx svelte-check --tsconfig webviews/export/tsconfig.json --fail-on-warnings
+
+      - name: svelte-check (study)
+        run: npx svelte-check --tsconfig webviews/study/tsconfig.json --fail-on-warnings
+
       - name: Ruff lint
-        run: python3 -m ruff check python/lsp/ python/med2obj.py
+        run: python3 -m ruff check python/lsp/ python/med2obj.py python/mesh_groups.py
 
       - name: Ruff format
-        run: python3 -m ruff format --check python/lsp/ python/med2obj.py
+        run: python3 -m ruff format --check python/lsp/ python/med2obj.py python/mesh_groups.py
 
       - name: mypy
         run: python3 -m mypy

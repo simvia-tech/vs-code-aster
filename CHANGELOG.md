@@ -7,9 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-06-23
+
+Adds the **Generate study from scenario** assistant (beta) — a guided webview that turns a MED mesh into a runnable code_aster study (`.comm` + `.export`) for linear static, nonlinear static, and modal analyses — and an extension-wide automated test suite.
+
+### Added
+
+- **Generate study from scenario** (beta): a new command — in the code_aster sidebar under **Quick actions** (and the Command Palette) — opens an interactive form (with a live preview of the generated files) and produces a runnable code_aster study — a `.comm` command file and a matching `.export` — for one of three mechanical scenarios: linear elastic static (`MECA_STATIQUE`), nonlinear static (`STAT_NON_LINE`), and modal (`CALC_MODES`). It reads the selected MED mesh and proposes its real group names (filtered by use: volumes/surfaces/edges/nodes) so you never have to type `GROUP_MA`/`GROUP_NO` by hand. Structural modelizations (shell `DKT`, beam `POU_D_T`) generate an `AFFE_CARA_ELEM` block wired into the solver via `CARA_ELEM`. The pair is written into a self-contained `<name>/` folder (with a copy of the mesh) and uses consistent logical units between the `.comm` and `.export`.
+
 ### Fixed
 
 - Mesh viewer: bounding-box dimension labels (`0`, `X`, `Y`, `Z`) and the element/node counter now appear in screenshots. They are HTML overlays rather than part of the 3D canvas, so the default screenshot was dropping them.
+
+### Internal
+
+- Added an automated test suite across the whole extension: Vitest for the TypeScript extension host (formatter, run-log parser, project paths, scenario generators with golden fixtures) and the Svelte webviews (OBJ loader, viewer state, export units), pytest for the Python LSP (catalog, command parser, validators) and the mesh scripts, a cross-layer contract test that validates every generated `.comm` against the real code_aster catalog, and a headless VS Code integration smoke test. Wired into CI via a new `Tests` workflow.
 
 ## [1.11.0] - 2026-06-22
 
