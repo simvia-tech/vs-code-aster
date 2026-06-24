@@ -1,9 +1,12 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
+
   let {
     checked,
     label,
     hint = '',
     block = false,
+    icon,
     onchange,
   }: {
     checked: boolean;
@@ -13,6 +16,8 @@
     /** Full-width row layout with padding + hover — the whole row is the
      * clickable label. Default is a compact inline checkbox. */
     block?: boolean;
+    /** Optional leading glyph rendered between the checkbox and the label. */
+    icon?: Snippet;
     onchange: () => void;
   } = $props();
 </script>
@@ -23,6 +28,7 @@
   >
     <span class="flex items-center gap-1.5 text-sm">
       <input type="checkbox" class="cb" {checked} {onchange} />
+      {#if icon}{@render icon()}{/if}
       <span>{label}</span>
     </span>
     {#if hint}
@@ -32,6 +38,7 @@
 {:else}
   <label class="flex cursor-pointer items-center gap-1.5 text-sm">
     <input type="checkbox" class="cb" {checked} {onchange} />
+    {#if icon}{@render icon()}{/if}
     <span>{label}</span>
   </label>
 {/if}

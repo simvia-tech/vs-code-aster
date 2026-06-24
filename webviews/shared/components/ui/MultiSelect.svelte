@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
   import Checkbox from './Checkbox.svelte';
 
   export interface MultiSelectOption {
@@ -12,11 +13,14 @@
     selected,
     onToggle,
     placeholder = 'Select…',
+    optionIcon,
   }: {
     options: MultiSelectOption[];
     selected: string[];
     onToggle: (value: string) => void;
     placeholder?: string;
+    /** Optional leading glyph for each row, derived from the option. */
+    optionIcon?: Snippet<[MultiSelectOption]>;
   } = $props();
 
   let open = $state(false);
@@ -94,7 +98,11 @@
         label={o.label}
         hint={o.hint}
         onchange={() => onToggle(o.value)}
-      />
+      >
+        {#snippet icon()}
+          {#if optionIcon}{@render optionIcon(o)}{/if}
+        {/snippet}
+      </Checkbox>
     {/each}
   </div>
 {/if}

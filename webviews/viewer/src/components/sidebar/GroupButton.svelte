@@ -1,10 +1,10 @@
 <script lang="ts">
   import { highlightedGroups, sidebarHiddenGroups } from '../../lib/state';
   import { VisibilityManager } from '../../lib/commands/VisibilityManager';
-  import FaceIcon from '../../icons/FaceIcon.svelte';
-  import NodeIcon from '../../icons/NodeIcon.svelte';
-  import VolumeIcon from '../../icons/VolumeIcon.svelte';
-  import EdgeIcon from '../../icons/EdgeIcon.svelte';
+  import FaceIcon from '../../../../shared/components/icons/FaceIcon.svelte';
+  import NodeIcon from '../../../../shared/components/icons/NodeIcon.svelte';
+  import VolumeIcon from '../../../../shared/components/icons/VolumeIcon.svelte';
+  import EdgeIcon from '../../../../shared/components/icons/EdgeIcon.svelte';
   import type { GroupKind } from '../../lib/data/Group';
 
   let {

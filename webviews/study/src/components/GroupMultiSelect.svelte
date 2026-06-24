@@ -2,6 +2,7 @@
   import type { GroupKindTag } from '@scenario/studyMeta';
   import type { TaggedGroup } from '../lib/draft';
   import MultiSelect from '../../../shared/components/ui/MultiSelect.svelte';
+  import KindIcon from '../../../shared/components/ui/KindIcon.svelte';
 
   let {
     label,
@@ -60,7 +61,11 @@
       selected={selected.map(keyOf)}
       onToggle={toggle}
       placeholder="Select groups…"
-    />
+    >
+      {#snippet optionIcon(o)}
+        <KindIcon kind={o.hint ?? freeTextKind} />
+      {/snippet}
+    </MultiSelect>
   {:else}
     <input
       type="text"

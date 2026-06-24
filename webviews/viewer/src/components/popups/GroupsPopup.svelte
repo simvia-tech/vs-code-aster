@@ -6,10 +6,10 @@
     settings,
     sidebarHiddenGroups,
   } from '../../lib/state';
-  import FaceIcon from '../../icons/FaceIcon.svelte';
-  import NodeIcon from '../../icons/NodeIcon.svelte';
-  import VolumeIcon from '../../icons/VolumeIcon.svelte';
-  import EdgeIcon from '../../icons/EdgeIcon.svelte';
+  import FaceIcon from '../../../../shared/components/icons/FaceIcon.svelte';
+  import NodeIcon from '../../../../shared/components/icons/NodeIcon.svelte';
+  import VolumeIcon from '../../../../shared/components/icons/VolumeIcon.svelte';
+  import EdgeIcon from '../../../../shared/components/icons/EdgeIcon.svelte';
   import ObjectIcon from '../../icons/ObjectIcon.svelte';
   import Toggle from '../ui/Toggle.svelte';
   import GroupSearch from '../ui/GroupSearch.svelte';

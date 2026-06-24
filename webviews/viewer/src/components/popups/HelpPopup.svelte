@@ -5,19 +5,19 @@
 <script lang="ts">
   import BoundingBoxIcon from '../../icons/BoundingBoxIcon.svelte';
   import ClearIcon from '../../icons/ClearIcon.svelte';
-  import EdgeIcon from '../../icons/EdgeIcon.svelte';
+  import EdgeIcon from '../../../../shared/components/icons/EdgeIcon.svelte';
   import EyeIcon from '../../icons/EyeIcon.svelte';
-  import FaceIcon from '../../icons/FaceIcon.svelte';
+  import FaceIcon from '../../../../shared/components/icons/FaceIcon.svelte';
   import FilterIcon from '../../icons/FilterIcon.svelte';
   import MouseLeftIcon from '../../icons/MouseLeftIcon.svelte';
-  import NodeIcon from '../../icons/NodeIcon.svelte';
+  import NodeIcon from '../../../../shared/components/icons/NodeIcon.svelte';
   import ObjectIcon from '../../icons/ObjectIcon.svelte';
   import MouseScrollIcon from '../../icons/MouseScrollIcon.svelte';
   import ResetIcon from '../../icons/ResetIcon.svelte';
   import AutoRotateIcon from '../../icons/AutoRotateIcon.svelte';
   import RecordIcon from '../../icons/RecordIcon.svelte';
   import ScreenshotIcon from '../../icons/ScreenshotIcon.svelte';
-  import VolumeIcon from '../../icons/VolumeIcon.svelte';
+  import VolumeIcon from '../../../../shared/components/icons/VolumeIcon.svelte';
   import WireframeIcon from '../../icons/WireframeIcon.svelte';
   import ZoomIcon from '../../icons/ZoomIcon.svelte';
 
