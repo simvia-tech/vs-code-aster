@@ -490,6 +490,11 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
     const isMeshViewable = activeLang === 'comm' || medExts.has(ext.toLowerCase());
 
     const children: Item[] = [
+      this.actionItem(
+        'Generate study from scenario (beta)…',
+        'wand',
+        'vs-code-aster.generateStudy'
+      ),
       this.actionItem('New export file…', 'new-file', 'vs-code-aster.exportDoc'),
     ];
     if (isExport) {

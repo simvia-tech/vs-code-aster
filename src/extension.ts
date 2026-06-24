@@ -20,6 +20,7 @@ import { MedEditorProvider, STATIC_MED_EXTS } from './MedEditorProvider';
 import { activateMedAutoDetect, isExtensionConfigured, openAsMedMesh } from './MedAutoDetect';
 import { setTelemetryContext } from './telemetry';
 import { clearCatalogCache, getCatalogChannel, getCatalogInfo } from './CatalogResolver';
+import { StudyGenerator } from './StudyGenerator';
 
 /**
  * Main activation function for the extension. Registers all commands.
@@ -41,6 +42,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const createExportDoc = vscode.commands.registerCommand('vs-code-aster.exportDoc', () => {
     ExportEditor.initExportEditor();
+  });
+
+  const generateStudy = vscode.commands.registerCommand('vs-code-aster.generateStudy', () => {
+    StudyGenerator.run(context);
   });
 
   context.subscriptions.push(
@@ -186,8 +191,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(runaster);
   context.subscriptions.push(createExportDoc);
+  context.subscriptions.push(generateStudy);
   context.subscriptions.push(createMesh);
   context.subscriptions.push(lspServer);
+
+  // Small handle exposed via `extension.exports` for integration tests.
+  return { lspServer: LspServer.instance };
 }
 
 export function deactivate(): Thenable<void> | undefined {

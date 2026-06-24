@@ -51,3 +51,9 @@ webviews/export/index.html
 webviews/export/vite.config.ts
 webviews/export/svelte.config.js
 webviews/export/tsconfig.json
+webviews/study/src/**
+webviews/study/index.html
+webviews/study/vite.config.ts
+webviews/study/svelte.config.js
+webviews/study/tsconfig.json
+webviews/shared/**
