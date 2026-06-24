@@ -86,6 +86,10 @@ export async function writeStudy(spec: StudySpec, medPath: string): Promise<void
     );
   }
 
-  await vscode.window.showTextDocument(vscode.Uri.file(commPath));
+  await vscode.window.showTextDocument(vscode.Uri.file(exportPath), {
+    preview: false,
+    preserveFocus: true,
+  });
+  await vscode.window.showTextDocument(vscode.Uri.file(commPath), { preview: false });
   vscode.window.showInformationMessage(`Generated study "${spec.baseName}".`);
 }
