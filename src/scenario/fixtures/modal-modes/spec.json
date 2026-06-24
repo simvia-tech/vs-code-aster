@@ -1,0 +1,13 @@
+{
+  "scenario": "modal",
+  "modelization": "3D",
+  "isStructural": false,
+  "meshFileName": "mesh.med",
+  "baseName": "modal_modes",
+  "material": { "young": 210000, "poisson": 0.3, "rho": 7800 },
+  "materialGroups": ["SOLID"],
+  "boundaryConditions": [
+    { "groups": ["CLAMP"], "groupKind": "GROUP_MA", "dofs": { "DX": 0, "DY": 0, "DZ": 0 } }
+  ],
+  "modal": { "nmodes": 10 }
+}

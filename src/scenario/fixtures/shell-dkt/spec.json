@@ -1,0 +1,18 @@
+{
+  "scenario": "linear-static",
+  "modelization": "DKT",
+  "isStructural": true,
+  "meshFileName": "mesh.med",
+  "baseName": "shell_dkt",
+  "material": { "young": 210000, "poisson": 0.3 },
+  "materialGroups": ["PANEL"],
+  "structuralProps": { "kind": "shell", "groups": ["PANEL"], "thickness": 0.01 },
+  "boundaryConditions": [
+    {
+      "groups": ["CLAMP"],
+      "groupKind": "GROUP_MA",
+      "dofs": { "DX": 0, "DY": 0, "DZ": 0, "DRX": 0, "DRY": 0, "DRZ": 0 }
+    }
+  ],
+  "load": { "type": "PRES_REP", "groups": ["PANEL"], "groupKind": "GROUP_MA", "value": 1000 }
+}

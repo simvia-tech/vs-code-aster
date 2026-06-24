@@ -1,0 +1,22 @@
+{
+  "scenario": "linear-static",
+  "modelization": "POU_D_T",
+  "isStructural": true,
+  "meshFileName": "mesh.med",
+  "baseName": "beam_poutre",
+  "material": { "young": 210000, "poisson": 0.3 },
+  "materialGroups": ["BEAM"],
+  "structuralProps": {
+    "kind": "beam",
+    "groups": ["BEAM"],
+    "section": { "type": "RECTANGLE", "HY": 0.1, "HZ": 0.05 }
+  },
+  "boundaryConditions": [
+    {
+      "groups": ["SUPPORT"],
+      "groupKind": "GROUP_NO",
+      "dofs": { "DX": 0, "DY": 0, "DZ": 0, "DRX": 0, "DRY": 0, "DRZ": 0 }
+    }
+  ],
+  "load": { "type": "FORCE_NODALE", "groups": ["TIP"], "groupKind": "GROUP_NO", "components": { "FZ": -1000 } }
+}

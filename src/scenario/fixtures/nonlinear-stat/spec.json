@@ -1,0 +1,13 @@
+{
+  "scenario": "nonlinear-static",
+  "modelization": "3D",
+  "isStructural": false,
+  "meshFileName": "mesh.med",
+  "baseName": "nonlinear_stat",
+  "material": { "young": 210000, "poisson": 0.3, "yieldStress": 250, "hardening": 2000 },
+  "materialGroups": ["SOLID"],
+  "boundaryConditions": [
+    { "groups": ["CLAMP"], "groupKind": "GROUP_MA", "dofs": { "DX": 0, "DY": 0, "DZ": 0 } }
+  ],
+  "load": { "type": "PRES_REP", "groups": ["LOAD_FACE"], "groupKind": "GROUP_MA", "value": 100000 }
+}
