@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-06-25
+
+Adds the **Validate Current Study** command — a pre-run study consistency check across the `.comm` and its `.export`.
+
+### Added
+
+- **Validate Current Study**: a new command — in the Command Palette, on the editor title bar for `.comm`/`.export` files, and in the code_aster sidebar's Quick actions — that checks a study for common structural issues before you run it. It works at two levels: (1) command/concept validity inside the `.comm` (each command is checked for being recognised and well-formed, for its concept dependencies resolving to earlier definitions, for naming consistency, and for whether the concept it produces is ever used), and (2) I/O consistency between the `UNITE=` values used in the `.comm` and the file units declared in the associated `.export` — flagging units used but not declared, units declared but unused, and input/output direction mismatches. Results show up both in the Problems panel and in a dedicated validation report — which includes a legend, a hover explanation for every check column, and a "Findings" list that spells out each issue in words (not just a glyph) with click-to-jump to the offending line. The `.export` is resolved automatically from the active file, or you are prompted to pick one when ambiguous.
+
 ## [1.12.1] - 2026-06-24
 
 A polish release for the **Generate study from scenario** assistant.
