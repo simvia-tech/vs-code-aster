@@ -69,6 +69,15 @@
         "icon": "$(new-file)"
       },
       {
+        "command": "vs-code-aster.validateStudy",
+        "title": "Validate Current Study",
+        "category": "VS Code Aster",
+        "icon": {
+          "light": "./media/images/icone-validate.svg",
+          "dark": "./media/images/icone-validate.svg"
+        }
+      },
+      {
         "command": "vs-code-aster.restartLSPServer",
         "title": "Restart the LSP server for code_aster",
         "icon": "$(sync~spin)"
@@ -249,6 +258,11 @@
         {
           "command": "vs-code-aster.meshViewer",
           "when": "resourceFilename =~ /\\.(comm|com[0-9])$/",
+          "group": "navigation"
+        },
+        {
+          "command": "vs-code-aster.validateStudy",
+          "when": "resourceFilename =~ /\\.(comm|com[0-9])$/ || resourceFilename =~ /\\.export$/",
           "group": "navigation"
         },
         {
@@ -486,11 +500,13 @@
     "watch:webview:viewer": "vite build --config webviews/viewer/vite.config.ts --watch",
     "watch:webview:export": "vite build --config webviews/export/vite.config.ts --watch",
     "watch:webview:study": "vite build --config webviews/study/vite.config.ts --watch",
-    "watch:webview": "npm-run-all -p watch:webview:viewer watch:webview:export watch:webview:study",
+    "watch:webview:validation": "vite build --config webviews/validation/vite.config.ts --watch",
+    "watch:webview": "npm-run-all -p watch:webview:viewer watch:webview:export watch:webview:study watch:webview:validation",
     "build:webview:viewer": "vite build --config webviews/viewer/vite.config.ts",
     "build:webview:export": "vite build --config webviews/export/vite.config.ts",
     "build:webview:study": "vite build --config webviews/study/vite.config.ts",
-    "build:webview": "npm-run-all build:webview:viewer build:webview:export build:webview:study",
+    "build:webview:validation": "vite build --config webviews/validation/vite.config.ts",
+    "build:webview": "npm-run-all build:webview:viewer build:webview:export build:webview:study build:webview:validation",
     "package": "npm run check-types && npm run lint && node esbuild.js --production",
     "check-types": "tsc --noEmit",
     "check-types:test": "tsc --noEmit --project tsconfig.test.json",
@@ -499,7 +515,7 @@
     "test:all": "npm run test:vitest && npm run test:py && npm run test:integration",
     "test:vitest": "vitest run",
     "test:unit": "vitest run --project unit",
-    "test:webview": "vitest run --project viewer --project export --project study",
+    "test:webview": "vitest run --project viewer --project export --project study --project validation",
     "test:watch": "vitest",
     "test:scenario": "vitest run --project unit src/scenario",
     "test:scenario:update": "UPDATE_GOLDENS=1 vitest run --project unit src/scenario",

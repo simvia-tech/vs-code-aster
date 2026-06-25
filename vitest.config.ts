@@ -56,6 +56,20 @@ export default defineConfig({
           setupFiles: ['tests/setup/svelte.ts'],
         },
       },
+      {
+        plugins: [svelte(), svelteTesting()],
+        resolve: {
+          alias: {
+            '@report': resolve(__dirname, 'src/validationReport.ts'),
+          },
+        },
+        test: {
+          name: 'validation',
+          environment: 'happy-dom',
+          include: ['webviews/validation/src/**/*.test.ts'],
+          setupFiles: ['tests/setup/svelte.ts'],
+        },
+      },
     ],
   },
 });

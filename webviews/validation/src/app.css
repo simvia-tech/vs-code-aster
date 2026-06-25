@@ -1,0 +1,40 @@
+@import 'tailwindcss';
+
+/* Shared components live outside this webview's root — tell Tailwind to scan
+   them so their utility classes are emitted. */
+@source '../../shared/components';
+
+@theme {
+  --color-ui-bg: var(--ui-bg);
+  --color-ui-fg: var(--ui-fg);
+  --color-ui-border: var(--ui-border);
+  --color-ui-popup-bg: var(--ui-popup-bg);
+  --color-ui-text-primary: var(--ui-text-primary);
+  --color-ui-text-secondary: var(--ui-text-secondary);
+  --color-ui-text-muted: var(--ui-text-muted);
+  --color-ui-elem: var(--ui-element-bg);
+  --color-ui-elem-hover: var(--ui-element-bg-hover);
+  --color-ui-link: var(--vscode-textLink-foreground, #0078d4);
+  --color-ui-ok: var(--vscode-testing-iconPassed, #3fb950);
+  --color-ui-warn: var(--vscode-editorWarning-foreground, #d29922);
+  --color-ui-err: var(--vscode-editorError-foreground, #f85149);
+}
+
+:root {
+  --ui-bg: var(--vscode-editor-background, #e8eaf0);
+  --ui-fg: var(--vscode-editor-foreground, #1f1f1f);
+  --ui-popup-bg: var(--vscode-editorWidget-background, var(--vscode-editor-background, #f3f3f3));
+  --ui-border: var(
+    --vscode-input-border,
+    var(
+      --vscode-widget-border,
+      var(--vscode-editorWidget-border, color-mix(in srgb, var(--ui-fg) 35%, transparent))
+    )
+  );
+
+  --ui-text-primary: color-mix(in srgb, var(--ui-fg) 90%, transparent);
+  --ui-text-secondary: color-mix(in srgb, var(--ui-fg) 70%, transparent);
+  --ui-text-muted: color-mix(in srgb, var(--ui-fg) 55%, transparent);
+  --ui-element-bg: color-mix(in srgb, var(--ui-fg) 10%, transparent);
+  --ui-element-bg-hover: color-mix(in srgb, var(--ui-fg) 18%, transparent);
+}

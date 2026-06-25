@@ -21,6 +21,7 @@ import { activateMedAutoDetect, isExtensionConfigured, openAsMedMesh } from './M
 import { setTelemetryContext } from './telemetry';
 import { clearCatalogCache, getCatalogChannel, getCatalogInfo } from './CatalogResolver';
 import { StudyGenerator } from './StudyGenerator';
+import { registerStudyValidation } from './StudyValidation';
 
 /**
  * Main activation function for the extension. Registers all commands.
@@ -47,6 +48,8 @@ export async function activate(context: vscode.ExtensionContext) {
   const generateStudy = vscode.commands.registerCommand('vs-code-aster.generateStudy', () => {
     StudyGenerator.run(context);
   });
+
+  registerStudyValidation(context);
 
   context.subscriptions.push(
     vscode.languages.registerDocumentFormattingEditProvider(

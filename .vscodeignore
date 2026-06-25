@@ -56,4 +56,9 @@ webviews/study/index.html
 webviews/study/vite.config.ts
 webviews/study/svelte.config.js
 webviews/study/tsconfig.json
+webviews/validation/src/**
+webviews/validation/index.html
+webviews/validation/vite.config.ts
+webviews/validation/svelte.config.js
+webviews/validation/tsconfig.json
 webviews/shared/**

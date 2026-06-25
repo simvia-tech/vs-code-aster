@@ -1,26 +1,37 @@
 <script lang="ts">
   interface Props {
-    canSubmit: boolean;
+    canSubmit?: boolean;
     submitLabel?: string;
     errorCount?: number;
     warningCount?: number;
+    /**
+     * Shown on the left when there are no errors or warnings. Empty by default
+     * so form consumers keep their clean, message-less bar.
+     */
+    okMessage?: string;
     /**
      * When true (default) the bar sticks to the bottom of a padded scroll
      * column and breaks out of its `p-8` padding (the export form layout).
      * Set false to render a plain flush footer the consumer positions itself.
      */
     sticky?: boolean;
-    onSubmit: () => void;
-    onCancel: () => void;
+    /**
+     * Provide `onSubmit` to get the Cancel/Submit action buttons. Omit it for
+     * a read-only footer that only reports the error/warning counts (the
+     * validation report).
+     */
+    onSubmit?: () => void;
+    onCancel?: () => void;
     onScrollToErrors?: () => void;
     onScrollToWarnings?: () => void;
   }
 
   let {
-    canSubmit,
+    canSubmit = false,
     submitLabel = 'Create',
     errorCount = 0,
     warningCount = 0,
+    okMessage = '',
     sticky = true,
     onSubmit,
     onCancel,
@@ -90,25 +101,48 @@
         {warningCount === 1 ? 'warning' : 'warnings'}
       </button>
     {/if}
+    {#if errorCount === 0 && warningCount === 0 && okMessage}
+      <span
+        class="flex items-center gap-1.5 font-medium"
+        style="color: var(--vscode-testing-iconPassed, #3fb950)"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+        {okMessage}
+      </span>
+    {/if}
   </div>
 
-  <div class="flex items-center gap-2">
-    <button
-      type="button"
-      class="px-4 py-1.5 rounded bg-ui-elem hover:bg-ui-elem-hover text-ui-fg text-sm cursor-pointer"
-      onclick={onCancel}
-    >
-      Cancel
-    </button>
-    <button
-      type="button"
-      class="px-4 py-1.5 rounded bg-ui-btn hover:bg-ui-btn-hover text-ui-btn-fg text-sm font-semibold cursor-pointer disabled:bg-ui-elem disabled:text-ui-text-muted disabled:cursor-not-allowed"
-      disabled={!canSubmit}
-      onclick={onSubmit}
-    >
-      {submitLabel}
-    </button>
-  </div>
+  {#if onSubmit}
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        class="px-4 py-1.5 rounded bg-ui-elem hover:bg-ui-elem-hover text-ui-fg text-sm cursor-pointer"
+        onclick={onCancel}
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="px-4 py-1.5 rounded bg-ui-btn hover:bg-ui-btn-hover text-ui-btn-fg text-sm font-semibold cursor-pointer disabled:bg-ui-elem disabled:text-ui-text-muted disabled:cursor-not-allowed"
+        disabled={!canSubmit}
+        onclick={onSubmit}
+      >
+        {submitLabel}
+      </button>
+    </div>
+  {/if}
 </div>
 
 <style>

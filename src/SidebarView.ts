@@ -477,6 +477,7 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
     const activeLang = vscode.window.activeTextEditor?.document.languageId;
     const activePath = vscode.window.activeTextEditor?.document.uri.fsPath ?? '';
     const isExport = activeLang === 'export';
+    const isStudy = activeLang === 'comm' || activeLang === 'export';
     // Mesh viewer is the editor-title button on .comm files and .med
     // siblings (.mmed/.rmed plus user-configured numeric variants in
     // `vs-code-aster.medFileExtensions`). Mirror the same rule here.
@@ -492,16 +493,41 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
     const children: Item[] = [
       this.actionItem(
         'Generate study from scenario (beta)…',
-        'wand',
+        this.mediaIcon('icone-wand.svg'),
         'vs-code-aster.generateStudy'
       ),
-      this.actionItem('New export file…', 'new-file', 'vs-code-aster.exportDoc'),
+      this.actionItem(
+        isExport ? 'Edit export file' : 'New export file…',
+        this.mediaIcon('icone-edit.svg'),
+        'vs-code-aster.exportDoc'
+      ),
     ];
+    if (isStudy) {
+      children.push(
+        this.actionItem(
+          'Validate current study',
+          this.mediaIcon('icone-validate.svg'),
+          'vs-code-aster.validateStudy'
+        )
+      );
+    }
     if (isExport) {
-      children.push(this.actionItem('Run with code_aster', 'play', 'vs-code-aster.run-aster'));
+      children.push(
+        this.actionItem(
+          'Run with code_aster',
+          this.mediaIcon('icone-rocket.svg'),
+          'vs-code-aster.run-aster'
+        )
+      );
     }
     if (isMeshViewable) {
-      children.push(this.actionItem('Open mesh viewer', 'eye', 'vs-code-aster.meshViewer'));
+      children.push(
+        this.actionItem(
+          'Open mesh viewer',
+          this.mediaIcon('icone-eye.svg'),
+          'vs-code-aster.meshViewer'
+        )
+      );
     }
     children.push(
       this.actionItem('Restart language server', 'sync', 'vs-code-aster.restartLSPServer'),
@@ -511,9 +537,20 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
     return item;
   }
 
-  private actionItem(label: string, icon: string, command: string): Item {
+  /** Brand SVG icon (light == dark) resolved against the extension root, so
+   * sidebar actions can show the same icons as their editor toolbar twins. */
+  private mediaIcon(file: string): { light: vscode.Uri; dark: vscode.Uri } {
+    const uri = vscode.Uri.joinPath(this.context.extensionUri, 'media', 'images', file);
+    return { light: uri, dark: uri };
+  }
+
+  private actionItem(
+    label: string,
+    icon: string | { light: vscode.Uri; dark: vscode.Uri },
+    command: string
+  ): Item {
     const it = new Item(label);
-    it.iconPath = new vscode.ThemeIcon(icon);
+    it.iconPath = typeof icon === 'string' ? new vscode.ThemeIcon(icon) : icon;
     it.command = { title: label, command };
     return it;
   }
