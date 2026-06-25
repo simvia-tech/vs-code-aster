@@ -155,3 +155,19 @@ def register_handlers(server: LanguageServer):
     def getCompleteFamilies(ls, params):
 
         return managers.status_bar.get_complete_families()
+
+    @server.feature("codeaster/validateStudy")
+    def validate_study(ls, params):
+        """Whole-study validation: cross-check a `.comm` against its
+        `.export`. Driven by the "Validate Current Study" command; the host
+        passes the file contents so this works even for files that aren't
+        open as LSP documents."""
+
+        def _get(key, default=""):
+            if hasattr(params, "get"):
+                return params.get(key, default)
+            return getattr(params, key, default)
+
+        comm_text = _get("commText", "")
+        export_text = _get("exportText", "")
+        return managers.validation.validate_study(comm_text, export_text)

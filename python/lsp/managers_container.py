@@ -7,6 +7,7 @@ from managers import (
     StatusBarManager,
     UpdateManager,
 )
+from validation_manager import ValidationManager
 
 
 class ManagerContainer:
@@ -23,3 +24,4 @@ class ManagerContainer:
         self.completion = CompletionManager()
         self.diagnostics = DiagnosticsManager()
         self.code_action = CodeActionManager()
+        self.validation = ValidationManager()
