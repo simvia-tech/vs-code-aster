@@ -27,6 +27,7 @@ from command_core import CommandCore
 from command_registry import CommandRegistry
 from export_parser import DIR_IN, DIR_OUT, IMPLICIT_TYPES, parse_export
 from validators import (
+    co_output_names,
     command_return_types,
     expected_classes,
     find_keyword,
@@ -104,6 +105,11 @@ class ValidationManager:
         for ci in commands:
             if ci.var_name and ci.var_name not in var_index:
                 var_index[ci.var_name] = (ci.start_line, ci.name)
+            # `CO("name")` declares a concept even without an assignment
+            # (e.g. ASSE_ELEM_SSD); register those so later references resolve.
+            for name in co_output_names(lines, ci):
+                if name not in var_index:
+                    var_index[name] = (ci.start_line, ci.name)
 
         diagnostics: list[dict] = []
         rows: list[dict] = []

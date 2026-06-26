@@ -107,6 +107,26 @@ def simp_defaults(definition) -> dict:
     return out
 
 
+_CO_DECL_RE = re.compile(r"\bCO\s*\(\s*['\"]([A-Za-z_]\w*)['\"]")
+
+
+def co_output_names(lines: list[str], ci) -> list[str]:
+    """Names declared as future outputs via `CO("name")` within a command body.
+
+    Macro commands (e.g. `ASSE_ELEM_SSD`) bind concepts through `CO("name")`
+    arguments even when the command itself is called without an assignment, so
+    these names must be registered as defined concepts alongside left-hand-side
+    assignments. Returns [] on any parsing trouble."""
+    try:
+        end = ci.end_line if ci.end_line is not None else ci.zone_end
+        start_idx = max(0, ci.start_line - 1)
+        end_idx = min(len(lines), end)
+        body = "\n".join(lines[start_idx:end_idx])
+        return [m.group(1) for m in _CO_DECL_RE.finditer(body)]
+    except Exception:
+        return []
+
+
 def find_param(params: list[dict], name: str) -> dict | None:
     """Find a parsed-param dict (the shape produced by
     `Catalogs.parse_kwd`) by name, descending into BLOC children."""

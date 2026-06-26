@@ -23,6 +23,7 @@ Adds the **Validate Current Study** command — a pre-run study consistency chec
 - `.comm` diagnostics: multi-valued keywords given a tuple — e.g. `CONTRAINTE=("SIGM_ELNO",)` — are now validated element by element against the allowed list, instead of comparing the whole tuple (which always failed).
 - `.comm` diagnostics: `DEBUT`, `FIN`, and the other structural commands (`POURSUITE`, `INCLUDE`, `DEFI_FICHIER`) are no longer tagged "legacy / boilerplate" — they are mandatory or normal in a hand-written `.comm`, so the hint was noise on every file.
 - **Validate Current Study**: a concept is no longer reported as "redefined" when a command legitimately reuses it in place via `reuse=` (the standard code_aster reentrant idiom).
+- **Validate Current Study**: concepts declared via `CO("name")` (e.g. the outputs of `ASSE_ELEM_SSD` and other macros called without an assignment) are no longer reported as "undefined" when referenced later.
 
 ## [1.12.1] - 2026-06-24
 

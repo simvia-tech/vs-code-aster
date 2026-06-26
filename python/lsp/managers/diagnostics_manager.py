@@ -20,6 +20,7 @@ from lsprotocol.types import (
     Range,
 )
 from validators import (
+    co_output_names,
     command_return_types,
     expected_classes,
     find_keyword,
@@ -114,17 +115,9 @@ class DiagnosticsManager:
                 continue
             # `CO("name")` inside a macro declares a future output bound
             # to `name`. Register those so later references resolve.
-            try:
-                end = ci.end_line if ci.end_line is not None else ci.zone_end
-                start_idx = max(0, ci.start_line - 1)
-                end_idx = min(len(doc.lines), end)
-                body = "\n".join(doc.lines[start_idx:end_idx])
-                for m in re.finditer(r"\bCO\s*\(\s*['\"]([A-Za-z_]\w*)['\"]", body):
-                    name = m.group(1)
-                    if name not in var_index:
-                        var_index[name] = (ci.start_line, ci.name)
-            except Exception:
-                pass
+            for name in co_output_names(doc.lines, ci):
+                if name not in var_index:
+                    var_index[name] = (ci.start_line, ci.name)
 
         for ci in registry.commands.values():
             try:
