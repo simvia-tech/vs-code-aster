@@ -25,7 +25,7 @@ from validators import (
     find_keyword,
     is_bare_identifier,
     required_keywords,
-    simp_defaults,
+    typed_context,
     types_compatible,
     value_in_into,
     visible_keywords,
@@ -68,6 +68,12 @@ class DiagnosticsManager:
             self._deprecated = set(_DEP or [])
         except Exception:
             self._deprecated = set()
+
+    def _resolve_cmd(self, name: str):
+        try:
+            return self.core.get_CATA().get_command_obj(name)
+        except Exception:
+            return None
 
     # -------------------------------------------------------- entry
 
@@ -153,13 +159,11 @@ class DiagnosticsManager:
             pairs = []
 
         try:
-            context = simp_defaults(cmd_obj.definition)
+            context = typed_context(
+                cmd_obj.definition, ci.parsed_params or {}, var_index, self._resolve_cmd
+            )
         except Exception:
             context = {}
-        try:
-            context.update(ci.parsed_params or {})
-        except Exception:
-            pass
 
         typed_names: set[str] = set()
         for pair in pairs:

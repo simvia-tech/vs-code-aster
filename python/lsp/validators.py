@@ -195,6 +195,59 @@ def types_compatible(var_types, expected) -> bool:
     return False
 
 
+class _TypedRef:
+    """Stand-in for a concept reference inside a BLOC-evaluation context.
+
+    Catalog BLOC conditions routinely branch on the *type* of a referenced
+    concept, e.g. ``is_type("RESULTAT") in (evol_elas, ...)``. The catalog's
+    ``is_type`` calls ``AsType(value)``, which returns ``obj.gettype()`` when
+    available. A raw parsed value is just the variable-name string, whose
+    ``AsType`` is ``str`` — so those BLOCs evaluate to False and the keywords
+    they guard look "unknown". Wrapping the reference in this shim makes the
+    condition resolve against the concept's real return type."""
+
+    __slots__ = ("_cls",)
+
+    def __init__(self, cls):
+        self._cls = cls
+
+    def gettype(self):
+        return self._cls
+
+
+def typed_context(definition, parsed_params, var_index, resolve_cmd) -> dict:
+    """Build a BLOC-evaluation context from a command's parsed top-level params.
+
+    Seeds catalog `defaut` values, then layers the parsed params on top.
+    Bare-identifier values that resolve to a known concept are replaced with a
+    `_TypedRef` carrying that concept's return type, so `is_type(...)` BLOC
+    conditions evaluate correctly. Non-identifier values (strings, numbers) are
+    kept verbatim so string/value conditions (`equal_to`, ...) still work.
+
+    `var_index` maps concept name -> (line, command_name); `resolve_cmd(name)`
+    returns a command object (or None) for a command name."""
+    try:
+        context = simp_defaults(definition)
+    except Exception:
+        context = {}
+    for name, value in (parsed_params or {}).items():
+        try:
+            if not isinstance(value, str) or not is_bare_identifier(value):
+                context[name] = value
+                continue
+            ref = value.strip().rstrip(",").strip()
+            entry = var_index.get(ref)
+            if not entry:
+                context[name] = value
+                continue
+            src_obj = resolve_cmd(entry[1])
+            types = command_return_types(src_obj) if src_obj is not None else ()
+            context[name] = _TypedRef(types[0]) if types else value
+        except Exception:
+            context[name] = value
+    return context
+
+
 # ------------------------------------------------------- value matching
 
 
