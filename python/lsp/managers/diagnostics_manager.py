@@ -25,6 +25,7 @@ from validators import (
     find_keyword,
     is_bare_identifier,
     required_keywords,
+    split_into_values,
     typed_context,
     types_compatible,
     value_in_into,
@@ -214,8 +215,11 @@ class DiagnosticsManager:
         if into:
             try:
                 if not is_factor_value(pair.value):
-                    if not value_in_into(pair.value, into):
-                        diags.append(self._diag_value_not_in_into(pair, into))
+                    # Multi-valued keywords accept a tuple — check each element,
+                    # not the literal tuple string.
+                    bad = [v for v in split_into_values(pair.value) if not value_in_into(v, into)]
+                    if bad:
+                        diags.append(self._diag_value_not_in_into(pair, into, bad[0]))
                         # don't double-flag with type mismatch
                         return
             except Exception:
@@ -310,8 +314,9 @@ class DiagnosticsManager:
             data={"candidates": candidates, "name": pair.name},
         )
 
-    def _diag_value_not_in_into(self, pair, into) -> Diagnostic:
+    def _diag_value_not_in_into(self, pair, into, bad_value: str | None = None) -> Diagnostic:
         rendered = ", ".join(f'"{v}"' if isinstance(v, str) else str(v) for v in into)
+        shown = bad_value if bad_value is not None else pair.value
         return Diagnostic(
             range=Range(
                 Position(pair.value_line, pair.value_col_start),
@@ -320,7 +325,7 @@ class DiagnosticsManager:
             severity=DiagnosticSeverity.Error,
             code=CODE_VALUE_NOT_IN_INTO,
             source="code_aster",
-            message=f"`{pair.value}` is not allowed for `{pair.name}`. Allowed: {rendered}.",
+            message=f"`{shown}` is not allowed for `{pair.name}`. Allowed: {rendered}.",
             data={"keyword": pair.name, "allowed": [str(v) for v in into]},
         )
 

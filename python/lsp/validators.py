@@ -256,6 +256,21 @@ _INT_RE = re.compile(r"^-?\d+$")
 _FLOAT_RE = re.compile(r"^-?(\d+\.\d*|\d*\.\d+)([eE][+-]?\d+)?$|^-?\d+[eE][+-]?\d+$")
 
 
+def split_into_values(raw: str) -> list[str]:
+    """Split a keyword value into the individual tokens that must each satisfy
+    an `into` membership check.
+
+    Multi-valued keywords (`max="**"`) accept a tuple/list literal — e.g.
+    `CONTRAINTE=("SIGM_ELNO",)` — whose *elements* must each be in `into`; the
+    tuple as a whole never is. A scalar value yields a single-element list.
+    Tokens keep their quotes (so `value_in_into` can match them) and are
+    stripped of surrounding whitespace / trailing commas."""
+    s = (raw or "").strip().rstrip(",").strip()
+    if len(s) >= 2 and ((s[0] == "(" and s[-1] == ")") or (s[0] == "[" and s[-1] == "]")):
+        s = s[1:-1]
+    return [p.strip() for p in s.split(",") if p.strip()]
+
+
 def value_in_into(raw: str, into) -> bool:
     """True if the source-side string `raw` matches an entry in `into`."""
     raw = (raw or "").strip()

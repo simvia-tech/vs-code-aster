@@ -20,6 +20,7 @@ Adds the **Validate Current Study** command — a pre-run study consistency chec
 - `.comm` diagnostics: keywords gated by a BLOC condition on a concept's type — e.g. `CONTRAINTE`/`CRITERES` in `CALC_CHAMP` — are no longer reported as "unknown keyword". The referenced concept's return type is now resolved so the catalog's `is_type(...)` condition evaluates correctly.
 - `.comm` diagnostics: a rule such as "Exactly one of `INST`, `LIST_INST`" is no longer flagged when the catalog supplies a default for the omitted keyword (e.g. `MECA_STATIQUE`, where `INST` defaults to `0.0`).
 - `.comm` diagnostics: the reentrant `reuse=` keyword is no longer reported as a type mismatch against the `CO` output marker.
+- `.comm` diagnostics: multi-valued keywords given a tuple — e.g. `CONTRAINTE=("SIGM_ELNO",)` — are now validated element by element against the allowed list, instead of comparing the whole tuple (which always failed).
 
 ## [1.12.1] - 2026-06-24
 
