@@ -338,6 +338,14 @@ class DiagnosticsManager:
         if not args and cls != "NotEmpty":
             return None
         present = [a for a in args if a in typed_names]
+        # `AtLeastOne`/`ExactlyOne` may carry default values (`ruleKwargs`):
+        # when none of the listed keywords is typed, code_aster injects those
+        # defaults before checking the rule (see Rules.py). Mirror that so an
+        # omitted keyword with a catalog default is not flagged as missing.
+        if not present:
+            rule_kwargs = getattr(rule, "ruleKwargs", None) or {}
+            if rule_kwargs:
+                present = [a for a in args if a in rule_kwargs]
         violated = False
         if cls == "AtLeastOne" and len(present) < 1:
             violated = True
