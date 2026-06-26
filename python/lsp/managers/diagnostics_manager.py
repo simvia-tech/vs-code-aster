@@ -233,8 +233,17 @@ class DiagnosticsManager:
                 return
             # type compatibility (only when we have classes on both sides)
             try:
+                # Skip computed keywords (statut="c") such as the reentrant
+                # `reuse=`: its declared type is the `CO` output marker, not a
+                # constraint on the passed concept, so type-checking it against
+                # the concept's real type is a false positive.
+                is_computed = False
+                try:
+                    is_computed = kwd.definition.get("statut") == "c"
+                except Exception:
+                    is_computed = False
                 expected = expected_classes(kwd)
-                if expected:
+                if expected and not is_computed:
                     src_obj = None
                     try:
                         src_obj = self.core.get_CATA().get_command_obj(src_cmd)
