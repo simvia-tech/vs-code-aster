@@ -253,8 +253,17 @@ class ValidationManager:
                 )
             )
         # Redefinition: the same name was already assigned by an earlier command.
+        # The reentrant idiom (`x = CMD(reuse=x, ...)`) deliberately reassigns
+        # the same name to augment the concept in place — not a redefinition.
+        reuse_val = ""
+        try:
+            reuse_val = (ci.parsed_params or {}).get("reuse", "") or ""
+            reuse_val = reuse_val.strip().rstrip(",").strip()
+        except Exception:
+            reuse_val = ""
+        is_reentrant = reuse_val == name
         defined = var_index.get(name)
-        if defined is not None and defined[0] < ci.start_line:
+        if defined is not None and defined[0] < ci.start_line and not is_reentrant:
             ok = False
             diagnostics.append(
                 self._diag(
