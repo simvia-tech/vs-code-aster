@@ -49,6 +49,13 @@ CODE_TYPE_MISMATCH = "type-mismatch"
 CODE_DEPRECATED = "deprecated"
 
 
+# Commands that appear in asterstudy's DEPRECATED list because its GUI manages
+# them implicitly — not because code_aster deprecated them. In a hand-written
+# `.comm`, DEBUT/FIN are mandatory and the others are normal usage, so flagging
+# them would put a "legacy / boilerplate" hint on essentially every valid file.
+_STRUCTURAL_COMMANDS = {"DEBUT", "FIN", "POURSUITE", "INCLUDE", "DEFI_FICHIER"}
+
+
 _RULE_TEMPLATES = {
     "AtLeastOne": "At least one of {args} must be defined.",
     "ExactlyOne": "Exactly one of {args} must be defined.",
@@ -66,7 +73,7 @@ class DiagnosticsManager:
         try:
             from asterstudy.datamodel.dict_categories import DEPRECATED as _DEP
 
-            self._deprecated = set(_DEP or [])
+            self._deprecated = set(_DEP or []) - _STRUCTURAL_COMMANDS
         except Exception:
             self._deprecated = set()
 

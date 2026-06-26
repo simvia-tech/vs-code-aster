@@ -21,6 +21,7 @@ Adds the **Validate Current Study** command — a pre-run study consistency chec
 - `.comm` diagnostics: a rule such as "Exactly one of `INST`, `LIST_INST`" is no longer flagged when the catalog supplies a default for the omitted keyword (e.g. `MECA_STATIQUE`, where `INST` defaults to `0.0`).
 - `.comm` diagnostics: the reentrant `reuse=` keyword is no longer reported as a type mismatch against the `CO` output marker.
 - `.comm` diagnostics: multi-valued keywords given a tuple — e.g. `CONTRAINTE=("SIGM_ELNO",)` — are now validated element by element against the allowed list, instead of comparing the whole tuple (which always failed).
+- `.comm` diagnostics: `DEBUT`, `FIN`, and the other structural commands (`POURSUITE`, `INCLUDE`, `DEFI_FICHIER`) are no longer tagged "legacy / boilerplate" — they are mandatory or normal in a hand-written `.comm`, so the hint was noise on every file.
 
 ## [1.12.1] - 2026-06-24
 
