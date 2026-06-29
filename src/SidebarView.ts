@@ -85,6 +85,8 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
   private caveDebounce?: NodeJS.Timeout;
 
   private _editDebounce?: NodeJS.Timeout;
+  private _lastActiveEditor?: vscode.TextEditor;
+
   constructor(private readonly context: vscode.ExtensionContext) {
     // Re-render on relevant config changes.
     context.subscriptions.push(
@@ -118,8 +120,21 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
     // Re-render on any active-editor change so the Command browser
     // appears when switching TO a .comm file and disappears when
     // switching AWAY (to .export, plain text, no editor at all, …).
+    // Skip the refresh when focus moves to a panel/webview (settings,
+    // output channel, …) while the previous editor is still open —
+    // that would only cause file-specific sections to jump in and out.
     context.subscriptions.push(
-      vscode.window.onDidChangeActiveTextEditor(() => {
+      vscode.window.onDidChangeActiveTextEditor((editor) => {
+        if (editor === undefined) {
+          const prevStillVisible =
+            this._lastActiveEditor !== undefined &&
+            vscode.window.visibleTextEditors.includes(this._lastActiveEditor);
+          if (prevStillVisible) {
+            return;
+          }
+        } else {
+          this._lastActiveEditor = editor;
+        }
         this.refresh();
       }),
       vscode.workspace.onDidChangeTextDocument((event) => {
