@@ -16,6 +16,7 @@ import {
   getCatalogChannel,
   reconcileCatalogCache,
 } from './CatalogResolver';
+import { resolvePythonExecutable } from './PythonEnv';
 /**
  * Crude paren-balance check: are we inside an unclosed `(` at this position?
  * Skips string literals and `#` comments. Good enough to distinguish "inside
@@ -148,7 +149,7 @@ export class LspServer {
     const serverModule = context.asAbsolutePath(path.join('python', 'lsp', 'server.py'));
 
     const config = vscode.workspace.getConfiguration('vs-code-aster');
-    const pythonExecutablePath = config.get<string>('pythonExecutablePath', 'python3');
+    const pythonExecutablePath = resolvePythonExecutable(context);
     const commFileExtensions = config.get<string[]>(
       'commFileExtensions',
       SUPPORTED_COMM_EXTENSIONS
@@ -189,7 +190,7 @@ export class LspServer {
       },
     };
 
-    return new LanguageClient(
+    const client = new LanguageClient(
       // Internal id stays for backward-compat with any user-saved trace
       // settings; only the display name (next arg) is user-visible.
       'pythonLanguageServer',
@@ -197,6 +198,8 @@ export class LspServer {
       serverOptions,
       clientOptions
     );
+    client.outputChannel.appendLine(`Python executable: ${pythonExecutablePath}`);
+    return client;
   }
 
   /**
