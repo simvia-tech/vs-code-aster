@@ -699,14 +699,34 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
     const config = vscode.workspace.getConfiguration();
     const value = config.get<unknown>(key);
     it.description = formatSettingValue(value);
-    it.tooltip = `${key} = ${JSON.stringify(value)}`;
+    it.tooltip = `${key} = ${JSON.stringify(value)}\n${settingScope(config.inspect<unknown>(key))}`;
     it.command = {
       title: 'Open setting',
       command: 'workbench.action.openSettings',
-      arguments: [key],
+      arguments: [`@id:${key}`],
     };
     return it;
   }
+}
+
+function settingScope(
+  inspection:
+    | { globalValue?: unknown; workspaceValue?: unknown; workspaceFolderValue?: unknown }
+    | undefined
+): string {
+  if (!inspection) {
+    return 'scope: default';
+  }
+  if (inspection.workspaceFolderValue !== undefined) {
+    return 'scope: workspace folder';
+  }
+  if (inspection.workspaceValue !== undefined) {
+    return 'scope: workspace';
+  }
+  if (inspection.globalValue !== undefined) {
+    return 'scope: user';
+  }
+  return 'scope: default';
 }
 
 function formatSettingValue(v: unknown): string {
