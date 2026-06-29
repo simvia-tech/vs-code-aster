@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.2] - 2026-06-29
+
+Cross-directory study support and packaging improvements.
+
+### Changed
+
+- Reduced `.vsix` package size by excluding additional dev-only files.
+
+### Fixed
+
+- **Mesh viewer / Validate Current Study**: studies where the `.export` lives in a parent directory of the `.comm` (e.g. `project/study.export` referencing `F comm subdir/study.comm D 1`) no longer fail with "No .export file found". Both the mesh viewer and the study validator now search ancestor directories up to the workspace root, resolve the declared `F comm` path relative to the `.export`'s own directory, and correctly resolve mesh file paths the same way.
+- **Validate Current Study**: when the `.export` declares the `.comm` with a relative subdirectory path (e.g. `F comm subdir/study.comm D 1`), the `.comm` file is now found correctly. Previously the subdirectory was stripped, causing lookup to fail.
+
 ## [1.13.1] - 2026-06-29
 
 WSL and sidebar polish.
