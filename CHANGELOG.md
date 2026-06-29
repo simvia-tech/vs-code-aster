@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.1] - 2026-06-29
+
+WSL and sidebar polish.
+
+### Fixed
+
+- **WSL / remote**: sidebar settings items now open the **Remote** settings tab when the extension is running in a WSL (or other remote) context, so the Python interpreter path is set where the language server actually runs. Previously, clicking a setting always opened the User tab, leading to silent mismatches between a Windows path and a WSL environment.
+- **Sidebar**: clicking a settings item no longer collapses file-specific quick actions (Validate, Run, …). The sidebar previously refreshed whenever focus left the active editor — including when settings opened — causing study-related actions to disappear until settings was closed.
+- **LSP**: the language server now uses the same Python resolution logic as the formatter (`resolvePythonExecutable`), so a managed virtual environment set up via the onboarding flow is also picked up by the LSP. Previously it was ignored there and only applied to formatting.
+- **LSP**: the resolved Python executable path is now logged to the **code_aster: Language Server** output channel on every start and restart, making it easy to verify which interpreter is actually in use.
+- **Validate Current Study**: unit `0` (code_aster's built-in results/message unit, typically declared as `F repe … R 0` in the `.export`) is no longer flagged as "declared but unused in `.comm`". It is now treated as implicit, the same as other built-in unit types.
+
 ## [1.13.0] - 2026-06-25
 
 Adds the **Validate Current Study** command — a pre-run study consistency check across the `.comm` and its `.export`.
