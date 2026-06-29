@@ -161,6 +161,22 @@ def test_unit_declared_in_export_unused_in_comm():
     assert io[21]["usedIn"] == "—"
 
 
+def test_unit_zero_declared_in_export_not_flagged():
+    comm = "\n".join(["mesh = LIRE_MAILLAGE(UNITE=20, FORMAT='MED')", "FIN()"])
+    export = "\n".join(
+        [
+            "F comm case.comm D 1",
+            "F mmed mesh.med D 20",
+            "F repe results R 0",
+        ]
+    )
+    report = _mgr().validate_study(comm, export)
+    assert "io-unused-export" not in _codes(report)
+    io = {r["unit"]: r for r in report["io"]}
+    assert io[0]["status"] == "ok"
+    assert io[0]["usedIn"] == "implicit"
+
+
 def test_input_output_direction_mismatch():
     comm = "\n".join(["mesh = LIRE_MAILLAGE(UNITE=20, FORMAT='MED')", "FIN()"])
     export = "\n".join(["F comm case.comm D 1", "F rmed result.rmed R 20"])

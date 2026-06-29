@@ -387,7 +387,9 @@ class ValidationManager:
                 )
             elif ef is not None and not occ:
                 # Declared in .export but not used in .comm.
-                implicit = ef.type in IMPLICIT_TYPES
+                # Unit 0 is code_aster's built-in results/message unit and is
+                # never referenced explicitly in .comm files.
+                implicit = ef.type in IMPLICIT_TYPES or unit == 0
                 if not implicit:
                     diagnostics.append(
                         {
