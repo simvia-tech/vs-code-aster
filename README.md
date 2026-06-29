@@ -1,7 +1,7 @@
 <p align="center"><img src="https://raw.githubusercontent.com/simvia-tech/vs-code-aster/main/media/images/simvia.png" alt="Simvia Logo" width="50%" /></p>
 
 <p align="center">
-  <a href="/"><img src="https://img.shields.io/badge/version-1.13.1-blue" alt="Version" /></a>
+  <a href="/"><img src="https://img.shields.io/badge/version-1.13.2-blue" alt="Version" /></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-GPL%203.0-green" alt="License" /></a>
   <a href="https://github.com/simvia-tech/vs-code-aster/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/simvia-tech/vs-code-aster/ci.yml?branch=main&label=CI" alt="CI Status" /></a>
   <a href="https://github.com/simvia-tech/vs-code-aster/issues"><img src="https://img.shields.io/github/issues/simvia-tech/vs-code-aster?label=issues" alt="GitHub issues" /></a>
@@ -22,7 +22,7 @@ It offers:
 - Advanced features for editing `.comm` files
 - A fully integrated 3D Visualizer to explore your meshs
 
-![VS Code Aster demo](media/images/vscode_aster.gif)
+![VS Code Aster demo](https://raw.githubusercontent.com/simvia-tech/vs-code-aster/main/media/images/vscode_aster.gif)
 
 ## Installation
 
@@ -205,7 +205,7 @@ The visualizer is an integrated 3D viewer that lets you display and explore your
 
 It’s powered by **VTK.js**, and surfaces every named group from your `.med` mesh: volume groups (rendered as the skin of each 3D sub-domain), face groups, edge groups (1D line elements), and node groups.
 
-![Mesh viewer screenshot](media/images/viewer-screenshot.png)
+![Mesh viewer screenshot](https://raw.githubusercontent.com/simvia-tech/vs-code-aster/main/media/images/viewer-screenshot.png)
 
 #### Opening the visualizer
 
