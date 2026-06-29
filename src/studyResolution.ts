@@ -7,9 +7,9 @@
 import * as path from 'path';
 
 /**
- * Extract the command-file name declared in an `.export` file, i.e. the
- * `name` of the `F comm <name> ...` line. Returns the basename, or undefined
- * when there is no comm declaration.
+ * Extract the command-file path declared in an `.export` file, i.e. the
+ * `name` token of the `F comm <name> ...` line. Returns the path as written
+ * (may be relative or absolute), or undefined when there is no comm declaration.
  */
 export function commNameFromExport(exportText: string): string | undefined {
   for (const raw of exportText.split(/\r?\n/)) {
@@ -19,7 +19,7 @@ export function commNameFromExport(exportText: string): string | undefined {
     }
     const tokens = clean.split(/\s+/);
     if ((tokens[0] === 'F' || tokens[0] === 'R') && tokens.length === 5 && tokens[1] === 'comm') {
-      return path.basename(tokens[2]);
+      return tokens[2];
     }
   }
   return undefined;
@@ -33,7 +33,7 @@ export function commNameFromExport(exportText: string): string | undefined {
  */
 export function exportReferencesComm(exportText: string, commFileName: string): boolean {
   const declared = commNameFromExport(exportText);
-  if (declared && declared === commFileName) {
+  if (declared && path.basename(declared) === commFileName) {
     return true;
   }
   return exportText.includes(commFileName);

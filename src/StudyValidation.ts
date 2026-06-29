@@ -12,7 +12,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { LspServer } from './LspServer';
-import { commNameFromExport, exportReferencesComm } from './studyResolution';
+import { commNameFromExport } from './studyResolution';
 import { ValidationReport, ValidationDiagnostic } from './validationReport';
 
 interface ResolvedStudy {
@@ -73,18 +73,54 @@ function listFiles(dir: string, predicate: (name: string) => boolean): string[] 
   }
 }
 
+/** Collect ancestor directories from startDir up to (and including) stopDir. */
+function ancestorDirs(startDir: string, stopDir?: string): string[] {
+  const dirs: string[] = [];
+  let current = startDir;
+  while (true) {
+    dirs.push(current);
+    if (current === stopDir) {
+      break;
+    }
+    const parent = path.dirname(current);
+    if (parent === current) {
+      break;
+    }
+    current = parent;
+  }
+  return dirs;
+}
+
 /** Pick an .export for a .comm: prefer ones that reference the comm; prompt
- * when the choice is ambiguous. Returns undefined if none exist. */
+ * when the choice is ambiguous. Searches the comm's directory and its
+ * ancestors up to the workspace root to support layouts where the .export
+ * lives in a parent folder. Returns undefined if none exist. */
 async function findExportForComm(commPath: string): Promise<vscode.Uri | undefined> {
-  const dir = path.dirname(commPath);
+  const commDir = path.dirname(commPath);
   const commName = path.basename(commPath);
-  const exports = listFiles(dir, (n) => n === 'export' || n.endsWith('.export'));
+  const workspaceRoot = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(commPath))?.uri.fsPath;
+  const searchDirs = ancestorDirs(commDir, workspaceRoot);
+
+  const exports: string[] = [];
+  for (const dir of searchDirs) {
+    exports.push(...listFiles(dir, (n) => n === 'export' || n.endsWith('.export')));
+  }
+
   if (exports.length === 0) {
     return undefined;
   }
   const referencing = exports.filter((p) => {
     try {
-      return exportReferencesComm(fs.readFileSync(p, 'utf8'), commName);
+      const content = fs.readFileSync(p, 'utf8');
+      const exportDir = path.dirname(p);
+      const declared = commNameFromExport(content);
+      if (declared) {
+        const resolved = path.isAbsolute(declared) ? declared : path.join(exportDir, declared);
+        if (path.normalize(resolved) === path.normalize(commPath)) {
+          return true;
+        }
+      }
+      return content.includes(commName);
     } catch {
       return false;
     }

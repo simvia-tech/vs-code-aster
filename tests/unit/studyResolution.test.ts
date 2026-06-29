@@ -14,8 +14,12 @@ describe('commNameFromExport', () => {
     expect(commNameFromExport(EXPORT)).toBe('case.comm');
   });
 
-  it('returns the basename when the path is absolute', () => {
-    expect(commNameFromExport('F comm /tmp/study/run.comm D 1')).toBe('run.comm');
+  it('preserves the full path when the path is absolute', () => {
+    expect(commNameFromExport('F comm /tmp/study/run.comm D 1')).toBe('/tmp/study/run.comm');
+  });
+
+  it('preserves the relative path when the comm is in a subdirectory', () => {
+    expect(commNameFromExport('F comm subdir/run.comm D 1')).toBe('subdir/run.comm');
   });
 
   it('ignores comment lines', () => {

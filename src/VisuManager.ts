@@ -221,7 +221,9 @@ export async function readObjFilesContent(objUris: vscode.Uri[]): Promise<string
 }
 
 /**
- * Finds med files corresponding to a given .comm file by reading .export files in the same folder.
+ * Finds med files corresponding to a given .comm file by reading .export files.
+ * Searches the comm's directory and ancestors up to the workspace root so that
+ * layouts where the .export lives in a parent folder are handled correctly.
  * Looks for F lines whose type field ends with "med" (e.g. mmed, rmed) and ioFlag is "D".
  * The med file may have any extension (e.g. .med, .21, .17).
  * @param commFilePath Path to the .comm file
@@ -229,22 +231,62 @@ export async function readObjFilesContent(objUris: vscode.Uri[]): Promise<string
  */
 export function findMedFiles(commFilePath: string): string[] {
   try {
-    const dir = path.dirname(commFilePath);
+    const commDir = path.dirname(commFilePath);
     const commFileName = path.basename(commFilePath);
-    const exportFiles = fs.readdirSync(dir).filter((f) => f === 'export' || f.endsWith('.export'));
+    const workspaceRoot = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(commFilePath))?.uri
+      .fsPath;
 
-    if (exportFiles.length === 0) {
-      vscode.window.showErrorMessage(`No .export file found in directory: ${dir}`);
+    // Collect .export files from comm dir and ancestor dirs up to workspace root.
+    const exportEntries: { exportPath: string; exportDir: string }[] = [];
+    let current = commDir;
+    while (true) {
+      try {
+        const files = fs
+          .readdirSync(current)
+          .filter((f) => f === 'export' || f.endsWith('.export'));
+        for (const f of files) {
+          exportEntries.push({ exportPath: path.join(current, f), exportDir: current });
+        }
+      } catch {
+        // Unreadable directory — skip.
+      }
+      if (current === workspaceRoot || current === path.dirname(current)) {
+        break;
+      }
+      current = path.dirname(current);
+    }
+
+    if (exportEntries.length === 0) {
+      vscode.window.showErrorMessage(`No .export file found for: ${commFilePath}`);
       return [];
     }
 
     const foundMedFiles: string[] = [];
 
-    for (const exportFile of exportFiles) {
-      const exportPath = path.join(dir, exportFile);
+    for (const { exportPath, exportDir } of exportEntries) {
       const content = fs.readFileSync(exportPath, 'utf8');
+      const exportFile = path.basename(exportPath);
 
-      if (!content.includes(commFileName)) {
+      // Check that this .export references our .comm file.
+      // Prefer a precise path comparison; fall back to a basename substring check.
+      let referencesComm = false;
+      const commLineMatch = content.split(/\r?\n/).find((raw) => {
+        const tokens = raw.split('#')[0].trim().split(/\s+/);
+        return (
+          tokens.length === 5 && (tokens[0] === 'F' || tokens[0] === 'R') && tokens[1] === 'comm'
+        );
+      });
+      if (commLineMatch) {
+        const declaredCommName = commLineMatch.split('#')[0].trim().split(/\s+/)[2];
+        const resolvedCommPath = path.isAbsolute(declaredCommName)
+          ? declaredCommName
+          : path.join(exportDir, declaredCommName);
+        referencesComm = path.normalize(resolvedCommPath) === path.normalize(commFilePath);
+      }
+      if (!referencesComm) {
+        referencesComm = content.includes(commFileName);
+      }
+      if (!referencesComm) {
         continue;
       }
 
@@ -263,7 +305,8 @@ export function findMedFiles(commFilePath: string): string[] {
           continue;
         }
 
-        const medPath = path.isAbsolute(name) ? name : path.join(dir, name);
+        // Resolve med path relative to the .export file's directory.
+        const medPath = path.isAbsolute(name) ? name : path.join(exportDir, name);
         const medFileName = path.basename(name);
 
         if (fs.existsSync(medPath)) {
@@ -279,7 +322,7 @@ export function findMedFiles(commFilePath: string): string[] {
 
     if (foundMedFiles.length === 0) {
       vscode.window.showErrorMessage(
-        `No .export file in "${path.basename(dir)}/" references any input med file associated with ${commFileName}.`
+        `No .export file references any input med file associated with ${commFileName}.`
       );
     }
 
