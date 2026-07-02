@@ -15,6 +15,7 @@ export class WebviewVisu implements vscode.Disposable {
 
   private readyReceived = false;
   private deferredInit?: { fileContexts: string[]; objFilenames: string[] };
+  private deferredError?: string;
   public sourceDir?: string;
 
   public get webview(): vscode.Webview {
@@ -111,6 +112,12 @@ export class WebviewVisu implements vscode.Disposable {
             );
             this.doSendInit(this.deferredInit.fileContexts, this.deferredInit.objFilenames);
             this.deferredInit = undefined;
+          } else if (this.deferredError) {
+            this.panel.webview.postMessage({
+              type: 'error',
+              body: { message: this.deferredError },
+            });
+            this.deferredError = undefined;
           }
           break;
         case 'saveSettings':
@@ -204,6 +211,21 @@ export class WebviewVisu implements vscode.Disposable {
       this.doSendInit(fileContexts, objFilenames);
     } else {
       this.deferredInit = { fileContexts, objFilenames };
+    }
+  }
+
+  /**
+   * Send an error message to the webview. Uses the same deferred mechanism as
+   * `sendInit` — if `ready` hasn't fired yet the message is buffered and sent
+   * once the webview is listening, preventing the race where a fast conversion
+   * failure posts the message before the webview's event listener is registered.
+   */
+  public sendError(message: string): void {
+    const post = () => this.panel.webview.postMessage({ type: 'error', body: { message } });
+    if (this.readyReceived) {
+      post();
+    } else {
+      this.deferredError = message;
     }
   }
 

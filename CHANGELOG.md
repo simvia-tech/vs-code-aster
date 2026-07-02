@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.3] - 2026-07-02
+
+Mesh viewer reliability on remote machines.
+
+### Fixed
+
+- **Mesh viewer stuck on "Loading…"**: on machines where `medcoupling` crashes immediately (e.g. unsupported CPU instructions), the conversion error was posted to the webview before its JavaScript event listener was registered, causing the message to be silently dropped and the loading screen to persist indefinitely. The error is now buffered and delivered once the webview signals `ready`, so it correctly shows a red error message instead of spinning forever.
+- **Mesh viewer stuck on "Loading…"**: added a 120-second timeout to the `med2obj.py` conversion process; if the Python subprocess hangs without exiting, it is killed and an actionable error is shown in the viewer.
+
 ## [1.13.2] - 2026-06-29
 
 Cross-directory study support and packaging improvements.

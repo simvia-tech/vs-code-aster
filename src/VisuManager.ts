@@ -423,9 +423,10 @@ export async function getObjFiles(medFiles: string[]): Promise<vscode.Uri[]> {
  * @param medFilePath Path to the input .med file
  * @param objFilePath Path to the output .obj file
  */
+const MED2OBJ_TIMEOUT_MS = 120_000;
+
 async function generateObjFromMed(medFilePath: string, objFilePath: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    // Locate med2obj.py script - assumed to be in python/asterstudy/post or similar
     const scriptPath = path.join(__dirname, '..', 'python', 'med2obj.py');
 
     console.log(
@@ -446,6 +447,22 @@ async function generateObjFromMed(medFilePath: string, objFilePath: string): Pro
     let stderr = '';
     let settled = false;
 
+    const timer = setTimeout(() => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      process.kill();
+      console.error(`[generateObjFromMed] Timed out after ${MED2OBJ_TIMEOUT_MS / 1000}s`);
+      reject(
+        new Error(
+          `Mesh conversion timed out after ${MED2OBJ_TIMEOUT_MS / 1000} seconds. ` +
+            'The process may have crashed silently (e.g. unsupported CPU instruction). ' +
+            'Check that medcoupling is installed and works on this machine.'
+        )
+      );
+    }, MED2OBJ_TIMEOUT_MS);
+
     process.stderr.on('data', (data) => {
       stderr += data.toString();
       console.log(`[generateObjFromMed] stderr: ${data}`);
@@ -456,6 +473,7 @@ async function generateObjFromMed(medFilePath: string, objFilePath: string): Pro
         return;
       }
       settled = true;
+      clearTimeout(timer);
       console.error(`[generateObjFromMed] Process error: ${err.message}`);
       if (err.code === 'ENOENT') {
         reject(
@@ -474,6 +492,7 @@ async function generateObjFromMed(medFilePath: string, objFilePath: string): Pro
         return;
       }
       settled = true;
+      clearTimeout(timer);
       if (code === 0) {
         console.log(`[generateObjFromMed] Successfully generated: ${objFilePath}`);
         resolve();

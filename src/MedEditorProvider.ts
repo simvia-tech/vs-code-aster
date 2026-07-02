@@ -88,12 +88,7 @@ export class MedEditorProvider implements vscode.CustomReadonlyEditorProvider<vs
       const objUris = await getObjFiles([medPath]);
 
       if (objUris.length === 0) {
-        webviewPanel.webview.postMessage({
-          type: 'error',
-          body: {
-            message: `Failed to convert ${path.basename(medPath)} to a viewable format.`,
-          },
-        });
+        visu.sendError(`Failed to convert ${path.basename(medPath)} to a viewable format.`);
         return;
       }
 
@@ -102,10 +97,7 @@ export class MedEditorProvider implements vscode.CustomReadonlyEditorProvider<vs
       visu.sendInit(fileContexts, objFilenames);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      webviewPanel.webview.postMessage({
-        type: 'error',
-        body: { message },
-      });
+      visu.sendError(message);
     }
   }
 }
