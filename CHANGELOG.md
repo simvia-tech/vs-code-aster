@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Sidebar: added a link to browse code_aster examples (`astest`) under the External section.
+
 ## [1.13.3] - 2026-07-02
 
 Mesh viewer reliability on remote machines.

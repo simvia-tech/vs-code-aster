@@ -294,6 +294,11 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
         'library',
         'https://demo-docaster.simvia-app.fr/versions/v17/'
       ),
+      link(
+        'Browse code_aster examples (astest)',
+        'folder-library',
+        'https://gitlab.com/codeaster/src/-/tree/main/astest?ref_type=heads'
+      ),
       link('Visit simvia.tech', 'globe', 'https://simvia.tech/'),
     ];
     return item;
