@@ -1,5 +1,6 @@
 .pytest_cache/**
 CLAUDE.md
+docs/social-posts/**
 media/images/vscode_aster.gif
 media/images/viewer-screenshot.png
 media/images/simvia.png
