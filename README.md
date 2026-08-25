@@ -110,6 +110,15 @@ pip install numpy pygls==1.3.1 medcoupling
 
 If you'd like to run simulations, you need to have **cave** installed on your system. You can follow the instructions on [the cave GitHub repository](https://github.com/simvia-tech/cave).
 
+### 4. (Alternative) Using an existing code_aster install
+
+Docker and cave are only one way to run code_aster. If code_aster is already installed on your machine (native Linux build, Windows installer, cluster module…), tell the extension about it with two settings :
+
+- `vs-code-aster.aliasForRun` — the command used to launch a study, e.g. `run_aster` (or the full path to it). The **Run** button executes `<alias> file.export`.
+- `vs-code-aster.asterCatalogPath` — the `code_aster` Python package of your install, i.e. the directory that contains `Cata/` (typically `<install>/lib/aster/code_aster`). The language server reads completions, signatures and diagnostics from it ; when empty, the catalog bundled with the extension is used.
+
+With a run alias other than `cave`, the **Setup** checks for Docker, cave and the code_aster image are reported as "not needed" rather than as warnings.
+
 You're now ready to use **VS Code Aster** !
 
 ### Video tutorials

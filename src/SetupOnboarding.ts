@@ -10,6 +10,7 @@ import {
 import { dockerAvailable, getSelectedCaveVersion } from './CatalogResolver';
 import { CaveStatusBar, listInstalledVersions } from './CaveStatusBar';
 import { LspServer } from './LspServer';
+import { isNativeRunAlias } from './setupChecks';
 
 const COMMAND_NAME = 'code_aster: Run setup checks';
 
@@ -54,6 +55,14 @@ export async function runSetupProbes(
   try {
     await stepPythonDeps(context, options.force);
     await stepRuff(context, options.force);
+    // Native code_aster (run alias is not cave): Docker, cave and the image
+    // picker don't apply. The sidebar's Setup group covers asterCatalogPath.
+    const alias = vscode.workspace
+      .getConfiguration('vs-code-aster')
+      .get<string>('aliasForRun', 'cave run');
+    if (isNativeRunAlias(alias)) {
+      return;
+    }
     const hasDocker = await stepDocker(context, options.force);
     const hasCave = await stepCave(context, hasDocker, options.force);
     if (hasCave) {
@@ -183,8 +192,10 @@ async function stepDocker(context: vscode.ExtensionContext, force?: boolean): Pr
     return false;
   }
   const choice = await vscode.window.showInformationMessage(
-    'Docker is required to install cave and run code_aster simulations. ' + 'Install it now?',
-    'Install',
+    'Docker and cave let the extension install and run code_aster for you. Install Docker now? ' +
+      'If code_aster is already installed on this machine, choose "I have code_aster" instead.',
+    'Install Docker',
+    'I have code_aster',
     'Not now',
     "Don't ask again"
   );
@@ -192,8 +203,18 @@ async function stepDocker(context: vscode.ExtensionContext, force?: boolean): Pr
     await context.globalState.update(KEY_DOCKER, true);
     return false;
   }
-  if (choice === 'Install') {
+  if (choice === 'Install Docker') {
     void vscode.env.openExternal(vscode.Uri.parse('https://docs.docker.com/get-docker/'));
+  } else if (choice === 'I have code_aster') {
+    void vscode.commands.executeCommand(
+      'workbench.action.openSettings',
+      '@ext:simvia.vs-code-aster'
+    );
+    void vscode.window.showInformationMessage(
+      'Set "Alias For Run" to your launch command (e.g. run_aster) and "Aster Catalog Path" to the ' +
+        'code_aster directory of your install (the one containing Cata/). ' +
+        'Docker and cave are then not needed.'
+    );
   }
   return false;
 }

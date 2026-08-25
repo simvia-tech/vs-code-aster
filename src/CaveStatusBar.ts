@@ -6,6 +6,8 @@ import {
   clearCatalogCacheFor,
   getBundledVersion,
   getSelectedCaveVersion,
+  getUserCatalogPath,
+  readCatalogVersion,
   reconcileCatalogCache,
 } from './CatalogResolver';
 import { LspServer } from './LspServer';
@@ -181,6 +183,26 @@ export class CaveStatusBar {
   }
 
   private renderLabel() {
+    // A valid asterCatalogPath wins over cave (see resolveCatalogPath): a
+    // native install is not a "missing version", so no warning styling.
+    const localCatalog = getUserCatalogPath();
+    if (localCatalog) {
+      const version = readCatalogVersion(localCatalog);
+      this.item.text = `$(library) ${version ?? 'local'}`;
+      const settingLink = `command:workbench.action.openSettings?${encodeURIComponent(
+        JSON.stringify(['@id:vs-code-aster.asterCatalogPath'])
+      )}`;
+      const md = new vscode.MarkdownString(
+        `Using the **local code_aster catalog**${version ? ` ${version}` : ''} at ` +
+          `\`${localCatalog}\` (setting \`vs-code-aster.asterCatalogPath\`).\n\n` +
+          `Click to manage cave versions, or [change the catalog path](${settingLink}).`
+      );
+      md.isTrusted = true;
+      this.item.tooltip = md;
+      this.item.backgroundColor = undefined;
+      this.item.show();
+      return;
+    }
     const selected = getSelectedCaveVersion();
     // `~/.cave` can point at a version whose image has since been removed
     // (either by us via the trash button, or manually via `docker rmi`).

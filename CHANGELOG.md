@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Large and mixed-dimension meshes in the viewer.
+Large and mixed-dimension meshes in the viewer; setup checks that recognise a native code_aster install.
 
 ### Changed
 
+- **Setup recognises native code_aster installs**: with a run alias other than `cave` (e.g. `run_aster`), the sidebar's Setup group reports Docker, cave and the code_aster image as "not needed" instead of warnings, and points to `asterCatalogPath` when no catalog is configured. A valid `asterCatalogPath` now shows as the active catalog (with its version) in the Setup group and the status bar, instead of "no image installed" / bundled fallback. A missing `ruff` is shown as optional info rather than a warning. The first-run popup no longer claims Docker is required and offers an "I have code_aster" shortcut to the two settings; the README documents the native setup.
 - **Mesh viewer shows mixed solid/shell/beam meshes whole**: on a 3D mesh, shells (level -1) and beams (level -2) were only written as hidden groups, so a body-in-white with a solid part rendered as the solid part alone. The converter now merges them into the displayed object (dropping faces that coincide with the volume skin), and the reported element count includes every dimension. Existing `.obj` caches are regenerated automatically (`med2obj-version: 4`).
 
 ### Fixed

@@ -63,29 +63,40 @@ export function getBundledVersion(context: vscode.ExtensionContext): string | nu
   if (bundledVersionCache !== undefined) {
     return bundledVersionCache;
   }
+  bundledVersionCache = readCatalogVersion(
+    context.asAbsolutePath(path.join('python', 'asterstudy', 'code_aster_version', 'code_aster'))
+  );
+  return bundledVersionCache;
+}
+
+/**
+ * Read the version string (e.g. "16.7") of the catalog whose `Cata/` directory
+ * lives under `cataParentDir`, from `Cata/aster_version.py`. Null if unreadable.
+ */
+export function readCatalogVersion(cataParentDir: string): string | null {
   try {
-    const file = context.asAbsolutePath(
-      path.join(
-        'python',
-        'asterstudy',
-        'code_aster_version',
-        'code_aster',
-        'Cata',
-        'aster_version.py'
-      )
-    );
-    const txt = fs.readFileSync(file, 'utf8');
+    const txt = fs.readFileSync(path.join(cataParentDir, 'Cata', 'aster_version.py'), 'utf8');
     const m = txt.match(/\*\[\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
     if (!m) {
-      bundledVersionCache = null;
-    } else {
-      const [maj, min, patch] = [m[1], m[2], m[3]];
-      bundledVersionCache = patch === '0' ? `${maj}.${min}` : `${maj}.${min}.${patch}`;
+      return null;
     }
+    const [maj, min, patch] = [m[1], m[2], m[3]];
+    return patch === '0' ? `${maj}.${min}` : `${maj}.${min}.${patch}`;
   } catch {
-    bundledVersionCache = null;
+    return null;
   }
-  return bundledVersionCache;
+}
+
+/**
+ * The user's `asterCatalogPath` setting when it points at a directory with a
+ * `Cata/` subdirectory (a native code_aster install), null otherwise.
+ */
+export function getUserCatalogPath(): string | null {
+  const userSetting = vscode.workspace
+    .getConfiguration('vs-code-aster')
+    .get<string>('asterCatalogPath', '')
+    .trim();
+  return userSetting && fs.existsSync(path.join(userSetting, 'Cata')) ? userSetting : null;
 }
 
 function run(
@@ -227,9 +238,10 @@ export async function resolveCatalogPath(): Promise<ResolvedCatalog> {
     .trim();
   if (userSetting) {
     log(`user setting = ${userSetting}`);
-    if (fs.existsSync(path.join(userSetting, 'Cata'))) {
-      log(`resolved via user-setting → ${userSetting}`);
-      return { path: userSetting, source: 'user-setting', version: null };
+    const userPath = getUserCatalogPath();
+    if (userPath) {
+      log(`resolved via user-setting → ${userPath}`);
+      return { path: userPath, source: 'user-setting', version: readCatalogVersion(userPath) };
     }
     log(`user setting path invalid (no Cata/ subdir), ignoring`);
   } else {

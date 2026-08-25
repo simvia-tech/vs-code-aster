@@ -5,14 +5,34 @@ import {
   dockerAvailable,
   getBundledVersion,
   getSelectedCaveVersion,
+  getUserCatalogPath,
+  readCatalogVersion,
 } from './CatalogResolver';
 import { listInstalledVersions } from './CaveStatusBar';
 import { LspServer } from './LspServer';
 import { probeLspDeps, probeRuff, runProc } from './PythonEnv';
+import { evaluateSetup, isNativeRunAlias } from './setupChecks';
+import type { SetupAction, SetupRow } from './setupChecks';
 
 const VIEW_ID = 'vs-code-aster.sidebar';
 
 type Status = 'ok' | 'warn' | 'error' | 'info';
+
+const SETUP_COMMANDS: Record<SetupAction, vscode.Command> = {
+  runSetup: { title: 'Run setup checks', command: 'vs-code-aster.runSetup' },
+  installVersion: { title: 'Install version', command: 'vs-code-aster.installCaveVersion' },
+  selectVersion: { title: 'Select version', command: 'vs-code-aster.selectCaveVersion' },
+  setCatalogPath: {
+    title: 'Open setting',
+    command: 'workbench.action.openSettings',
+    arguments: ['@id:vs-code-aster.asterCatalogPath'],
+  },
+  setRunAlias: {
+    title: 'Open setting',
+    command: 'workbench.action.openSettings',
+    arguments: ['@id:vs-code-aster.aliasForRun'],
+  },
+};
 
 type FamilyKey = 'mesh' | 'material' | 'bcAndLoads' | 'analysis' | 'output';
 const FAMILIES: { key: FamilyKey; label: string }[] = [
@@ -41,6 +61,9 @@ interface Probe {
   installedVersions: string[];
   currentVersion: string | null;
   bundledVersion: string | null;
+  runAlias: string;
+  userCatalogPath: string | null;
+  userCatalogVersion: string | null;
   // Command browser data
   inFile: CommandFamilies;
   catalog: CommandFamilies;
@@ -218,12 +241,11 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
 
   private async topLevel(): Promise<Item[]> {
     const probe = await this.getProbe();
-    const versionOk =
-      !!probe.currentVersion && probe.installedVersions.includes(probe.currentVersion);
-    const setupOk = probe.pythonOk && probe.ruffOk && probe.dockerOk && probe.caveOk && versionOk;
+    const setupRows = evaluateSetup(probe);
+    const setupOk = setupRows.every((r) => r.passed);
     const isCommActive = vscode.window.activeTextEditor?.document.languageId === 'comm';
 
-    const setup = this.setupGroup(probe);
+    const setup = this.setupGroup(setupRows);
     const actions = this.actionsGroup();
     const versions = this.versionsGroup(probe);
     const settings = this.settingsGroup();
@@ -321,6 +343,9 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
         pythonOk: false,
         pythonMissing: [],
         pythonMedcouplingUnavailable: false,
+        runAlias: 'cave run',
+        userCatalogPath: null,
+        userCatalogVersion: null,
         ruffOk: false,
         dockerOk: false,
         caveOk: false,
@@ -343,6 +368,7 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
       listInstalledVersions(),
       this.fetchCommandFamilies(),
     ]);
+    const userCatalogPath = getUserCatalogPath();
     this.cached = {
       pythonOk: pythonResult.ok,
       pythonMissing: pythonResult.missing,
@@ -353,6 +379,11 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
       installedVersions: installed,
       currentVersion: getSelectedCaveVersion(),
       bundledVersion: getBundledVersion(this.context),
+      runAlias: vscode.workspace
+        .getConfiguration('vs-code-aster')
+        .get<string>('aliasForRun', 'cave run'),
+      userCatalogPath,
+      userCatalogVersion: userCatalogPath ? readCatalogVersion(userCatalogPath) : null,
       inFile: families.inFile,
       catalog: families.catalog,
       catalogLoaded: families.catalogLoaded,
@@ -417,72 +448,24 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
 
   // ------------------------------------------------------------ Setup
 
-  private setupGroup(p: Probe): Item {
-    const versionOk = !!p.currentVersion && p.installedVersions.includes(p.currentVersion);
-    const checks = [p.pythonOk, p.ruffOk, p.dockerOk, p.caveOk, versionOk];
-    const passed = checks.filter(Boolean).length;
-    const allOk = passed === checks.length;
+  private setupGroup(rows: SetupRow[]): Item {
+    const passed = rows.filter((r) => r.passed).length;
+    const allOk = passed === rows.length;
     const item = new Item(
-      `Setup (${passed}/${checks.length})`,
+      `Setup (${passed}/${rows.length})`,
       allOk ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.Expanded
     );
     item.iconPath = new vscode.ThemeIcon('checklist');
-    const versionStatus: Status = versionOk ? 'ok' : 'warn';
-
-    const items: Item[] = [
-      this.statusItem(
-        'Python LSP dependencies',
-        p.pythonOk ? 'ok' : 'warn',
-        p.pythonOk
-          ? p.pythonMedcouplingUnavailable
-            ? 'pygls, numpy installed (medcoupling unavailable on Python 3.14+ — mesh viewer disabled)'
-            : 'pygls, numpy, medcoupling installed'
-          : `missing: ${p.pythonMissing.join(', ') || '?'}`,
-        'vs-code-aster.runSetup'
-      ),
-      this.statusItem(
-        'ruff (formatter)',
-        p.ruffOk ? 'ok' : 'warn',
-        p.ruffOk ? 'available' : 'not installed',
-        'vs-code-aster.runSetup'
-      ),
-      this.statusItem(
-        'Docker',
-        p.dockerOk ? 'ok' : 'warn',
-        p.dockerOk ? 'running' : 'not available',
-        'vs-code-aster.runSetup'
-      ),
-      this.statusItem(
-        'cave',
-        p.caveOk ? 'ok' : 'warn',
-        p.caveOk ? 'on PATH' : 'not installed',
-        'vs-code-aster.runSetup'
-      ),
-      this.statusItem(
-        'code_aster version',
-        versionStatus,
-        p.installedVersions.length === 0
-          ? 'no image installed'
-          : p.currentVersion && p.installedVersions.includes(p.currentVersion)
-            ? `using ${p.currentVersion}`
-            : `bundled ${p.bundledVersion ?? '?'} fallback`,
-        // No image installed → straight to the install picker; otherwise
-        // open the regular picker so the user can switch / install / remove.
-        p.installedVersions.length === 0
-          ? 'vs-code-aster.installCaveVersion'
-          : 'vs-code-aster.selectCaveVersion'
-      ),
-    ];
-    item.children = items;
+    item.children = rows.map((row) => this.statusItem(row));
     return item;
   }
 
-  private statusItem(label: string, status: Status, description: string, command: string): Item {
-    const it = new Item(label);
-    it.iconPath = statusIcon(status);
-    it.description = description;
-    it.tooltip = `${label}: ${description}`;
-    it.command = { title: 'Run setup checks', command };
+  private statusItem(row: SetupRow): Item {
+    const it = new Item(row.label);
+    it.iconPath = statusIcon(row.status);
+    it.description = row.description;
+    it.tooltip = row.tooltip ?? `${row.label}: ${row.description}`;
+    it.command = SETUP_COMMANDS[row.action];
     return it;
   }
 
@@ -581,7 +564,13 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
     const item = new Item('Versions', vscode.TreeItemCollapsibleState.Collapsed);
     item.iconPath = new vscode.ThemeIcon('versions');
     const children: Item[] = [];
-    if (!p.caveOk) {
+    if (!p.caveOk && isNativeRunAlias(p.runAlias)) {
+      const native = new Item('cave not used');
+      native.iconPath = statusIcon('info');
+      native.description = `run alias "${p.runAlias.trim()}"`;
+      native.command = SETUP_COMMANDS.setRunAlias;
+      children.push(native);
+    } else if (!p.caveOk) {
       const missing = new Item('cave is not installed');
       missing.iconPath = statusIcon('warn');
       missing.command = { title: 'Set up', command: 'vs-code-aster.runSetup' };
