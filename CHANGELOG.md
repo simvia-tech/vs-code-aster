@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.4] - 2026-08-26
+
 Large and mixed-dimension meshes in the viewer; setup checks that recognise a native code_aster install.
 
 ### Changed
