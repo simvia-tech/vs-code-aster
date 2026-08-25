@@ -24,6 +24,7 @@ const FILE_B = [
   '# nodes: 3',
   'v 0 0 1',
   'v 1 0 1',
+  'l 2 1', // object-level beam (med2obj v4), before any group
   'vg SOLID',
   'f 1 2 3',
   'eg SIDE',
@@ -50,7 +51,16 @@ describe('ObjLoader.loadFiles', () => {
     expect(r.vertices).toHaveLength(5);
     expect(r.cells).toHaveLength(3);
     expect(r.nodes).toEqual([0, 1]); // file A p-lines, no offset
-    expect(r.edges).toEqual([[3, 4]]); // file B l-line, offset by A's 3 vertices
+    expect(r.edges).toEqual([
+      [4, 3],
+      [3, 4],
+    ]); // file B l-lines, offset by A's 3 vertices
+  });
+
+  it('attaches object-level edges to their file, grouped edges to their eg group', async () => {
+    const r = await load();
+    expect(r.edgeIndexToGroup).toEqual([-1, 0]);
+    expect(r.edgeFileGroup).toEqual(['all_b.obj', 'all_b.obj']);
   });
 
   it('registers per-file skin groups and typed group keys', async () => {

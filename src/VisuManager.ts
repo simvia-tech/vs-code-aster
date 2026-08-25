@@ -8,7 +8,7 @@ import { TextDecoder } from 'util';
 import { getMeshCacheDir } from './projectPaths';
 import { medcouplingUnavailable, pythonVersion } from './PythonEnv';
 
-const EXPECTED_MED2OBJ_VERSION = 3;
+const EXPECTED_MED2OBJ_VERSION = 4;
 
 function readObjVersion(objFilePath: string): number | null {
   try {
@@ -436,13 +436,14 @@ async function generateObjFromMed(medFilePath: string, objFilePath: string): Pro
     const config = vscode.workspace.getConfiguration('vs-code-aster');
     const pythonExecutablePath = config.get<string>('pythonExecutablePath', 'python3');
 
-    const process = spawn(
-      pythonExecutablePath,
-      [scriptPath, '-i', medFilePath, '-o', objFilePath],
-      {
-        cwd: path.dirname(medFilePath),
-      }
-    );
+    // Write to a temp file and rename on success, so a killed or crashed
+    // conversion never leaves a truncated .obj that passes the cache check.
+    const tmpPath = `${objFilePath}.tmp`;
+    const discardTmp = () => fs.rmSync(tmpPath, { force: true });
+
+    const process = spawn(pythonExecutablePath, [scriptPath, '-i', medFilePath, '-o', tmpPath], {
+      cwd: path.dirname(medFilePath),
+    });
 
     let stderr = '';
     let settled = false;
@@ -453,6 +454,7 @@ async function generateObjFromMed(medFilePath: string, objFilePath: string): Pro
       }
       settled = true;
       process.kill();
+      discardTmp();
       console.error(`[generateObjFromMed] Timed out after ${MED2OBJ_TIMEOUT_MS / 1000}s`);
       reject(
         new Error(
@@ -474,6 +476,7 @@ async function generateObjFromMed(medFilePath: string, objFilePath: string): Pro
       }
       settled = true;
       clearTimeout(timer);
+      discardTmp();
       console.error(`[generateObjFromMed] Process error: ${err.message}`);
       if (err.code === 'ENOENT') {
         reject(
@@ -494,9 +497,11 @@ async function generateObjFromMed(medFilePath: string, objFilePath: string): Pro
       settled = true;
       clearTimeout(timer);
       if (code === 0) {
+        fs.renameSync(tmpPath, objFilePath);
         console.log(`[generateObjFromMed] Successfully generated: ${objFilePath}`);
         resolve();
       } else {
+        discardTmp();
         const errorMsg = `med2obj.py exited with code ${code}. ${stderr}`;
         console.error(`[generateObjFromMed] ${errorMsg}`);
         reject(new Error(errorMsg));

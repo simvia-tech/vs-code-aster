@@ -35,7 +35,11 @@ window.addEventListener('message', async (e) => {
 
   switch (type) {
     case 'init': {
-      Controller.Instance.loadFiles(body.fileContexts, body.objFilenames);
+      Controller.Instance.loadFiles(body.fileContexts, body.objFilenames).catch((err) => {
+        const message = err instanceof Error ? err.message : String(err);
+        errorMessage.set(`Failed to build the mesh scene: ${message}`);
+        vscode.postMessage({ type: 'debugPanel', text: `ERROR: ${message}` });
+      });
       if (body.settings) {
         const s = body.settings;
         if (s.hiddenObjectOpacity !== undefined)

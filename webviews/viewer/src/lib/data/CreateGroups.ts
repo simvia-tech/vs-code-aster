@@ -6,6 +6,10 @@ import { EdgeActorCreator } from './create/EdgeActorCreator';
 import { Group } from './Group';
 import { Controller } from '../Controller';
 import { VtkApp } from '../core/VtkApp';
+import vtkPoints from '@kitware/vtk.js/Common/Core/Points';
+
+/** Yield between sub-group actors so the progress bar repaints and input stays responsive. */
+const YIELD_EVERY_GROUPS = 50;
 
 export class CreateGroups {
   private fileContexts: string[];
@@ -44,18 +48,35 @@ export class CreateGroups {
       nodeIndexToGroup,
       edges,
       edgeIndexToGroup,
+      edgeFileGroup,
       faceGroups,
       nodeGroups,
       edgeGroups,
       groupHierarchy,
     } = result;
 
-    const faceActorCreator = new FaceActorCreator(vertices, cells, cellIndexToGroup);
-    const nodeActorCreator = new NodeActorCreator(vertices, nodes, nodeIndexToGroup);
-    const edgeActorCreator = new EdgeActorCreator(vertices, edges, edgeIndexToGroup);
+    // One shared coordinate buffer for every actor. Copying the full vertex
+    // array per group used to cost (groups x vertices x 12 bytes): 6 GB on a
+    // 1.2M-node mesh with 470 groups.
+    const points = vtkPoints.newInstance();
+    const coords = new Float32Array(vertices.length * 3);
+    vertices.forEach((v, i) => {
+      coords[3 * i] = v.x;
+      coords[3 * i + 1] = v.y;
+      coords[3 * i + 2] = v.z;
+    });
+    points.setData(coords, 3);
 
-    const edgeKey = (a: number, b: number) => (a < b ? `${a}-${b}` : `${b}-${a}`);
-    const faceEdgeSet = new Set<string>();
+    const faceActorCreator = new FaceActorCreator(points, cells, cellIndexToGroup);
+    const nodeActorCreator = new NodeActorCreator(vertices, nodes, nodeIndexToGroup);
+    const edgeActorCreator = new EdgeActorCreator(points, edges, edgeIndexToGroup);
+
+    // Beams (1D cells written at object level, outside any `eg` group) are
+    // drawn with the object unless they coincide with a face edge. Numeric
+    // keys: exact while vertices < 2^26, far cheaper than `${a}-${b}` strings.
+    const nVertices = vertices.length;
+    const edgeKey = (a: number, b: number) => (a < b ? a * nVertices + b : b * nVertices + a);
+    const faceEdgeSet = new Set<number>();
     for (const cell of cells) {
       for (let i = 0; i < cell.length; i++) {
         faceEdgeSet.add(edgeKey(cell[i], cell[(i + 1) % cell.length]));
@@ -63,6 +84,7 @@ export class CreateGroups {
     }
     const standaloneByFile: Record<string, number[]> = {};
     for (let i = 0; i < edges.length; i++) {
+      if (edgeIndexToGroup[i] >= 0) continue;
       const e = edges[i];
       let isStandalone = false;
       for (let j = 0; j + 1 < e.length; j++) {
@@ -72,15 +94,20 @@ export class CreateGroups {
         }
       }
       if (!isStandalone) continue;
-      const egId = edgeIndexToGroup[i];
-      if (egId < 0) continue;
-      const fileGroup = edgeGroups[egId]?.split('::')[0];
-      if (!fileGroup) continue;
-      (standaloneByFile[fileGroup] ||= []).push(i);
+      (standaloneByFile[edgeFileGroup[i]] ||= []).push(i);
     }
 
     const groupKeys = Object.keys(groupHierarchy);
     const yield_ = () => new Promise<void>((r) => setTimeout(r, 0));
+    const totalGroups = faceGroups.length + edgeGroups.length + nodeGroups.length;
+    let builtGroups = 0;
+    const step = async () => {
+      builtGroups++;
+      if (builtGroups % YIELD_EVERY_GROUPS === 0) {
+        onProgress(0.9 + (builtGroups / totalGroups) * 0.1);
+        await yield_();
+      }
+    };
 
     onMessage('Building scene...');
     for (let gi = 0; gi < groupKeys.length; gi++) {
@@ -109,6 +136,7 @@ export class CreateGroups {
         fileCellCount
       );
       this.groups[fileGroup] = groupInstance;
+      await step();
 
       const standaloneIdx = standaloneByFile[fileGroup];
       if (standaloneIdx && standaloneIdx.length > 0) {
@@ -141,6 +169,7 @@ export class CreateGroups {
           volumeCellCount
         );
         this.groups[key] = subGroup;
+        await step();
       }
 
       for (const faceGroup of groupHierarchy[fileGroup].faces) {
@@ -162,6 +191,7 @@ export class CreateGroups {
           faceCellCount
         );
         this.groups[`${fileGroup}::${faceGroup}::face`] = subGroup;
+        await step();
       }
 
       for (const edgeGroup of groupHierarchy[fileGroup].edges) {
@@ -182,6 +212,7 @@ export class CreateGroups {
           edgeCellCount
         );
         this.groups[`${fileGroup}::${edgeGroup}::edge`] = subGroup;
+        await step();
       }
 
       for (const nodeGroup of groupHierarchy[fileGroup].nodes) {
@@ -198,6 +229,7 @@ export class CreateGroups {
           false
         );
         this.groups[`${fileGroup}::${nodeGroup}::node`] = subGroup;
+        await step();
       }
 
       onProgress(0.9 + ((gi + 1) / groupKeys.length) * 0.1);

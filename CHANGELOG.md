@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Large and mixed-dimension meshes in the viewer.
+
+### Changed
+
+- **Mesh viewer shows mixed solid/shell/beam meshes whole**: on a 3D mesh, shells (level -1) and beams (level -2) were only written as hidden groups, so a body-in-white with a solid part rendered as the solid part alone. The converter now merges them into the displayed object (dropping faces that coincide with the volume skin), and the reported element count includes every dimension. Existing `.obj` caches are regenerated automatically (`med2obj-version: 4`).
+
+### Fixed
+
+- **Mesh viewer freezing or never showing the sidebar on large meshes**: every group actor copied the full vertex array (groups × vertices × 12 bytes — 6 GB and several minutes on a 1.2 M-node mesh with 470 groups), which either froze the webview or threw an allocation error that left the loading screen up while the model stayed interactive. All actors now share one coordinate buffer, cells are bucketed by group in a single pass, and the scene build yields regularly so progress is visible.
+- Mesh viewer: a failure while building the scene now shows an error instead of an endless "Building scene…".
+- Mesh viewer: nodes referenced by no element and no node group are no longer written to the `.obj`; such orphan nodes (frequent in imported meshes) could sit far from the model and push it off-center in the initial camera framing.
+- Mesh viewer: a conversion killed by the 120-second timeout no longer leaves a truncated `.obj` that is reused as a valid cache on the next open (the file is written to a temp path and renamed on success).
+
 ## [1.13.3] - 2026-07-02
 
 Mesh viewer reliability on remote machines.

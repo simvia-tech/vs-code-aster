@@ -9,7 +9,7 @@ import { VtkApp } from '../../core/VtkApp';
 export class NodeActorCreator {
   private vertices: { x: number; y: number; z: number }[];
   private nodes: number[];
-  private nodeIndexToGroup: number[];
+  private nodesByGroup: number[][] = [];
 
   constructor(
     vertices: { x: number; y: number; z: number }[],
@@ -18,7 +18,9 @@ export class NodeActorCreator {
   ) {
     this.vertices = vertices;
     this.nodes = nodes;
-    this.nodeIndexToGroup = nodeIndexToGroup;
+    nodeIndexToGroup.forEach((g, i) => {
+      if (g >= 0) (this.nodesByGroup[g] ||= []).push(i);
+    });
   }
 
   create(groupId: number): { actor: any; colorIndex: number } {
@@ -39,9 +41,7 @@ export class NodeActorCreator {
   private prepare(groupId: number): any {
     const pd = vtkPolyData.newInstance();
 
-    const nodeIndices = this.nodeIndexToGroup
-      .map((g, idx) => (g === groupId ? idx : -1))
-      .filter((idx) => idx !== -1);
+    const nodeIndices = this.nodesByGroup[groupId] ?? [];
 
     if (nodeIndices.length > 0) {
       const pts = vtkPoints.newInstance();

@@ -6,6 +6,8 @@ export interface ObjLoaderResult {
   nodeIndexToGroup: number[];
   edges: number[][];
   edgeIndexToGroup: number[];
+  /** Skin (file) group each edge belongs to; needed for edges outside any `eg` group. */
+  edgeFileGroup: string[];
   faceGroups: string[];
   nodeGroups: string[];
   volumeGroups: string[];
@@ -34,6 +36,7 @@ export class ObjLoader {
     const nodeIndexToGroup: number[] = [];
     const edges: number[][] = [];
     const edgeIndexToGroup: number[] = [];
+    const edgeFileGroup: string[] = [];
     const faceGroups: string[] = [];
     const nodeGroups: string[] = [];
     const volumeGroups: string[] = [];
@@ -147,6 +150,7 @@ export class ObjLoader {
               const lineIndices = ss.slice(1).map((p) => Number.parseInt(p) - 1 + nbVertices);
               edges.push(lineIndices);
               edgeIndexToGroup.push(edgeGroupId);
+              edgeFileGroup.push(skinName);
               break;
             }
 
@@ -179,6 +183,7 @@ export class ObjLoader {
       nodeIndexToGroup,
       edges,
       edgeIndexToGroup,
+      edgeFileGroup,
       faceGroups,
       nodeGroups,
       volumeGroups,

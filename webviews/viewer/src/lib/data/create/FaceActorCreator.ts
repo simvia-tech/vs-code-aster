@@ -1,24 +1,22 @@
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
 import vtkPolyData from '@kitware/vtk.js/Common/DataModel/PolyData';
-import vtkPoints from '@kitware/vtk.js/Common/Core/Points';
 import vtkCellArray from '@kitware/vtk.js/Common/Core/CellArray';
 import { GlobalSettings } from '../../settings/GlobalSettings';
 import { VtkApp } from '../../core/VtkApp';
 
 export class FaceActorCreator {
-  private vertices: { x: number; y: number; z: number }[];
+  /** vtkPoints shared by every actor: one copy of the coordinates for the whole mesh. */
+  private points: any;
   private cells: number[][];
-  private cellIndexToGroup: number[];
+  private cellsByGroup: number[][] = [];
 
-  constructor(
-    vertices: { x: number; y: number; z: number }[],
-    cells: number[][],
-    cellIndexToGroup: number[]
-  ) {
-    this.vertices = vertices;
+  constructor(points: any, cells: number[][], cellIndexToGroup: number[]) {
+    this.points = points;
     this.cells = cells;
-    this.cellIndexToGroup = cellIndexToGroup;
+    cellIndexToGroup.forEach((g, i) => {
+      if (g >= 0) (this.cellsByGroup[g] ||= []).push(i);
+    });
   }
 
   create(
@@ -46,21 +44,9 @@ export class FaceActorCreator {
 
   private prepare(groupId: number): { polyData: any; cellCount: number } {
     const pd = vtkPolyData.newInstance();
+    pd.setPoints(this.points);
 
-    const pts = vtkPoints.newInstance();
-    const coords = new Float32Array(this.vertices.length * 3);
-    this.vertices.forEach((v, i) => {
-      coords[3 * i] = v.x;
-      coords[3 * i + 1] = v.y;
-      coords[3 * i + 2] = v.z;
-    });
-    pts.setData(coords, 3);
-    pd.setPoints(pts);
-
-    const cellIndices = this.cellIndexToGroup
-      .map((g, idx) => (g === groupId ? idx : -1))
-      .filter((idx) => idx !== -1);
-
+    const cellIndices = this.cellsByGroup[groupId] ?? [];
     const cellCount = cellIndices.length;
     if (cellCount > 0) {
       const cellArray = vtkCellArray.newInstance({
