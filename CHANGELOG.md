@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Locate code_aster install** command (also reachable from the sidebar's Setup group and the first-run popup): pick your installation folder and `asterCatalogPath` (the `code_aster` package containing `Cata/`) and `aliasForRun` (`bin/run_aster`) are filled in automatically; the install root, `lib/aster` or the `code_aster` package itself are all accepted.
+- **Locate code_aster install** command (also reachable from the sidebar's Setup group and the first-run popup): pick your installation folder and `asterCatalogPath` (the `code_aster` package containing `Cata/`) and `aliasForRun` (`bin/run_aster`) are filled in automatically; the install root, `lib/aster` or the `code_aster` package itself are all accepted, including the Windows installer layout (`<install>\bin\run_aster.bat` wrapper, `<install>\codeaster-dist\lib\aster\code_aster`).
 
 ### Changed
 

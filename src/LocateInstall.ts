@@ -18,23 +18,37 @@ const RUN_ASTER_NAMES =
  * Derive both settings from a folder the user picked. Accepts the install
  * root (`<prefix>` holding `lib/aster/code_aster` and `bin/run_aster`),
  * `lib/aster`, or the `code_aster` package itself: the search walks up to
- * three levels so a folder picked too deep still resolves.
+ * three levels so a folder picked too deep still resolves. The Windows MSI
+ * nests the prefix one level down (`<root>/codeaster-dist/…`) and puts a
+ * `bin/run_aster.bat` wrapper at the root; both are covered.
  */
 export function findInstallLayout(picked: string): InstallLayout {
   const isCatalog = (dir: string) => fs.existsSync(path.join(dir, 'Cata', 'Commands'));
+  // In the MSI, `<root>/bin/run_aster.bat` is the environment wrapper and
+  // `<root>/codeaster-dist/bin/run_aster.bat` a bare `python -m run_aster`
+  // that fails without it: when standing in `codeaster-dist`, look at the
+  // root's bin/ first.
+  const prefixes = (dir: string) =>
+    path.basename(dir) === 'codeaster-dist'
+      ? [path.dirname(dir), dir]
+      : [dir, path.join(dir, 'codeaster-dist')];
   let catalogPath: string | null = null;
   let runCommand: string | null = null;
   let dir = picked;
   for (let depth = 0; depth < 4; depth++) {
     if (!catalogPath) {
       catalogPath =
-        [dir, path.join(dir, 'code_aster'), path.join(dir, 'lib', 'aster', 'code_aster')].find(
-          isCatalog
-        ) ?? null;
+        [
+          dir,
+          path.join(dir, 'code_aster'),
+          ...prefixes(dir).map((p) => path.join(p, 'lib', 'aster', 'code_aster')),
+        ].find(isCatalog) ?? null;
     }
     if (!runCommand) {
       runCommand =
-        RUN_ASTER_NAMES.map((n) => path.join(dir, 'bin', n)).find((p) => fs.existsSync(p)) ?? null;
+        prefixes(dir)
+          .flatMap((p) => RUN_ASTER_NAMES.map((n) => path.join(p, 'bin', n)))
+          .find((p) => fs.existsSync(p)) ?? null;
     }
     const parent = path.dirname(dir);
     if ((catalogPath && runCommand) || parent === dir) {

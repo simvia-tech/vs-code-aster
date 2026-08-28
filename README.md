@@ -117,6 +117,8 @@ Docker and cave are only one way to run code_aster. If code_aster is already ins
 - `vs-code-aster.aliasForRun` — the command used to launch a study, e.g. `run_aster` (or the full path to it). The **Run** button executes `<alias> file.export`.
 - `vs-code-aster.asterCatalogPath` — the `code_aster` Python package of your install, i.e. the directory that contains `Cata/` (typically `<install>/lib/aster/code_aster`). The language server reads completions, signatures and diagnostics from it ; when empty, the catalog bundled with the extension is used.
 
+With the Windows installer (`code_aster-<version>-win64.msi`, default location `%LOCALAPPDATA%\code_aster`), the values are `<install>\bin\run_aster.bat` (the wrapper that sets up the environment ; not the one under `codeaster-dist\bin`) and `<install>\codeaster-dist\lib\aster\code_aster`.
+
 With a run alias other than `cave`, the **Setup** checks for Docker, cave and the code_aster image are reported as "not needed" rather than as warnings.
 
 You're now ready to use **VS Code Aster** !
