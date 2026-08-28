@@ -8,6 +8,18 @@ import { getRunLogsDir, makeRunLogFilename, pruneRunLogs } from './projectPaths'
 
 const execAsync = promisify(exec);
 
+/**
+ * Read a run log written by `tee`. Windows PowerShell 5.1 resolves `tee` to
+ * `Tee-Object`, which writes UTF-16LE with a BOM; everything else writes UTF-8.
+ */
+export function readLogFile(logPath: string): string {
+  const buf = fs.readFileSync(logPath);
+  if (buf.length >= 2 && buf[0] === 0xff && buf[1] === 0xfe) {
+    return buf.toString('utf16le', 2);
+  }
+  return buf.toString('utf8');
+}
+
 export class RunAster {
   private static diagnosticCollection: vscode.DiagnosticCollection | undefined;
   private static logWatcher: vscode.FileSystemWatcher | undefined;
@@ -89,7 +101,10 @@ export class RunAster {
     let simulationTerminal = vscode.window.terminals.find((t) => t.name === 'code-aster runner');
     if (simulationTerminal) {
       simulationTerminal.show();
-      simulationTerminal.sendText(`cd "${fileDir}" && ${cmd}`);
+      // Two lines, not `cd … && cmd`: `&&` is a parse error in Windows
+      // PowerShell 5.1, which broke every run after the first one.
+      simulationTerminal.sendText(`cd "${fileDir}"`);
+      simulationTerminal.sendText(cmd);
     } else {
       simulationTerminal = vscode.window.createTerminal({
         name: 'code-aster runner',
@@ -104,7 +119,7 @@ export class RunAster {
       const exportUri = editor.document.uri;
       const updateDiagnostics = () => {
         try {
-          const logContent = fs.readFileSync(logPath, 'utf-8');
+          const logContent = readLogFile(logPath);
           const diagnosticsMap = parseRunOutput(logContent, exportUri, commFiles);
 
           RunAster.diagnosticCollection!.clear();
