@@ -112,7 +112,7 @@ If you'd like to run simulations, you need to have **cave** installed on your sy
 
 ### 4. (Alternative) Using an existing code_aster install
 
-Docker and cave are only one way to run code_aster. If code_aster is already installed on your machine (native Linux build, Windows installer, cluster module…), tell the extension about it with two settings :
+Docker and cave are only one way to run code_aster. If code_aster is already installed on your machine (native Linux build, Windows installer, cluster module…), run **Locate code_aster install** from the Command Palette (or click the `code_aster version` line of the sidebar's Setup group) and pick your installation folder : the two settings below are filled in from it. You can also set them by hand :
 
 - `vs-code-aster.aliasForRun` — the command used to launch a study, e.g. `run_aster` (or the full path to it). The **Run** button executes `<alias> file.export`.
 - `vs-code-aster.asterCatalogPath` — the `code_aster` Python package of your install, i.e. the directory that contains `Cata/` (typically `<install>/lib/aster/code_aster`). The language server reads completions, signatures and diagnostics from it ; when empty, the catalog bundled with the extension is used.

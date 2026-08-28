@@ -206,15 +206,7 @@ async function stepDocker(context: vscode.ExtensionContext, force?: boolean): Pr
   if (choice === 'Install Docker') {
     void vscode.env.openExternal(vscode.Uri.parse('https://docs.docker.com/get-docker/'));
   } else if (choice === 'I have code_aster') {
-    void vscode.commands.executeCommand(
-      'workbench.action.openSettings',
-      '@ext:simvia.vs-code-aster'
-    );
-    void vscode.window.showInformationMessage(
-      'Set "Alias For Run" to your launch command (e.g. run_aster) and "Aster Catalog Path" to the ' +
-        'code_aster directory of your install (the one containing Cata/). ' +
-        'Docker and cave are then not needed.'
-    );
+    void vscode.commands.executeCommand('vs-code-aster.locateInstall');
   }
   return false;
 }

@@ -95,6 +95,10 @@
         "title": "Run code_aster setup checks"
       },
       {
+        "command": "vs-code-aster.locateInstall",
+        "title": "Locate code_aster install (native, without cave)"
+      },
+      {
         "command": "vs-code-aster.sidebar.refresh",
         "title": "Refresh code_aster panel",
         "icon": "$(refresh)"
@@ -327,7 +331,7 @@
           "order": 1,
           "type": "string",
           "default": "cave run",
-          "markdownDescription": "Specifies the alias used to run code-aster. For example, with alias `cave run` and export file `test.export`, the command will be `cave run test.export`."
+          "markdownDescription": "Command that launches a study. The **Run** button executes `<alias> file.export` in a terminal opened in the `.export` folder. Examples: `cave run` (default: Docker image managed by cave), `run_aster` (native install whose `bin/` is on PATH), `/opt/aster/bin/run_aster` or `D:\\code_aster\\bin\\run_aster.bat` (full path to the launcher). Run **Locate code_aster install** from the Command Palette to fill this automatically from an install folder."
         },
         "vs-code-aster.pythonExecutablePath": {
           "order": 2,
@@ -345,7 +349,7 @@
           "order": 2.5,
           "type": "string",
           "default": "",
-          "markdownDescription": "Optional path to a local `code_aster` directory (must contain a `Cata/` subdirectory) whose catalog should be used by the language server. When empty, the extension auto-detects the cave-selected version and extracts the catalog from the corresponding Docker image; if that fails, it falls back to the bundled catalog."
+          "markdownDescription": "Optional path to the `code_aster` Python package of a local install: the directory that contains `Cata/`, typically `<install>/lib/aster/code_aster` on Linux or `D:\\code_aster\\lib\\aster\\code_aster` on Windows. The language server reads completions, signatures and diagnostics from it. When empty, the extension auto-detects the cave-selected version and extracts the catalog from the corresponding Docker image; if that fails, it falls back to the bundled catalog. Run **Locate code_aster install** from the Command Palette to fill this automatically from an install folder."
         },
         "vs-code-aster.maxRunLogs": {
           "order": 3,

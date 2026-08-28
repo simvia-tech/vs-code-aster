@@ -10,6 +10,7 @@ import { ExportEditor } from './ExportEditor';
 import { ExportFormatter } from './ExportFormatter';
 import { CommFormatter } from './CommFormatter';
 import { runSetupProbes } from './SetupOnboarding';
+import { locateCodeAsterInstall } from './LocateInstall';
 import { registerSidebar } from './SidebarView';
 import { RunAster } from './RunAster';
 import { LspServer } from './LspServer';
@@ -88,6 +89,10 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('vs-code-aster.runSetup', async () => {
       await runSetupProbes(context, { force: true });
+      sidebar.refresh();
+    }),
+    vscode.commands.registerCommand('vs-code-aster.locateInstall', async () => {
+      await locateCodeAsterInstall();
       sidebar.refresh();
     })
   );

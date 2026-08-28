@@ -22,11 +22,7 @@ const SETUP_COMMANDS: Record<SetupAction, vscode.Command> = {
   runSetup: { title: 'Run setup checks', command: 'vs-code-aster.runSetup' },
   installVersion: { title: 'Install version', command: 'vs-code-aster.installCaveVersion' },
   selectVersion: { title: 'Select version', command: 'vs-code-aster.selectCaveVersion' },
-  setCatalogPath: {
-    title: 'Open setting',
-    command: 'workbench.action.openSettings',
-    arguments: ['@id:vs-code-aster.asterCatalogPath'],
-  },
+  setCatalogPath: { title: 'Locate code_aster install', command: 'vs-code-aster.locateInstall' },
   setRunAlias: {
     title: 'Open setting',
     command: 'workbench.action.openSettings',

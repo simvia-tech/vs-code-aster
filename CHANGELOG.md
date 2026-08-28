@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Locate code_aster install** command (also reachable from the sidebar's Setup group and the first-run popup): pick your installation folder and `asterCatalogPath` (the `code_aster` package containing `Cata/`) and `aliasForRun` (`bin/run_aster`) are filled in automatically; the install root, `lib/aster` or the `code_aster` package itself are all accepted.
+
+### Changed
+
+- Settings `aliasForRun` and `asterCatalogPath`: descriptions now explain what the alias is (the command the Run button prefixes to `file.export`) and give Linux and Windows examples.
+
+### Fixed
+
+- **Run on Windows PowerShell**: launching a second study reused the terminal with `cd … && …`, which is a parse error in Windows PowerShell 5.1; the two commands are now sent separately (#43).
+- **Run on Windows PowerShell**: run logs written by `tee` (`Tee-Object`, UTF-16) are now decoded correctly, so run diagnostics appear in the Problems panel as on Linux.
+
 ## [1.13.4] - 2026-08-26
 
 Large and mixed-dimension meshes in the viewer; setup checks that recognise a native code_aster install.

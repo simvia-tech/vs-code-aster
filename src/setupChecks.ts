@@ -108,10 +108,11 @@ export function evaluateSetup(p: SetupInput): SetupRow[] {
     version = {
       label: 'code_aster version',
       status: 'warn',
-      description: 'set asterCatalogPath to your code_aster install',
+      description: 'click to locate your code_aster install',
       tooltip:
-        'Point vs-code-aster.asterCatalogPath at the code_aster directory of your install ' +
-        `(the one containing Cata/). Until then the bundled ${p.bundledVersion ?? '?'} catalog is used.`,
+        'Pick your code_aster installation folder: asterCatalogPath (the directory containing ' +
+        'Cata/) and aliasForRun (bin/run_aster) are filled in from it. Until then the bundled ' +
+        `${p.bundledVersion ?? '?'} catalog is used.`,
       passed: false,
       action: 'setCatalogPath',
     };
