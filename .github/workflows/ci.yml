@@ -28,7 +28,7 @@ jobs:
         run: pip install ruff mypy
 
       - name: Prettier
-        run: npx prettier --check "src/**/*.ts" "webviews/viewer/src/**/*.{ts,svelte}" "webviews/export/**/*.{js,css,html}"
+        run: npx prettier --check "src/**/*.ts" "webviews/{viewer,export,study,validation}/src/**/*.{ts,svelte,css}" "webviews/shared/**/*.{ts,svelte,css}"
 
       - name: ESLint
         run: npx eslint --max-warnings=0 src/ webviews/export/
@@ -44,6 +44,9 @@ jobs:
 
       - name: svelte-check (study)
         run: npx svelte-check --tsconfig webviews/study/tsconfig.json --fail-on-warnings
+
+      - name: svelte-check (validation)
+        run: npx svelte-check --tsconfig webviews/validation/tsconfig.json --fail-on-warnings
 
       - name: Ruff lint
         run: python3 -m ruff check python/lsp/ python/med2obj.py python/mesh_groups.py

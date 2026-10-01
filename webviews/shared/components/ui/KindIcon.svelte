@@ -6,7 +6,10 @@
   import EdgeIcon from '../icons/EdgeIcon.svelte';
   import NodeIcon from '../icons/NodeIcon.svelte';
 
-  let { kind, class: className = 'size-3.5 shrink-0 opacity-80' }: {
+  let {
+    kind,
+    class: className = 'size-3.5 shrink-0 opacity-80',
+  }: {
     kind: string;
     class?: string;
   } = $props();

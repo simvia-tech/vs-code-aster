@@ -101,124 +101,124 @@
 
   {#if report}
     <div class="flex-1 pb-8">
-    <div class="text-sm text-ui-text-secondary mb-1">
-      Command file:
-      <button class="filelink" onclick={() => jump('comm', 0)}>{commName}</button>
-      {#if report.hasExport}
-        · Export: <button class="filelink" onclick={() => jump('export', 0)}>{exportName}</button>
-      {:else}
-        · <span class="text-ui-text-muted">no .export file found — I/O checks skipped</span>
-      {/if}
-    </div>
+      <div class="text-sm text-ui-text-secondary mb-1">
+        Command file:
+        <button class="filelink" onclick={() => jump('comm', 0)}>{commName}</button>
+        {#if report.hasExport}
+          · Export: <button class="filelink" onclick={() => jump('export', 0)}>{exportName}</button>
+        {:else}
+          · <span class="text-ui-text-muted">no .export file found — I/O checks skipped</span>
+        {/if}
+      </div>
 
-    <ul class="legend">
-      {#each GLYPH_LEGEND as item}
-        <li><span class="glyph">{item.glyph}</span> {item.text}</li>
-      {/each}
-    </ul>
+      <ul class="legend">
+        {#each GLYPH_LEGEND as item}
+          <li><span class="glyph">{item.glyph}</span> {item.text}</li>
+        {/each}
+      </ul>
 
-    <h2>
-      Command / concept validity
-      <span class="subtle">hover a column header for what it checks</span>
-    </h2>
-    <div class="overflow-x-auto">
-      <table>
-        <thead>
-          <tr>
-            <th>Concept</th>
-            <th>Command</th>
-            <th class="center" title={CHECK_DOCS.syntactic}>Syntactic</th>
-            <th class="center" title={CHECK_DOCS.dependency}>Dependency</th>
-            <th class="center" title={CHECK_DOCS.naming}>Naming</th>
-            <th class="center" title={CHECK_DOCS.used}>Used</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#if report.commands.length === 0}
-            <tr><td colspan="6" class="empty">No commands found in the command file.</td></tr>
-          {:else}
-            {#each report.commands as row}
-              <!-- Row click is a convenience shortcut; the same jump is fully
-                   keyboard-accessible via the Findings buttons and file links. -->
-              <!-- svelte-ignore a11y_no_noninteractive_element_interactions a11y_no_noninteractive_element_to_interactive_role -->
-              <tr
-                class="jump"
-                role="button"
-                tabindex="0"
-                onclick={() => jump('comm', row.line)}
-                onkeydown={(e) => jumpKey(e, 'comm', row.line)}
-              >
-                <td>
-                  {#if row.concept === '[noname]'}
-                    <span class="text-ui-text-muted">[noname]</span>
-                  {:else}
-                    {row.concept}
-                  {/if}
-                </td>
-                <td class="mono">{row.command}</td>
-                <td class="center" title={CHECK_DOCS.syntactic}>{cell(row.syntactic)}</td>
-                <td class="center" title={CHECK_DOCS.dependency}>{cell(row.dependency)}</td>
-                <td class="center" title={CHECK_DOCS.naming}>{cell(row.naming, true)}</td>
-                <td class="center" title={CHECK_DOCS.used}>{cell(row.used, true)}</td>
-              </tr>
-            {/each}
-          {/if}
-        </tbody>
-      </table>
-    </div>
-
-    <h2>I/O validity <span class="subtle">.comm ↔ .export units</span></h2>
-    {#if report.hasExport}
+      <h2>
+        Command / concept validity
+        <span class="subtle">hover a column header for what it checks</span>
+      </h2>
       <div class="overflow-x-auto">
         <table>
           <thead>
             <tr>
-              <th>Unit</th>
-              <th>Direction</th>
-              <th>File</th>
-              <th>Export type</th>
-              <th>Used in .comm</th>
-              <th class="center">Status</th>
+              <th>Concept</th>
+              <th>Command</th>
+              <th class="center" title={CHECK_DOCS.syntactic}>Syntactic</th>
+              <th class="center" title={CHECK_DOCS.dependency}>Dependency</th>
+              <th class="center" title={CHECK_DOCS.naming}>Naming</th>
+              <th class="center" title={CHECK_DOCS.used}>Used</th>
             </tr>
           </thead>
           <tbody>
-            {#if report.io.length === 0}
-              <tr><td colspan="6" class="empty">No logical units found.</td></tr>
+            {#if report.commands.length === 0}
+              <tr><td colspan="6" class="empty">No commands found in the command file.</td></tr>
             {:else}
-              {#each report.io as r}
-                <tr>
-                  <td class="mono">{r.unit}</td>
-                  <td>{r.direction}</td>
-                  <td class="mono">{r.file}</td>
-                  <td class="mono">{r.exportType}</td>
-                  <td class="mono">{r.usedIn}</td>
-                  <td class="center" title={ioStatusLabel(r.status)}>{ioGlyph(r.status)}</td>
+              {#each report.commands as row}
+                <!-- Row click is a convenience shortcut; the same jump is fully
+                   keyboard-accessible via the Findings buttons and file links. -->
+                <!-- svelte-ignore a11y_no_noninteractive_element_interactions a11y_no_noninteractive_element_to_interactive_role -->
+                <tr
+                  class="jump"
+                  role="button"
+                  tabindex="0"
+                  onclick={() => jump('comm', row.line)}
+                  onkeydown={(e) => jumpKey(e, 'comm', row.line)}
+                >
+                  <td>
+                    {#if row.concept === '[noname]'}
+                      <span class="text-ui-text-muted">[noname]</span>
+                    {:else}
+                      {row.concept}
+                    {/if}
+                  </td>
+                  <td class="mono">{row.command}</td>
+                  <td class="center" title={CHECK_DOCS.syntactic}>{cell(row.syntactic)}</td>
+                  <td class="center" title={CHECK_DOCS.dependency}>{cell(row.dependency)}</td>
+                  <td class="center" title={CHECK_DOCS.naming}>{cell(row.naming, true)}</td>
+                  <td class="center" title={CHECK_DOCS.used}>{cell(row.used, true)}</td>
                 </tr>
               {/each}
             {/if}
           </tbody>
         </table>
       </div>
-    {:else}
-      <p class="text-ui-text-muted">
-        No associated .export file was found, so unit consistency was not checked.
-      </p>
-    {/if}
 
-    {#if report.diagnostics.length > 0}
-      <div bind:this={findingsEl}>
-        <h2>Findings <span class="subtle">click to jump to the source</span></h2>
-        <div class="findings">
-        {#each [...report.diagnostics].sort((a, b) => severityOrder(a.severity) - severityOrder(b.severity) || a.line - b.line) as d}
-          <button class="finding" onclick={() => jump(d.file, d.line)}>
-            <span class="glyph">{severityGlyph(d.severity)}</span>
-            {d.message}
-            <span class="text-ui-text-muted">({d.file})</span>
-          </button>
-        {/each}
+      <h2>I/O validity <span class="subtle">.comm ↔ .export units</span></h2>
+      {#if report.hasExport}
+        <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Unit</th>
+                <th>Direction</th>
+                <th>File</th>
+                <th>Export type</th>
+                <th>Used in .comm</th>
+                <th class="center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#if report.io.length === 0}
+                <tr><td colspan="6" class="empty">No logical units found.</td></tr>
+              {:else}
+                {#each report.io as r}
+                  <tr>
+                    <td class="mono">{r.unit}</td>
+                    <td>{r.direction}</td>
+                    <td class="mono">{r.file}</td>
+                    <td class="mono">{r.exportType}</td>
+                    <td class="mono">{r.usedIn}</td>
+                    <td class="center" title={ioStatusLabel(r.status)}>{ioGlyph(r.status)}</td>
+                  </tr>
+                {/each}
+              {/if}
+            </tbody>
+          </table>
         </div>
-      </div>
-    {/if}
+      {:else}
+        <p class="text-ui-text-muted">
+          No associated .export file was found, so unit consistency was not checked.
+        </p>
+      {/if}
+
+      {#if report.diagnostics.length > 0}
+        <div bind:this={findingsEl}>
+          <h2>Findings <span class="subtle">click to jump to the source</span></h2>
+          <div class="findings">
+            {#each [...report.diagnostics].sort((a, b) => severityOrder(a.severity) - severityOrder(b.severity) || a.line - b.line) as d}
+              <button class="finding" onclick={() => jump(d.file, d.line)}>
+                <span class="glyph">{severityGlyph(d.severity)}</span>
+                {d.message}
+                <span class="text-ui-text-muted">({d.file})</span>
+              </button>
+            {/each}
+          </div>
+        </div>
+      {/if}
     </div>
 
     <SubmitBar

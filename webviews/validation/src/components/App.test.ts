@@ -26,7 +26,14 @@ const REPORT: ValidationReport = {
     },
   ],
   io: [
-    { unit: 20, direction: 'Input', file: 'mesh.med', exportType: 'mmed', usedIn: 'LIRE_MAILLAGE', status: 'ok' },
+    {
+      unit: 20,
+      direction: 'Input',
+      file: 'mesh.med',
+      exportType: 'mmed',
+      usedIn: 'LIRE_MAILLAGE',
+      status: 'ok',
+    },
   ],
   diagnostics: [
     {
