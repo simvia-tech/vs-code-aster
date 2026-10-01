@@ -11,6 +11,17 @@ import { resolve } from 'path';
 //   export — Svelte webview unit/component tests (happy-dom).
 export default defineConfig({
   test: {
+    // Without `include`, Vitest only measures files the tests import, so
+    // untested files would not lower the percentage.
+    coverage: {
+      include: [
+        'src/**/*.ts',
+        'webviews/*/src/**/*.{ts,svelte}',
+        'webviews/shared/**/*.{ts,svelte}',
+      ],
+      exclude: ['**/*.test.ts', '**/*.d.ts'],
+      reporter: ['text-summary', 'html', 'cobertura'],
+    },
     projects: [
       {
         resolve: {

@@ -16,7 +16,18 @@ jobs:
       - name: Install npm dependencies
         run: npm install
       - name: Vitest (unit + webviews)
-        run: npm run test:vitest
+        run: >
+          npx vitest run --coverage
+          --reporter=default --reporter=junit --outputFile.junit=reports/junit-ts.xml
+      - run: cp coverage/cobertura-coverage.xml reports/coverage-ts.xml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reports-ts
+          path: reports/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html-ts
+          path: coverage/
 
   python:
     name: Python (pytest)
@@ -37,7 +48,61 @@ jobs:
       - name: Pytest
         # medcoupling-gated mesh tests auto-skip; CATA loads from the vendored
         # catalog with only numpy installed.
-        run: python -m pytest python/tests -q
+        run: >
+          python -m pytest python/tests -q --cov
+          --cov-report=xml:reports/coverage-python.xml --cov-report=html:coverage-python
+          --junitxml=reports/junit-python.xml
+      # One Python version is enough for the quality metrics.
+      - if: matrix.python == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-python
+          path: reports/
+      - if: matrix.python == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html-python
+          path: coverage-python/
+
+  # Gathers the reports read by the quality dashboard (quality.simvia.internal).
+  # Lint and docs counts never fail the build: ci.yml already enforces the rules.
+  quality-reports:
+    name: Quality reports
+    needs: [unit-web, python]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.15
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install npm dependencies
+        run: |
+          npm install
+          npm install --no-save @microsoft/eslint-formatter-sarif
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: reports-*
+          path: reports/
+          merge-multiple: true
+      - name: Lint and missing docstrings (SARIF)
+        run: |
+          pip install ruff
+          PY="python/lsp python/med2obj.py python/mesh_groups.py"
+          ruff check $PY --exit-zero --output-format sarif -o reports/lint-python.sarif
+          ruff check $PY --select D1 --exit-zero --output-format sarif -o reports/docs-python.sarif
+          npx eslint src/ webviews/export/ -f @microsoft/eslint-formatter-sarif -o reports/lint-ts.sarif || true
+      - name: Duplication
+        run: >
+          npx -y jscpd@4 src webviews/*/src webviews/shared python/lsp
+          python/med2obj.py python/mesh_groups.py
+          --ignore '**/*.test.ts' --reporters json --output reports --silent
+      - uses: actions/upload-artifact@v4
+        with:
+          name: quality-reports
+          path: reports/
 
   integration:
     name: VS Code integration (headless)

@@ -18,6 +18,11 @@ pythonpath = [
 python_files = ["test_*.py"]
 addopts = "-ra"
 
+[tool.coverage.run]
+# Own code only: same scope as the ruff/mypy CI checks, vendored libs excluded.
+source = ["python"]
+omit = ["python/asterstudy/*", "python/bin/*", "python/bundled/*", "python/cmake/*", "python/data/*", "python/google/*", "python/tests/*"]
+
 [tool.mypy]
 python_version = "3.11"
 ignore_missing_imports = true

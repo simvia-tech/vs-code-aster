@@ -24,8 +24,11 @@ jspm_packages/
 
 # TypeScript cache
 *.tsbuildinfo
-# Test coverage
+# Test coverage and quality reports
 coverage/
+coverage-python/
+.coverage
+reports/
 .nyc_output/
 
 # Jest cache
