@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-10-07
+
+Shared meshes for generated studies, optional `.export` comments, and an export form that keeps every line.
+
+### Added
+
+- **New study**: a "Copy mesh into the study folder" option. Unchecked, the mesh is not copied and the `.export` references it from the parent folder (`F mmed ../mesh.med D 20`), so several studies can share one mesh (#47).
+- **`.export` files**: an "Auto comments" checkbox in the export form (backed by the `vs-code-aster.exportAutoComments` setting) turns off the auto-inserted header and section comments; existing ones are removed on the next save or format (#48).
+- **`.export` files**: Toggle Line Comment (`Ctrl+/`) now works, using `#` (#48).
+
+### Fixed
+
+- **Export form**: editing an existing `.export` no longer drops the lines the form had no field for. Other `P` parameters appear in an "Other parameters" section (name/value rows, added and removed like files); `A` lines and your own comments appear in an "Other lines" box at the end. Both are written back on save.
+
 ## [1.13.5] - 2026-08-28
 
 Native code_aster installs: one-click setup and Windows PowerShell run fixes.
