@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.1] - 2026-10-07
+
+Better defaults in the export form.
+
+### Fixed
+
+- **Export form**: `mpi_nbcpu` now defaults to 1, since not every installation uses MPI (#42).
+- **Export form**: a new `mess` file now gets unit 6, the unit code_aster uses for the message file, instead of the next free multiple of 10 (#42).
+- **Packaging**: local coverage reports (`coverage/`, `.coverage`) are no longer included in the `.vsix`.
+
 ## [1.14.0] - 2026-10-07
 
 Shared meshes for generated studies, optional `.export` comments, and an export form that keeps every line.
