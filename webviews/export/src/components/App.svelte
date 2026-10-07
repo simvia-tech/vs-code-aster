@@ -44,7 +44,7 @@
       memory_limit: '1024',
       max_base: '',
       ncpus: '1',
-      mpi_nbcpu: '4',
+      mpi_nbcpu: '1',
       mpi_nbnoeud: '1',
       testlist: '',
       expected_diag: '',

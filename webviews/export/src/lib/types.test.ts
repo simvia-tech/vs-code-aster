@@ -87,6 +87,11 @@ describe('getNextAvailableUnit', () => {
     expect(getNextAvailableUnit('nom', files)).toBe('0');
   });
 
+  it('gives a first mess file unit 6 even when other units are higher', () => {
+    files.push(file('comm', '1'), file('mmed', '20'), file('rmed', '80'));
+    expect(getNextAvailableUnit('mess', files)).toBe('6');
+  });
+
   it('returns the type default when no files exist', () => {
     expect(getNextAvailableUnit('comm', files)).toBe('1');
     expect(getNextAvailableUnit('mmed', files)).toBe('20');

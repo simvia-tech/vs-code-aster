@@ -56,6 +56,11 @@ export const DEFAULT_UNITS: Record<AllowedType, string> = {
 // Multiple files of these types can legitimately share unit 0.
 export const FIXED_ZERO_TYPES: readonly AllowedType[] = ['nom'];
 
+// Types whose default unit is a code_aster convention (the message file must be
+// unit 6 to be retrieved after a run), so a first file of that type always gets
+// its default instead of the next free multiple of 10.
+const CONVENTIONAL_UNIT_TYPES: readonly AllowedType[] = ['mess'];
+
 export function isFixedZeroType(type: string): boolean {
   return (FIXED_ZERO_TYPES as readonly string[]).includes(type);
 }
@@ -128,6 +133,13 @@ export function getNextAvailableUnit(
   }
   const start = Number(defaultUnit);
   const others = files.filter((f) => f.id !== excludeId);
+
+  if (
+    (CONVENTIONAL_UNIT_TYPES as readonly string[]).includes(type) &&
+    !others.some((f) => f.type === type)
+  ) {
+    return defaultUnit;
+  }
 
   const sameTypeAtOrAbove: number[] = [];
   let sameTypePresent = false;

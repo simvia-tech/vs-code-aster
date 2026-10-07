@@ -1,4 +1,7 @@
 .pytest_cache/**
+coverage/**
+coverage-python/**
+.coverage
 CLAUDE.md
 docs/social-posts/**
 media/images/vscode_aster.gif
