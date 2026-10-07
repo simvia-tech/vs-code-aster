@@ -5,6 +5,7 @@ import { StudySpec } from './scenario/spec';
 import { generateComm } from './scenario/generateComm';
 import { generateExport } from './scenario/generateExport';
 import { extractMeshGroups, MeshGroups } from './MeshGroups';
+import { exportAutoComments } from './ExportFormatter';
 
 const EMPTY_GROUPS: MeshGroups = { volumes: [], surfaces: [], edges: [], nodes: [] };
 
@@ -49,7 +50,8 @@ export async function readGroups(medPath: string): Promise<GroupsResult> {
 
 /**
  * Write the generated study into a self-contained `<baseName>/` folder beside
- * the mesh: `<baseName>.comm`, `<baseName>.export`, and a copy of the mesh.
+ * the mesh: `<baseName>.comm`, `<baseName>.export`, and a copy of the mesh
+ * (unless `spec.copyMesh` is false, then the export references `../<mesh>`).
  * Opens the generated `.comm` afterwards. Reused by the wizard and the webview.
  */
 export async function writeStudy(spec: StudySpec, medPath: string): Promise<void> {
@@ -73,9 +75,9 @@ export async function writeStudy(spec: StudySpec, medPath: string): Promise<void
   const meshDest = path.join(outputDir, spec.meshFileName);
 
   fs.writeFileSync(commPath, generateComm(spec), 'utf8');
-  fs.writeFileSync(exportPath, generateExport(spec), 'utf8');
+  fs.writeFileSync(exportPath, generateExport(spec, exportAutoComments()), 'utf8');
   try {
-    if (path.resolve(meshDest) !== path.resolve(medPath)) {
+    if (spec.copyMesh !== false && path.resolve(meshDest) !== path.resolve(medPath)) {
       fs.copyFileSync(medPath, meshDest);
     }
   } catch (err) {

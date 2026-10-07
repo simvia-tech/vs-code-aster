@@ -49,8 +49,10 @@
       testlist: '',
       expected_diag: '',
     },
+    otherParameters: [],
     inputFiles: [],
     outputFiles: [],
+    extraLines: '',
   });
 
   const TESTLIST_CONCURRENCY = ['sequential', 'parallel'] as const;
@@ -112,6 +114,13 @@
   let asterLogoDarkUrl = $state('');
   let mode = $state<'create' | 'edit'>('create');
   let originalName = $state('');
+  // Mirrors the vs-code-aster.exportAutoComments setting.
+  let autoComments = $state(true);
+
+  function setAutoComments(value: boolean) {
+    autoComments = value;
+    vscode?.postMessage({ command: 'setAutoComments', value });
+  }
 
   function isEmptyFile(f: FileDescriptor): boolean {
     return f.type.trim() === '' && f.name.trim() === '';
@@ -135,6 +144,22 @@
         errors[key] = `"${key}" must be a whole number.`;
       }
     }
+
+    (formData.otherParameters ?? []).forEach((p, idx) => {
+      const name = p.name.trim();
+      const value = p.value.trim();
+      if (name === '' && value === '') {
+        return;
+      }
+      const prefix = `Other parameter #${idx + 1}`;
+      if (name === '' || /\s/.test(name)) {
+        errors[`pname-${p.id}`] = `${prefix}: enter a name without spaces.`;
+      } else if (name in formData.parameters) {
+        errors[`pname-${p.id}`] = `${prefix}: "${name}" has its own field above.`;
+      } else if (value === '') {
+        errors[`pvalue-${p.id}`] = `${prefix}: value is required.`;
+      }
+    });
 
     const checkFiles = (files: FileDescriptor[], label: 'Input' | 'Output') => {
       files.forEach((f, idx) => {
@@ -263,6 +288,13 @@
     return { id: newRowId(), type, name: '', unit };
   }
 
+  function addParam() {
+    (formData.otherParameters ??= []).push({ id: newRowId('param'), name: '', value: '' });
+  }
+  function removeParam(id: string) {
+    formData.otherParameters = (formData.otherParameters ?? []).filter((p) => p.id !== id);
+  }
+
   function addInput() {
     formData.inputFiles.push(makeFile());
   }
@@ -309,6 +341,12 @@
       }
       lines.push(`P ${key} ${trimmed}`);
     }
+    for (const p of formData.otherParameters ?? []) {
+      if (p.name.trim() !== '') {
+        lines.push(`P ${p.name.trim()} ${p.value.trim()}`);
+      }
+    }
+    lines.push(...(formData.extraLines ?? '').split('\n').filter((l) => l.trim() !== ''));
     for (const f of formData.inputFiles) {
       if (isEmptyFile(f)) {
         continue;
@@ -325,7 +363,7 @@
       const status = f.type === 'base' ? 'RC' : 'R';
       lines.push(`${head} ${f.type} ${f.name.trim()} ${status} ${f.unit.trim()}`);
     }
-    vscode?.postMessage({ command: 'result', value: lines.join('\n') });
+    vscode?.postMessage({ command: 'result', value: lines.join('\n'), autoComments });
   }
 
   function cancel() {
@@ -409,6 +447,9 @@
         if (typeof message.originalName === 'string') {
           originalName = message.originalName;
         }
+        if (typeof message.autoComments === 'boolean') {
+          autoComments = message.autoComments;
+        }
         break;
       }
       case 'exportFileAlreadyDefined': {
@@ -437,7 +478,15 @@
     parameters: Record<string, string>;
     inputFiles: Array<{ type: string; name: string; unit: string }>;
     outputFiles: Array<{ type: string; name: string; unit: string }>;
+    otherParameters?: Array<{ name: string; value: string }>;
+    extraLines?: string;
   }) {
+    formData.otherParameters = (data.otherParameters ?? []).map((p) => ({
+      id: newRowId('param'),
+      name: p.name,
+      value: p.value,
+    }));
+    formData.extraLines = data.extraLines ?? '';
     if (data.name) {
       formData.name = data.name.replace(/\.export$/i, '');
     }
@@ -610,7 +659,106 @@
       bind:value={formData.parameters.expected_diag}
       error={errorFor['expected_diag']}
     />
+
+    <label class="flex items-center gap-3 text-sm cursor-pointer">
+      <span class="w-40 shrink-0 font-semibold text-ui-text-secondary select-none">
+        Auto comments
+      </span>
+      <span class="flex items-center gap-2">
+        <input
+          id="autoComments"
+          type="checkbox"
+          class="cursor-pointer"
+          checked={autoComments}
+          onchange={(e) => setAutoComments(e.currentTarget.checked)}
+        />
+        <span class="text-ui-text-muted">
+          Header and section comments (saved as a VS Code setting)
+        </span>
+      </span>
+    </label>
   </div>
+
+  <section class="mt-6">
+    <h2 class="text-base font-semibold text-ui-text-primary mb-2">Other parameters</h2>
+    <div class="flex flex-col gap-2">
+      {#each formData.otherParameters ?? [] as p (p.id)}
+        {@const rowErrors = [errorFor[`pname-${p.id}`], errorFor[`pvalue-${p.id}`]].filter(Boolean)}
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2">
+            <input
+              id={`pname-${p.id}`}
+              aria-label="Parameter name"
+              type="text"
+              class="w-48 shrink-0 bg-ui-input-bg border border-ui-input-border rounded-sm px-2 py-1 text-sm text-ui-input-fg focus:border-ui-focus focus:outline-none"
+              class:input-warning={!!errorFor[`pname-${p.id}`]}
+              placeholder="Name"
+              bind:value={p.name}
+            />
+            <input
+              id={`pvalue-${p.id}`}
+              aria-label="Parameter value"
+              type="text"
+              class="flex-1 min-w-0 bg-ui-input-bg border border-ui-input-border rounded-sm px-2 py-1 text-sm text-ui-input-fg focus:border-ui-focus focus:outline-none"
+              class:input-warning={!!errorFor[`pvalue-${p.id}`]}
+              placeholder="Value"
+              bind:value={p.value}
+            />
+            <button
+              type="button"
+              class="shrink-0 w-6 h-6 flex items-center justify-center rounded text-ui-text-muted hover:text-ui-fg hover:bg-ui-elem-hover cursor-pointer"
+              aria-label="Remove parameter"
+              onclick={() => removeParam(p.id)}
+            >
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 10 10"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M2 2 L8 8 M8 2 L2 8" />
+              </svg>
+            </button>
+          </div>
+          {#if rowErrors.length > 0}
+            <ul
+              class="px-1 text-xs flex flex-col gap-0.5"
+              style="color: var(--vscode-inputValidation-errorBorder, #d45858)"
+            >
+              {#each rowErrors as message}
+                <li>{message}</li>
+              {/each}
+            </ul>
+          {/if}
+        </div>
+      {/each}
+    </div>
+    <button
+      id="add-param"
+      type="button"
+      class="w-full mt-3 flex items-center justify-center gap-1.5 py-1.5 rounded border border-dashed border-ui-border text-xs font-medium text-ui-text-secondary hover:text-ui-fg hover:bg-ui-elem hover:border-ui-text-muted cursor-pointer transition-colors"
+      aria-label="Add parameter"
+      onclick={addParam}
+    >
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 12 12"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <path d="M6 1.5 V10.5 M1.5 6 H10.5" />
+      </svg>
+      Add parameter
+    </button>
+  </section>
 
   <FileSection
     title="Input Files"
@@ -639,6 +787,18 @@
     onAutocompleteFocus={handleAutocompleteFocus}
     onRemove={removeFile}
   />
+
+  <div class="mt-6 flex flex-col gap-2">
+    <label for="extraLines" class="text-sm font-semibold text-ui-text-secondary select-none">
+      Other lines
+    </label>
+    <textarea
+      id="extraLines"
+      rows={Math.min(12, Math.max(3, (formData.extraLines ?? '').split('\n').length + 1))}
+      class="w-full bg-ui-input-bg border border-ui-input-border rounded-sm px-2 py-1 text-sm font-mono text-ui-input-fg focus:border-ui-focus focus:outline-none"
+      placeholder="Lines the form has no field for, e.g. A memjeveux 31250.0 or # comments"
+      bind:value={formData.extraLines}></textarea>
+  </div>
 
   {#if allErrors.length > 0}
     <div

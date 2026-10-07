@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { sendTelemetry, TelemetryType } from './telemetry';
-import { formatExportContent } from './ExportFormatter';
+import { exportAutoComments, formatExportContent } from './ExportFormatter';
+import { isAutoMetaComment } from './exportFormat';
 import { STATIC_MED_EXTS } from './MedEditorProvider';
 
 interface ExportDescriptor {
@@ -27,11 +28,21 @@ interface Parameters {
   expected_diag: string;
 }
 
+interface ParamDescriptor {
+  name: string;
+  value: string;
+}
+
 interface FormData {
   name: string;
   parameters: Parameters;
+  /** P lines with no dedicated form field. */
+  otherParameters: ParamDescriptor[];
   inputFiles: FileDescriptor[];
   outputFiles: FileDescriptor[];
+  /** Lines the form has no field for (A lines, user comments, ...), shown as
+   * free text and written back on save. */
+  extraLines: string;
 }
 
 /**
@@ -177,6 +188,7 @@ export class ExportEditor<TResult> implements vscode.Disposable {
       command: 'assets',
       mode: isEditing ? 'edit' : 'create',
       originalName: baseName,
+      autoComments: exportAutoComments(),
       simviaLogoUrl: this.resourceUri('media/images/simvia.svg'),
       simviaLogoDarkUrl: this.resourceUri('media/images/simvia-white.svg'),
       asterLogoUrl: this.resourceUri('media/images/code-aster.svg'),
@@ -186,14 +198,12 @@ export class ExportEditor<TResult> implements vscode.Disposable {
     if (exportData.filename && exportData.content) {
       const formData = this.parseExportFile(exportData);
 
-      const parameters = Object.values(formData.parameters);
-      const inputFiles = Object.values(formData.inputFiles);
-      const outputFiles = Object.values(formData.outputFiles);
-
       if (
-        parameters.some((value) => value !== '') ||
-        inputFiles.length > 0 ||
-        outputFiles.length > 0
+        Object.values(formData.parameters).some((value) => value !== '') ||
+        formData.otherParameters.length > 0 ||
+        formData.inputFiles.length > 0 ||
+        formData.outputFiles.length > 0 ||
+        formData.extraLines !== ''
       ) {
         this.deferredMessages.push({
           command: 'exportFileAlreadyDefined',
@@ -220,7 +230,11 @@ export class ExportEditor<TResult> implements vscode.Disposable {
         const lines = message.value.split('\n');
         const filename = lines[0];
         const rawContent = lines.slice(1).join('\n');
-        const content = formatExportContent(rawContent, path.basename(filename));
+        const content = formatExportContent(
+          rawContent,
+          path.basename(filename),
+          message.autoComments ?? exportAutoComments()
+        );
         const fullPath = path.join(this.destinationFolder, filename);
         fs.mkdirSync(path.dirname(fullPath), { recursive: true });
         fs.writeFileSync(fullPath, content, 'utf8');
@@ -239,6 +253,10 @@ export class ExportEditor<TResult> implements vscode.Disposable {
 
         void this.revealExportFile(fullPath, renamedFrom);
         this.panel.dispose();
+      } else if (message.command === 'setAutoComments') {
+        void vscode.workspace
+          .getConfiguration('vs-code-aster')
+          .update('exportAutoComments', !!message.value, vscode.ConfigurationTarget.Global);
       } else if (message.command === 'autocomplete') {
         const suggestions = this.getMatchingFiles(message.value, message.type);
         if (suggestions.length !== 0) {
@@ -309,14 +327,23 @@ export class ExportEditor<TResult> implements vscode.Disposable {
         testlist: '',
         expected_diag: '',
       },
+      otherParameters: [],
       inputFiles: [],
       outputFiles: [],
+      extraLines: '',
     };
     formData.name = exportDescriptor.filename;
 
     const lines = exportDescriptor.content.split('\n');
 
+    const extra: string[] = [];
     for (const line of lines) {
+      if (line.trim().startsWith('#')) {
+        if (!isAutoMetaComment(line.trim())) {
+          extra.push(line.trim());
+        }
+        continue;
+      }
       const cleanLine = line.split('#')[0].trim();
       if (!cleanLine) {
         continue;
@@ -324,12 +351,15 @@ export class ExportEditor<TResult> implements vscode.Disposable {
 
       const tokens = cleanLine.split(/\s+/);
 
-      if (tokens[0] === 'P' && tokens.length >= 3) {
-        const key = tokens[1];
+      if (tokens[0] === 'P' && tokens.length >= 2) {
+        const [, key] = tokens;
         const value = tokens.slice(2).join(' ');
         if (key in formData.parameters) {
           formData.parameters[key as keyof Parameters] = value;
+        } else {
+          formData.otherParameters.push({ name: key, value });
         }
+        continue;
       }
 
       if ((tokens[0] === 'F' || tokens[0] === 'R') && tokens.length === 5) {
@@ -341,11 +371,16 @@ export class ExportEditor<TResult> implements vscode.Disposable {
         };
         if (ioFlag === 'D' || ioFlag === 'DC') {
           formData.inputFiles.push(fileObj);
+          continue;
         } else if (ioFlag === 'R' || ioFlag === 'RC') {
           formData.outputFiles.push(fileObj);
+          continue;
         }
       }
+
+      extra.push(cleanLine);
     }
+    formData.extraLines = extra.join('\n');
 
     return formData;
   }

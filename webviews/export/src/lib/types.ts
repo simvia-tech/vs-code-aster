@@ -67,6 +67,12 @@ export interface FileDescriptor {
   unit: string;
 }
 
+export interface ParamDescriptor {
+  id: string;
+  name: string;
+  value: string;
+}
+
 export interface Parameters {
   time_limit: string;
   memory_limit: string;
@@ -81,8 +87,12 @@ export interface Parameters {
 export interface FormData {
   name: string;
   parameters: Parameters;
+  /** P lines with no dedicated field, edited as name/value rows. */
+  otherParameters?: ParamDescriptor[];
   inputFiles: FileDescriptor[];
   outputFiles: FileDescriptor[];
+  /** Lines with no form field (A lines, comments). */
+  extraLines?: string;
 }
 
 let rowCounter = 0;

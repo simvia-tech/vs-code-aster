@@ -73,6 +73,7 @@ export interface Draft {
   nmodes: string;
   baseName: string;
   meshFileName: string;
+  copyMesh: boolean;
 }
 
 export function defaultDraft(meshFileName = ''): Draft {
@@ -97,6 +98,7 @@ export function defaultDraft(meshFileName = ''): Draft {
     nmodes: String(STUDY_DEFAULTS.nmodes),
     baseName: STUDY_DEFAULTS.baseName,
     meshFileName,
+    copyMesh: true,
   };
 }
 
@@ -161,6 +163,7 @@ export function draftToSpec(draft: Draft): StudySpec {
     modelization: draft.modelization,
     isStructural,
     meshFileName: draft.meshFileName || 'mesh.med',
+    copyMesh: draft.copyMesh,
     baseName: sanitizeBaseName(draft.baseName),
     material: {
       young: Number(draft.young),

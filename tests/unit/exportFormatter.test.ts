@@ -68,4 +68,13 @@ describe('formatExportContent', () => {
     const twice = formatExportContent(once, 'case.export');
     expect(twice).toBe(once);
   });
+
+  it('drops all auto comments but keeps user comments when autoComments is false', () => {
+    const withAuto = formatExportContent(
+      '# my note\nF comm case.comm D 1\nF mess case.mess R 6',
+      'case.export'
+    );
+    const out = formatExportContent(withAuto, 'case.export', false);
+    expect(out).toBe('# my note\nF comm case.comm D 1\n\nF mess case.mess R 6\n');
+  });
 });

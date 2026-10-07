@@ -9,12 +9,13 @@ import { formatExportContent } from '../exportFormat';
  * `formatExportContent` used by the export editor, so generated and
  * hand-edited files look identical.
  */
-export function generateExport(spec: StudySpec): string {
+export function generateExport(spec: StudySpec, autoComments = true): string {
+  const meshPath = spec.copyMesh === false ? `../${spec.meshFileName}` : spec.meshFileName;
   const raw = [
     `F comm ${spec.baseName}.comm D ${STUDY_UNITS.comm}`,
-    `F mmed ${spec.meshFileName} D ${STUDY_UNITS.mesh}`,
+    `F mmed ${meshPath} D ${STUDY_UNITS.mesh}`,
     `F mess ${spec.baseName}.mess R ${STUDY_UNITS.message}`,
     `F rmed ${spec.baseName}.rmed R ${STUDY_UNITS.result}`,
   ].join('\n');
-  return formatExportContent(raw, `${spec.baseName}.export`);
+  return formatExportContent(raw, `${spec.baseName}.export`, autoComments);
 }

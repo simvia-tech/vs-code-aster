@@ -68,16 +68,17 @@ const AUTO_META_COMMENTS = new Set<string>([
 // line) — the exact string varies per file so we match the shape instead.
 const FILENAME_HEADER_RE = /^#\s*\S+\.export\s*$/i;
 
-function isAutoMetaComment(trimmed: string): boolean {
+export function isAutoMetaComment(trimmed: string): boolean {
   return AUTO_META_COMMENTS.has(trimmed) || FILENAME_HEADER_RE.test(trimmed);
 }
 
 /**
  * Pure formatter: takes raw .export content, returns formatted content.
  * Used by both the DocumentFormattingEditProvider and the save path so they
- * produce identical output.
+ * produce identical output. With `autoComments` false, the header and section
+ * comments are left out (and stripped from files that already have them).
  */
-export function formatExportContent(text: string, filename?: string): string {
+export function formatExportContent(text: string, filename?: string, autoComments = true): string {
   const lines = text.split(/\r?\n/);
   const pEntries: Entry[] = [];
   const fEntries: Entry[] = [];
@@ -124,24 +125,25 @@ export function formatExportContent(text: string, filename?: string): string {
   const renderSection = (entries: Entry[]): string =>
     entries.map((e) => [...e.comments, e.line].join('\n')).join('\n');
 
-  const headerLines: string[] = [];
-  if (filename) {
-    headerLines.push(`# ${filename}`);
+  const sections: string[] = [];
+  if (autoComments) {
+    const headerLines: string[] = [];
+    if (filename) {
+      headerLines.push(`# ${filename}`);
+    }
+    headerLines.push(...STATIC_HEADER_LINES);
+    sections.push(headerLines.join('\n'));
   }
-  headerLines.push(...STATIC_HEADER_LINES);
-  const sections: string[] = [headerLines.join('\n')];
-  if (pEntries.length > 0) {
-    sections.push(`${SECTION_HEADERS.parameters}\n${renderSection(pEntries)}`);
-  }
-  if (dEntries.length > 0) {
-    sections.push(`${SECTION_HEADERS.inputs}\n${renderSection(dEntries)}`);
-  }
-  if (rEntries.length > 0) {
-    sections.push(`${SECTION_HEADERS.outputs}\n${renderSection(rEntries)}`);
-  }
-  if (unknownEntries.length > 0) {
-    sections.push(`${SECTION_HEADERS.unknown}\n${renderSection(unknownEntries)}`);
-  }
+  const pushSection = (header: string, entries: Entry[]) => {
+    if (entries.length > 0) {
+      const body = renderSection(entries);
+      sections.push(autoComments ? `${header}\n${body}` : body);
+    }
+  };
+  pushSection(SECTION_HEADERS.parameters, pEntries);
+  pushSection(SECTION_HEADERS.inputs, dEntries);
+  pushSection(SECTION_HEADERS.outputs, rEntries);
+  pushSection(SECTION_HEADERS.unknown, unknownEntries);
   if (pendingComments.length > 0) {
     sections.push(pendingComments.join('\n'));
   }

@@ -49,6 +49,8 @@
   let meshGroups = $state<MeshGroups>(EMPTY_GROUPS);
   let groupsAvailable = $state(true);
   let initialized = $state(false);
+  // Mirrors the vs-code-aster.exportAutoComments setting (sent in init).
+  let exportAutoComments = $state(true);
 
   let simviaLogoUrl = $state('');
   let simviaLogoDarkUrl = $state('');
@@ -78,7 +80,7 @@
     }
   }
   const commPreview = $derived(safe(() => generateComm(spec)));
-  const exportPreview = $derived(safe(() => generateExport(spec)));
+  const exportPreview = $derived(safe(() => generateExport(spec, exportAutoComments)));
 
   // Prefer the modelization-appropriate element groups; if the mesh has none of
   // that kind, fall back to all element groups so the dropdown still appears
@@ -122,6 +124,7 @@
     groups?: MeshGroups;
     groupsAvailable?: boolean;
     meshFileName?: string;
+    exportAutoComments?: boolean;
     simviaLogoUrl?: string;
     simviaLogoDarkUrl?: string;
     asterLogoUrl?: string;
@@ -140,6 +143,7 @@
         simviaLogoDarkUrl = msg.simviaLogoDarkUrl ?? '';
         asterLogoUrl = msg.asterLogoUrl ?? '';
         asterLogoDarkUrl = msg.asterLogoDarkUrl ?? '';
+        exportAutoComments = msg.exportAutoComments ?? true;
       }
       if (groupsAvailable) {
         pruneSelectionsToMesh();
@@ -514,6 +518,10 @@
               >
             </span>
           </div>
+          <label class="flex items-center justify-between gap-2 text-sm">
+            <span class="text-ui-text-secondary">Copy mesh into the study folder</span>
+            <input type="checkbox" bind:checked={draft.copyMesh} />
+          </label>
         </fieldset>
       </div>
       {#if errors.length > 0}

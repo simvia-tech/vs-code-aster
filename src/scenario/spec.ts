@@ -80,6 +80,9 @@ export interface StudySpec {
   isStructural: boolean;
   /** Mesh file name as referenced by the .export `F mmed` line, e.g. "mesh.med". */
   meshFileName: string;
+  /** False to reference the mesh from the parent folder (`../mesh.med`) instead
+   * of copying it into the study folder, so several studies share one mesh. */
+  copyMesh?: boolean;
   /** Study base name driving <baseName>.comm / .export / .mess / .rmed. */
   baseName: string;
   material: MaterialSpec;

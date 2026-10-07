@@ -4,6 +4,7 @@ import * as path from 'path';
 import { StudySpec } from './scenario/spec';
 import { MeshGroups } from './MeshGroups';
 import { pickMeshFile, readGroups, writeStudy } from './studyFiles';
+import { exportAutoComments } from './ExportFormatter';
 
 interface WebviewMessage {
   command: string;
@@ -64,6 +65,7 @@ export class StudyWebview {
       meshFileName: path.basename(medPath),
       groups,
       groupsAvailable,
+      exportAutoComments: exportAutoComments(),
       simviaLogoUrl: this.resourceUri('media/images/simvia.svg'),
       simviaLogoDarkUrl: this.resourceUri('media/images/simvia-white.svg'),
       asterLogoUrl: this.resourceUri('media/images/code-aster.svg'),

@@ -49,3 +49,11 @@ describe('scenario golden files', () => {
     });
   }
 });
+
+describe('generateExport copyMesh', () => {
+  it('references the shared mesh in the parent folder when copyMesh is false', () => {
+    const spec = loadSpec(path.join(FIXTURES, 'linear-static-3d'));
+    expect(generateExport(spec)).toMatch(/^F mmed mesh\.med D/m);
+    expect(generateExport({ ...spec, copyMesh: false })).toMatch(/^F mmed \.\.\/mesh\.med D/m);
+  });
+});
