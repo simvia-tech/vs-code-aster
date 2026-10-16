@@ -15,12 +15,20 @@ jobs:
           node-version: 22.15
       - name: Install npm dependencies
         run: npm install
+      # Lint findings for the quality dashboard; ci.yml enforces the rules.
+      - name: ESLint (SARIF)
+        run: |
+          npm install --no-save @microsoft/eslint-formatter-sarif
+          mkdir -p reports
+          npx eslint src/ webviews/export/ -f @microsoft/eslint-formatter-sarif -o reports/lint-ts.sarif || true
       - name: Vitest (unit + webviews)
         run: >
           npx vitest run --coverage
           --reporter=default --reporter=junit --outputFile.junit=reports/junit-ts.xml
-      - run: cp coverage/cobertura-coverage.xml reports/coverage-ts.xml
-      - uses: actions/upload-artifact@v4
+      - if: always()
+        run: cp coverage/cobertura-coverage.xml reports/coverage-ts.xml
+      - if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: reports-ts
           path: reports/
@@ -53,7 +61,7 @@ jobs:
           --cov-report=xml:reports/coverage-python.xml --cov-report=html:coverage-python
           --junitxml=reports/junit-python.xml
       # One Python version is enough for the quality metrics.
-      - if: matrix.python == '3.12'
+      - if: always() && matrix.python == '3.12'
         uses: actions/upload-artifact@v4
         with:
           name: reports-python
@@ -64,42 +72,71 @@ jobs:
           name: coverage-html-python
           path: coverage-python/
 
-  # Gathers the reports read by the quality dashboard (quality.simvia.internal).
-  # Lint and docs counts never fail the build: ci.yml already enforces the rules.
+  # Reports read by the quality dashboard (quality.simvia.internal), from the template of
+  # simvia/common-tools/quality (templates/github-actions.yml).
   quality-reports:
     name: Quality reports
     needs: [unit-web, python]
+    if: always() && github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
+    env:
+      PYTHON_PATHS: "python/lsp python/med2obj.py python/mesh_groups.py"
+      JSCPD_PATHS: "src webviews/*/src webviews/shared python/lsp python/med2obj.py python/mesh_groups.py"  # test files excluded in .jscpd.json
+      DOCS_SITE_DIR: ""  # no docs website
+      DOCS_BUILD: ""
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22.15
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install npm dependencies
-        run: |
-          npm install
-          npm install --no-save @microsoft/eslint-formatter-sarif
-      - uses: actions/download-artifact@v4
+          node-version: 22
+      - uses: actions/download-artifact@v7
+        continue-on-error: true  # no test job uploaded reports
         with:
           pattern: reports-*
           path: reports/
           merge-multiple: true
-      - name: Lint and missing docstrings (SARIF)
+      - name: Collect quality reports
+        shell: bash
         run: |
-          pip install ruff
-          PY="python/lsp python/med2obj.py python/mesh_groups.py"
-          ruff check $PY --exit-zero --output-format sarif -o reports/lint-python.sarif
-          ruff check $PY --select D1 --exit-zero --output-format sarif -o reports/docs-python.sarif
-          npx eslint src/ webviews/export/ -f @microsoft/eslint-formatter-sarif -o reports/lint-ts.sarif || true
-      - name: Duplication
-        run: >
-          npx -y jscpd@4 src webviews/*/src webviews/shared python/lsp
-          python/med2obj.py python/mesh_groups.py
-          --ignore '**/*.test.ts' --reporters json --output reports --silent
-      - uses: actions/upload-artifact@v4
+          # Each block is one && chain: a failing tool only leaves its metric at n/a.
+          mkdir -p reports
+          fetch() { curl -sSfL --retry 3 --retry-all-errors "$@"; }
+          # Scanners exit 1 (osv-scanner) or 2 (lychee) when they find something: still a valid report.
+          found_ok() { s=$?; [ $s -eq 0 ] || [ $s -eq "$1" ]; }
+
+          echo "== Vulnerable dependencies (osv-scanner, every lockfile)"
+          fetch -o /tmp/osv-scanner https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_amd64 &&
+            chmod +x /tmp/osv-scanner &&
+            { /tmp/osv-scanner scan source -r --format sarif --output-file reports/vulns-osv.sarif . > /dev/null; found_ok 1; } ||
+            echo "skipped"
+
+          echo "== Duplication (jscpd)"
+          npx -y jscpd@4 $JSCPD_PATHS --gitignore --reporters json --output reports --silent || echo "skipped"
+
+          if [ -n "$PYTHON_PATHS" ]; then
+            echo "== Python lint (ruff) and documented share (interrogate)"
+            fetch https://astral.sh/uv/0.9.5/install.sh | sh > /dev/null &&
+              export PATH="$HOME/.local/bin:$PATH" &&
+              uvx ruff@0.15.6 check $PYTHON_PATHS --exit-zero --output-format sarif -o reports/lint-python.sarif &&
+              uv run -q --no-project --with interrogate==1.7.0 python - $PYTHON_PATHS <<'EOF' || echo "skipped"
+          import json, sys
+          from interrogate import config, coverage
+          conf = config.InterrogateConfig(ignore_private=True, ignore_semiprivate=True, ignore_magic=True, ignore_nested_functions=True)
+          r = coverage.InterrogateCoverage(paths=sys.argv[1:], conf=conf).get_coverage()
+          json.dump({"total": r.total, "missing": r.missing}, open("reports/docs-python.json", "w"))
+          EOF
+          fi
+
+          if [ -n "$DOCS_SITE_DIR" ]; then
+            echo "== Broken links of the docs website (lychee)"
+            { [ -z "$DOCS_BUILD" ] || sh -c "$DOCS_BUILD"; } &&
+              fetch https://github.com/lycheeverse/lychee/releases/download/lychee-v0.24.2/lychee-x86_64-unknown-linux-musl.tar.gz | tar xz -C /tmp &&
+              { /tmp/lychee-x86_64-unknown-linux-musl/lychee --no-progress --exclude-all-private --root-dir "$PWD/$DOCS_SITE_DIR" --fallback-extensions html \
+                  --format json --output reports/links-docs.json "$DOCS_SITE_DIR/**/*.html"; found_ok 2; } ||
+              echo "skipped"
+          fi
+          ls -l reports
+      - uses: actions/upload-artifact@v7
         with:
           name: quality-reports
           path: reports/
