@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.3] - 2026-10-23
+
+Reliability fixes reported by SonarQube and a dev dependency security fix.
+
+### Fixed
+
+- **Diagnostics**: cancelled debounced diagnostic tasks now propagate the cancellation instead of swallowing it.
+- **Sidebar / mesh groups**: command and group names are sorted with `localeCompare` for a consistent alphabetical order.
+- **Status bar**: removed a redundant conditional in the command families tooltip.
+
+### Security
+
+- **Dependencies**: require `pygments>=2.20.0` in the test dependencies (CVE-2022-40896, CVE-2026-4539).
+
 ## [1.14.2] - 2026-10-23
 
 Dependency security fixes.
