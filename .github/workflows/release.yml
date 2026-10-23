@@ -1,0 +1,83 @@
+name: Release
+
+# Publishes a GitHub release when a push to main bumps the version in
+# package.json, once CI has passed. The .vsix is the one CI already built.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Detect a version bump
+        id: version
+        run: |
+          VERSION=$(jq -r .version package.json)
+          PREVIOUS=$(git show HEAD^:package.json | jq -r .version)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [ "$VERSION" != "$PREVIOUS" ] && ! git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract changelog section
+        if: steps.version.outputs.release == 'true'
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          awk -v ver="$VERSION" '
+            /^## \[/ {
+              if (found) exit
+              if (index($0, "## [" ver "]") == 1) { found=1; print; next }
+              next
+            }
+            found { print }
+          ' CHANGELOG.md > release_notes.md
+          if [ ! -s release_notes.md ]; then
+            echo "No CHANGELOG.md entry found for version $VERSION" >&2
+            exit 1
+          fi
+          PREVIOUS_TAG=$(git tag -l 'v*' --sort=-v:refname | head -1)
+          if [ -n "$PREVIOUS_TAG" ]; then
+            printf '\n**Full Changelog**: %s/%s/compare/%s...v%s\n' \
+              "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$PREVIOUS_TAG" "$VERSION" >> release_notes.md
+          fi
+
+      - name: Download the .vsix built by CI
+        if: steps.version.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download "${{ github.event.workflow_run.id }}" -n vsix-package -D dist-vsix
+
+      - name: Create GitHub release
+        if: steps.version.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          # A version like 1.0.0-rc.1 is published as a GitHub pre-release.
+          PRERELEASE=""
+          case "$VERSION" in *-*) PRERELEASE="--prerelease" ;; esac
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --notes-file release_notes.md \
+            --target "${{ github.event.workflow_run.head_sha }}" \
+            $PRERELEASE \
+            dist-vsix/*.vsix
