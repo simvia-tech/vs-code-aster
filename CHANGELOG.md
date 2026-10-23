@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.2] - 2026-10-23
+
+Dependency security fixes.
+
+### Security
+
+- **Dependencies**: updated vulnerable npm packages reported by `npm audit` (shell-quote, vite, postcss, nanoid, js-yaml, source-map-js, fflate, vitest).
+- **Dependencies**: removed the unused `@tailwindcss/cli`, which pulled in a vulnerable `braces` with no patched release.
+
 ## [1.14.1] - 2026-10-07
 
 Better defaults in the export form.
