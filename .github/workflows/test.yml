@@ -170,7 +170,7 @@ jobs:
         run: |
           curl -sSfL https://pkgs.netbird.io/install.sh | sh
           sudo netbird up --setup-key "$NETBIRD_SETUP_KEY" --hostname "gh-vs-code-aster-$GITHUB_RUN_ID"
-          host=$(echo "$SONAR_HOST_URL" | sed 's|https://||; s|/.*||')
+          host=$(echo "$SONAR_HOST_URL" | sed -E 's|^[a-z]+://||; s|[:/].*||')  # without scheme, port or path
           for _ in $(seq 30); do getent hosts "$host" && break; sleep 2; done
           getent hosts "$host"
           # Private CA of the internal services, for the Java scanner.
