@@ -20,7 +20,7 @@ export default defineConfig({
         'webviews/shared/**/*.{ts,svelte}',
       ],
       exclude: ['**/*.test.ts', '**/*.d.ts'],
-      reporter: ['text-summary', 'html', 'cobertura'],
+      reporter: ['text-summary', 'html', 'cobertura', 'lcov'],
     },
     projects: [
       {

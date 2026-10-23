@@ -26,7 +26,9 @@ jobs:
           npx vitest run --coverage
           --reporter=default --reporter=junit --outputFile.junit=reports/junit-ts.xml
       - if: always()
-        run: cp coverage/cobertura-coverage.xml reports/coverage-ts.xml
+        run: |
+          cp coverage/cobertura-coverage.xml reports/coverage-ts.xml
+          cp coverage/lcov.info reports/lcov-ts.info
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -140,6 +142,46 @@ jobs:
         with:
           name: quality-reports
           path: reports/
+
+  # Analysis on the internal SonarQube (sonar.simvia.internal), reached through a NetBird tunnel.
+  # Skipped until the secrets SONAR_TOKEN and NETBIRD_SETUP_KEY and the variable SONAR_HOST_URL exist.
+  sonar:
+    name: SonarQube
+    needs: [quality-reports]
+    if: always() && github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    env:
+      SONAR_ENABLED: ${{ secrets.SONAR_TOKEN != '' && secrets.NETBIRD_SETUP_KEY != '' && vars.SONAR_HOST_URL != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # blame data and new code detection
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: "*reports*"
+          path: reports/
+          merge-multiple: true
+      - name: Join the NetBird network
+        if: env.SONAR_ENABLED == 'true'
+        env:
+          NETBIRD_SETUP_KEY: ${{ secrets.NETBIRD_SETUP_KEY }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+        run: |
+          curl -sSfL https://pkgs.netbird.io/install.sh | sh
+          sudo netbird up --setup-key "$NETBIRD_SETUP_KEY" --hostname "gh-vs-code-aster-$GITHUB_RUN_ID"
+          host=$(echo "$SONAR_HOST_URL" | sed 's|https://||; s|/.*||')
+          for _ in $(seq 30); do getent hosts "$host" && break; sleep 2; done
+          getent hosts "$host"
+          # Private CA of the internal services, for the Java scanner.
+          keytool -importcert -noprompt -alias simvia -file ci/simvia-ca.crt \
+            -keystore "$RUNNER_TEMP/simvia.jks" -storepass changeit
+          echo "SONAR_SCANNER_OPTS=-Djavax.net.ssl.trustStore=$RUNNER_TEMP/simvia.jks -Djavax.net.ssl.trustStorePassword=changeit" >> "$GITHUB_ENV"
+      - uses: SonarSource/sonarqube-scan-action@v5
+        if: env.SONAR_ENABLED == 'true'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 
   integration:
     name: VS Code integration (headless)
