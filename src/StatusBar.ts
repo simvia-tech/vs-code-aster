@@ -88,9 +88,7 @@ export class StatusBar {
     const isEmpty = filled < 3;
     this.statusBarItem.text = isEmpty ? '$(circle-outline)' : '$(symbol-namespace)';
     this.statusBarItem.tooltip = new vscode.MarkdownString(
-      isEmpty
-        ? `**code_aster:** ${filled}/5 command families used.\n\nClick to browse commands.`
-        : `**code_aster:** ${filled}/5 command families used.\n\nClick to browse commands.`
+      `**code_aster:** ${filled}/5 command families used.\n\nClick to browse commands.`
     );
     this.statusBarItem.backgroundColor = isEmpty
       ? new vscode.ThemeColor('statusBarItem.warningBackground')

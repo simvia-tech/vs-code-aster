@@ -120,5 +120,5 @@ export function extractMeshGroups(medFilePath: string): Promise<MeshGroupsResult
 export function allGroupNames(groups: MeshGroups): string[] {
   return [
     ...new Set([...groups.volumes, ...groups.surfaces, ...groups.edges, ...groups.nodes]),
-  ].sort();
+  ].sort((a, b) => a.localeCompare(b));
 }

@@ -52,11 +52,8 @@ def _schedule_diagnostics(ls: LanguageServer, doc_uri: str) -> None:
         prev.cancel()
 
     async def _delayed():
-        try:
-            await asyncio.sleep(_DEBOUNCE_S)
-            _publish_diagnostics(ls, doc_uri)
-        except asyncio.CancelledError:
-            return
+        await asyncio.sleep(_DEBOUNCE_S)
+        _publish_diagnostics(ls, doc_uri)
 
     try:
         _diag_tasks[doc_uri] = asyncio.ensure_future(_delayed())

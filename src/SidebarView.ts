@@ -648,8 +648,8 @@ export class SidebarProvider implements vscode.TreeDataProvider<Item> {
           : inFile.size === 0
             ? `${all.length} total`
             : `${inFile.size} in file · ${all.length} total`;
-      const inFileSorted = [...inFile].sort();
-      const restSorted = all.filter((n) => !inFile.has(n)).sort();
+      const inFileSorted = [...inFile].sort((a, b) => a.localeCompare(b));
+      const restSorted = all.filter((n) => !inFile.has(n)).sort((a, b) => a.localeCompare(b));
       family.children = [
         ...inFileSorted.map((n) => this._commandItem(n, true)),
         ...restSorted.map((n) => this._commandItem(n, false)),
