@@ -3,6 +3,9 @@ name: Tests
 on:
   push:
   pull_request:
+  # Daily run for the quality dashboard: new CVEs appear without any commit.
+  schedule:
+    - cron: "30 1 * * *"
 
 jobs:
   unit-web:
@@ -45,7 +48,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.11", "3.12"]
+        # Scheduled runs only need the Python version the quality reports come from.
+        python: ${{ fromJSON(github.event_name == 'schedule' && '["3.12"]' || '["3.11", "3.12"]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -177,7 +181,7 @@ jobs:
           keytool -importcert -noprompt -alias simvia -file ci/simvia-ca.crt \
             -keystore "$RUNNER_TEMP/simvia.jks" -storepass changeit
           echo "SONAR_SCANNER_OPTS=-Djavax.net.ssl.trustStore=$RUNNER_TEMP/simvia.jks -Djavax.net.ssl.trustStorePassword=changeit" >> "$GITHUB_ENV"
-      - uses: SonarSource/sonarqube-scan-action@v5
+      - uses: SonarSource/sonarqube-scan-action@v8
         if: env.SONAR_ENABLED == 'true'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -185,6 +189,8 @@ jobs:
 
   integration:
     name: VS Code integration (headless)
+    # Not part of the quality reports.
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     # Electron download + xvfb; kept non-blocking until proven stable in CI.
     continue-on-error: true
