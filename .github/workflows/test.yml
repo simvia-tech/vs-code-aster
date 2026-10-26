@@ -134,57 +134,190 @@ jobs:
           EOF
           fi
 
-          if [ -n "$TS_PATHS" ]; then
-            echo "== TypeScript documented share (exported items with a JSDoc comment)"
-            npm install --silent --no-audit --no-fund --prefix /tmp/tsdocs typescript@5.9.3 > /dev/null &&
-              cat > /tmp/ts-docs.cjs <<'TSDOCS' &&
-          const ts = require('typescript')
+          if [ -n "$TS_PATHS$GO_PATHS$RUST_PATHS" ]; then
+            echo "== Documented share of the TypeScript, Go and Rust code (exported items with a doc comment)"
+            cat > /tmp/docs-count.cjs <<'DOCS'
+          // Documented share of a language: how many exported items have a doc comment.
+          // Usage: node docs-count.cjs <ts|go|rust> <output.json> <path>...
+          // Writes {"total": N, "missing": M}, the format of docs-python.json, and prints a summary.
+          // Embedded in templates/github-actions.yml and templates/gitlab-ci.yml (test_docs_count.py
+          // checks they are the same).
           const fs = require('fs')
           const path = require('path')
 
-          // Type declarations, tests, build output and generated code are not API to document.
-          const SKIP =
-            /(^|\/)(node_modules|dist|build|out|coverage|\.next|\.svelte-kit|migrations|tests?|__tests__)(\/|$)|\.(d|test|spec)\.tsx?$|(^|\/)payload-types\.ts$/
+          const [lang, out, ...roots] = process.argv.slice(2)
 
-          function files(p) {
-            if (SKIP.test(p)) return []
+          // Tests, build output, vendored and generated code are not API to document.
+          const SKIP_DIR =
+            /(^|\/)(node_modules|vendor|dist|build|out|target|coverage|\.next|\.svelte-kit|migrations|tests?|__tests__|testdata|benches)(\/|$)/
+          const LANGS = {
+            ts: {
+              files: /\.(tsx?|jsx?|mjs|svelte)$/,
+              skip: /\.(d\.ts|(test|spec|stories)\.[jt]sx?|min\.js)$|\.config\.[mc]?[jt]s$|(^|\/)payload-types\.ts$/,
+            },
+            go: { files: /\.go$/, skip: /(_test|_gen|\.pb)\.go$/ },
+            rust: { files: /\.rs$/, skip: /$^/ },
+          }
+
+          function files(p, l) {
+            if (SKIP_DIR.test(p) || l.skip.test(p)) return []
             const stat = fs.statSync(p, { throwIfNoEntry: false })
             if (!stat) return []
-            if (stat.isDirectory()) return fs.readdirSync(p).flatMap((f) => files(path.join(p, f)))
-            return /\.tsx?$/.test(p) ? [p] : []
+            if (stat.isDirectory()) return fs.readdirSync(p).flatMap((f) => files(path.join(p, f), l))
+            return l.files.test(p) ? [p] : []
           }
 
-          const exported = (n) => ts.getModifiers(n)?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
-          const functionLike = (n) =>
-            n && (ts.isArrowFunction(n) || ts.isFunctionExpression(n) || ts.isClassExpression(n))
-          const documented = (n) =>
-            ts.getJSDocCommentsAndTags(n).some((d) => ts.isJSDoc(d) && (d.comment?.length || d.tags?.length))
+          // TypeScript, JavaScript, JSX/TSX and the scripts of Svelte components, with the TypeScript compiler.
+          function tsCounter() {
+            const ts = require('typescript')
+            const K = ts.SyntaxKind
+            const exportedBy = (n) => ts.getModifiers(n)?.some((m) => m.kind === K.ExportKeyword)
+            const functionLike = (n) => n && (ts.isArrowFunction(n) || ts.isFunctionExpression(n) || ts.isClassExpression(n))
+            // memo(() => ...), forwardRef(function ...): the usual way to write a React component
+            const component = (n) => functionLike(n) || (n && ts.isCallExpression(n) && n.arguments.some(functionLike))
+            const documented = (n) =>
+              ts.getJSDocCommentsAndTags(n).some((d) => ts.isJSDoc(d) && (d.comment?.length || d.tags?.length))
+            const hidden = (m) => ts.getModifiers(m)?.some((x) => x.kind === K.PrivateKeyword || x.kind === K.ProtectedKeyword)
 
-          let total = 0
-          let missing = 0
-          for (const file of process.argv.slice(2).flatMap(files)) {
-            const kind = file.endsWith('x') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
-            const source = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, kind)
-            for (const node of source.statements) {
-              if (!exported(node)) continue
-              let items = 0
-              if (ts.isFunctionDeclaration(node)) items = node.body ? 1 : 0 // overload signatures are not counted
-              else if (ts.isClassDeclaration(node) || ts.isInterfaceDeclaration(node)) items = 1
-              else if (ts.isTypeAliasDeclaration(node) || ts.isEnumDeclaration(node)) items = 1
-              else if (ts.isVariableStatement(node))
-                items = node.declarationList.declarations.filter((d) => functionLike(d.initializer)).length
-              total += items
-              if (!documented(node)) missing += items
+            function code(text, kind) {
+              const source = ts.createSourceFile('x', text, ts.ScriptTarget.Latest, true, kind)
+              const declared = new Map() // top-level name -> {node (where the JSDoc is), class?}
+              const items = new Map() // exported item -> node carrying its JSDoc
+              const reexported = []
+              for (const node of source.statements) {
+                if (
+                  ts.isFunctionDeclaration(node) ||
+                  ts.isClassDeclaration(node) ||
+                  ts.isInterfaceDeclaration(node) ||
+                  ts.isTypeAliasDeclaration(node) ||
+                  ts.isEnumDeclaration(node)
+                ) {
+                  if (ts.isFunctionDeclaration(node) && !node.body) continue // overload signatures
+                  const entry = { node, cls: ts.isClassDeclaration(node) ? node : null }
+                  if (node.name) declared.set(node.name.text, entry)
+                  if (exportedBy(node)) items.set(node, entry)
+                } else if (ts.isVariableStatement(node)) {
+                  for (const d of node.declarationList.declarations) {
+                    if (!ts.isIdentifier(d.name) || !component(d.initializer)) continue
+                    const entry = { node, cls: ts.isClassExpression(d.initializer) ? d.initializer : null }
+                    declared.set(d.name.text, entry)
+                    if (exportedBy(node)) items.set(d, entry)
+                  }
+                } else if (ts.isExportAssignment(node) && ts.isIdentifier(node.expression)) {
+                  reexported.push(node.expression.text) // export default Page
+                } else if (ts.isExportDeclaration(node) && !node.moduleSpecifier && node.exportClause?.elements) {
+                  for (const e of node.exportClause.elements) reexported.push((e.propertyName ?? e.name).text) // export { a, b }
+                }
+              }
+              for (const name of reexported) {
+                const entry = declared.get(name)
+                if (entry && ![...items.values()].includes(entry)) items.set(entry.node, entry)
+              }
+              let total = 0
+              let missing = 0
+              for (const { node, cls } of items.values()) {
+                total += 1
+                if (!documented(node)) missing += 1
+                // public methods of an exported class
+                for (const m of cls?.members ?? []) {
+                  if (!ts.isMethodDeclaration(m) || hidden(m) || /^[_#]/.test(m.name.getText())) continue
+                  total += 1
+                  if (!documented(m)) missing += 1
+                }
+              }
+              return { total, missing }
+            }
+
+            return (file) => {
+              const text = fs.readFileSync(file, 'utf8')
+              if (!file.endsWith('.svelte')) {
+                const kind = /\.tsx$/.test(file)
+                  ? ts.ScriptKind.TSX
+                  : /\.jsx$/.test(file)
+                    ? ts.ScriptKind.JSX
+                    : /\.m?js$/.test(file)
+                      ? ts.ScriptKind.JS
+                      : ts.ScriptKind.TS
+                return code(text, kind)
+              }
+              // A component is one item, documented by a comment opening the file or its script; the
+              // functions it exports from its scripts count like any module.
+              const scripts = [...text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1])
+              const header = /^\s*<!--/.test(text) || scripts.some((s) => /^\s*\/\*\*/.test(s))
+              const sum = { total: 1, missing: header ? 0 : 1 }
+              for (const s of scripts) {
+                const c = code(s, ts.ScriptKind.TS)
+                sum.total += c.total
+                sum.missing += c.missing
+              }
+              return sum
             }
           }
-          if (total) {
-            fs.mkdirSync('reports', { recursive: true })
-            fs.writeFileSync('reports/docs-ts.json', JSON.stringify({ total, missing }))
+
+          // Go: exported funcs, methods of exported types, types, consts and vars, documented by the
+          // comment line right above (gofmt keeps it there).
+          function goCounter() {
+            return (file) => {
+              const text = fs.readFileSync(file, 'utf8')
+              if (/^\/\/ Code generated .* DO NOT EDIT\.$/m.test(text.slice(0, 2000))) return { total: 0, missing: 0 }
+              const lines = text.split('\n')
+              let total = 0
+              let missing = 0
+              lines.forEach((line, i) => {
+                const fn = line.match(/^func\s+(?:\(\s*\w*\s*\*?\s*([A-Za-z_]\w*)[^)]*\)\s*)?([A-Z]\w*)/)
+                const decl = line.match(/^(?:type|const|var)\s+([A-Z]\w*)/)
+                // a method of an unexported type is not part of the package API
+                if (fn ? fn[1] && !/^[A-Z]/.test(fn[1]) : !decl) return
+                total += 1
+                if (!/^\s*\/\//.test(lines[i - 1] ?? '')) missing += 1
+              })
+              return { total, missing }
+            }
           }
-          console.log(`${total - missing} of ${total} exported items documented`)
-          TSDOCS
-              NODE_PATH=/tmp/tsdocs/node_modules node /tmp/ts-docs.cjs $TS_PATHS ||
-              echo "skipped"
+
+          // Rust: `pub` fns, structs, enums, traits, types, consts, statics and modules, documented by ///,
+          // /** */ or #[doc] above (attributes in between are skipped). Not parsed: pub(crate) is not API.
+          function rustCounter() {
+            const item = /^\s*pub\s+(?:(?:async|const|unsafe)\s+|extern\s+"[^"]*"\s+)*(?:fn|struct|enum|trait|type|const|static|union|mod)\s+\w+/
+            return (file) => {
+              const lines = fs.readFileSync(file, 'utf8').split('\n')
+              let total = 0
+              let missing = 0
+              lines.forEach((line, i) => {
+                if (!item.test(line)) return
+                let j = i - 1
+                while (j >= 0 && /^\s*#\[(?!doc)/.test(lines[j])) j -= 1
+                total += 1
+                if (!(j >= 0 && /^\s*(\/\/\/|#\[doc)|\*\/\s*$/.test(lines[j]))) missing += 1
+              })
+              return { total, missing }
+            }
+          }
+
+          const counter = { ts: tsCounter, go: goCounter, rust: rustCounter }[lang]
+          if (!counter || !out || !roots.length) {
+            console.error('usage: node docs-count.cjs <ts|go|rust> <output.json> <path>...')
+            process.exit(2)
+          }
+          const count = counter()
+          let total = 0
+          let missing = 0
+          for (const file of roots.flatMap((r) => files(r, LANGS[lang]))) {
+            const c = count(file)
+            total += c.total
+            missing += c.missing
+          }
+          if (total) {
+            fs.mkdirSync(path.dirname(out), { recursive: true })
+            fs.writeFileSync(out, JSON.stringify({ total, missing }))
+          }
+          console.log(`${lang}: ${total - missing} of ${total} exported items documented`)
+          DOCS
+            { [ -z "$TS_PATHS" ] ||
+                { npm install --silent --no-audit --no-fund --prefix /tmp/tsdocs typescript@5.9.3 > /dev/null &&
+                  NODE_PATH=/tmp/tsdocs/node_modules node /tmp/docs-count.cjs ts reports/docs-ts.json $TS_PATHS; }; } || echo "TypeScript skipped"
+            { [ -z "$GO_PATHS" ] || node /tmp/docs-count.cjs go reports/docs-go.json $GO_PATHS; } || echo "Go skipped"
+            { [ -z "$RUST_PATHS" ] || node /tmp/docs-count.cjs rust reports/docs-rust.json $RUST_PATHS; } || echo "Rust skipped"
           fi
 
           if [ -n "$DOCS_SITE_DIR" ]; then
