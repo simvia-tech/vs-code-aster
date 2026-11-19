@@ -334,24 +334,25 @@ jobs:
           path: reports/
 
   # Coverage for Codacy, which analyses the code itself on every push.
-  # Skipped until the secret CODACY_PROJECT_TOKEN exists (empty on pull requests from forks).
+  # The upload step is skipped without CODACY_PROJECT_TOKEN (pull requests from forks).
   codacy:
     name: Codacy coverage
     needs: [unit-web, python]
     if: always() && github.event_name != 'schedule' && github.repository == 'simvia-tech/vs-code-aster'
     runs-on: ubuntu-latest
+    env:
+      CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-        continue-on-error: true
         with:
           pattern: reports-*
           path: reports/
           merge-multiple: true
-      - uses: codacy/codacy-coverage-reporter-action@v1
-        continue-on-error: true
+      - uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699  # v1.3.0
+        if: env.CODACY_PROJECT_TOKEN != ''
         with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          project-token: ${{ env.CODACY_PROJECT_TOKEN }}
           coverage-reports: reports/coverage-ts.xml,reports/coverage-python.xml
 
   integration:
