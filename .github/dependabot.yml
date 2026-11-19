@@ -1,0 +1,7 @@
+version: 2
+updates:
+  # Keeps the GitHub Actions pinned to a commit up to date: one PR per new release.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
