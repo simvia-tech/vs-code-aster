@@ -382,7 +382,7 @@ jobs:
       - name: Install npm dependencies
         run: npm install
       - name: Cache VS Code download
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .vscode-test
           key: vscode-test-${{ runner.os }}
