@@ -12,7 +12,7 @@ jobs:
     name: TS unit + webview (Vitest)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 22.15
@@ -50,7 +50,7 @@ jobs:
         # Scheduled runs only need the Python version the quality reports come from.
         python: ${{ fromJSON(github.event_name == 'schedule' && '["3.12"]' || '["3.11", "3.12"]') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python }}
@@ -351,7 +351,7 @@ jobs:
     env:
       CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
         with:
           pattern: reports-*
@@ -371,7 +371,7 @@ jobs:
     # Electron download + xvfb; kept non-blocking until proven stable in CI.
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 22.15
