@@ -32,11 +32,11 @@ jobs:
         run: |
           cp coverage/cobertura-coverage.xml reports/coverage-ts.xml
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reports-ts
           path: reports/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: coverage-html-ts
           path: coverage/
@@ -67,12 +67,12 @@ jobs:
           --junitxml=reports/junit-python.xml
       # One Python version is enough for the quality metrics.
       - if: always() && matrix.python == '3.12'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reports-python
           path: reports/
       - if: matrix.python == '3.12'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-html-python
           path: coverage-python/
